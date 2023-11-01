@@ -1,5 +1,6 @@
 package com.example.Fooding.menu.entity;
 
+import com.example.Fooding.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -24,11 +25,16 @@ public class Menu {
     @Column(name = "price")
     private Long price;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
+
     @Builder
-    public Menu(String menuName, String menuContent, Long price, Long store ) {
+    public Menu(String menuName, String menuContent, Long price, Store store ) {
         this.menuName = menuName;
         this.menuContent = menuContent;
         this.price = price;
+        this.store = store;
     }
 
     public void update(String menuName, String menuContent, Long price ) {

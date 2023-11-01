@@ -1,6 +1,7 @@
 package com.example.Fooding.menu.dto;
 
 import com.example.Fooding.menu.entity.Menu;
+import com.example.Fooding.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,12 +13,14 @@ public class RequestMenu {
         private String menuName;
         private String menuContent;
         private Long price;
+        private Long storeId;
 
-        public static Menu toEntity(CreateMenuDto createMenuDto) {
+        public static Menu toEntity(CreateMenuDto createMenuDto, Store store) {
             return Menu.builder()
                     .menuName(createMenuDto.getMenuName())
                     .menuContent(createMenuDto.getMenuContent())
                     .price(createMenuDto.getPrice())
+                    .store(store)
                     .build();
         }
     }

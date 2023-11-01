@@ -1,11 +1,14 @@
 package com.example.Fooding.store.entity;
 
+import com.example.Fooding.menu.entity.Menu;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Table(name = "store")
 @Entity
@@ -58,6 +61,10 @@ public class Store {
     @Column(name = "storeLikeCount")
     private Long storeLikeCount;
 
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Menu> menuList = new ArrayList<>();
+
     @Builder
     public Store(Long ownerId, String storeName, String address, Long longitude, Long latitude,
                  Long openHour, Long closeHour, Long storeNumber, String storeContent) {
@@ -89,6 +96,10 @@ public class Store {
     public void nearlist(Long longitude, Long latitude){
         this.longitude = longitude;
         this.latitude = latitude;
+    }
+
+    public void addMenus(Menu menu) {
+        this.menuList.add(menu);
     }
 
 

@@ -4,9 +4,12 @@ import com.example.Fooding.menu.dto.RequestMenu;
 import com.example.Fooding.menu.dto.ResponseMenu;
 import com.example.Fooding.menu.entity.Menu;
 import com.example.Fooding.menu.repository.MenuRepository;
+import com.example.Fooding.store.entity.Store;
+import com.example.Fooding.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,9 +17,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuRepository menuRepository;
+    private final StoreRepository storeRepository;
     public void createMenu(RequestMenu.CreateMenuDto createMenuDto) {
-        Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto);
+        Store store = storeRepository.findById(createMenuDto.getStoreId()).get();
+        if(store == null) {
+            throw new EntityNotFoundException();
+        }
+        Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto, store);
         menuRepository.save(menu);
+        store.addMenus(menu);
     }
 
     public List<ResponseMenu.GetAllMenuDto> getAllMenu() {
@@ -26,7 +35,7 @@ public class MenuService {
         return list;
     }
 
-    public ResponseMenu.GetMenuDto getMenuDto(Long id) {
+    public ResponseMenu.GetMenuDto getMenu(Long id) {
         Menu menu = menuRepository.findById(id).get();
         return ResponseMenu.GetMenuDto.toDto(menu);
     }

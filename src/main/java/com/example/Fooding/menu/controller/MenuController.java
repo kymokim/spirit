@@ -1,6 +1,7 @@
 package com.example.Fooding.menu.controller;
 
 import com.example.Fooding.common.dto.ResponseDto;
+import com.example.Fooding.menu.dto.ResponseMenu;
 import com.example.Fooding.menu.service.MenuService;
 import com.example.Fooding.menu.dto.RequestMenu;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 @Controller
 @RestController
@@ -29,6 +31,28 @@ public class MenuController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    @GetMapping("/get")
+    public ResponseEntity<ResponseDto> getAllMenu() {
+        List<ResponseMenu.GetAllMenuDto> response = menuService.getAllMenu();
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("success")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<ResponseDto> getMenu(@PathVariable("id") Long id) {
+        ResponseMenu.GetMenuDto response = menuService.getMenu(id);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("success")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @PutMapping("/update")

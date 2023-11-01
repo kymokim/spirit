@@ -13,6 +13,7 @@ public class ResponseMenu {
         private String menuName;
         private String menuContent;
         private Long price;
+        private Long storeId;
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
@@ -20,6 +21,7 @@ public class ResponseMenu {
                     .menuName(menu.getMenuName())
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
+                    .storeId(menu.getStore().getStoreId())
                     .build();
         }
     }
@@ -31,6 +33,7 @@ public class ResponseMenu {
         private String menuName;
         private String menuContent;
         private Long price;
+        private Long storeId;
 
         public static GetAllMenuDto toDto(Menu menu) {
             return GetAllMenuDto.builder()
@@ -38,6 +41,7 @@ public class ResponseMenu {
                     .menuName(menu.getMenuName())
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
+                    .storeId(menu.getStore().getStoreId())
                     .build();
         }
     }

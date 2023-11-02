@@ -15,7 +15,12 @@ public class InterceptorConfig implements WebMvcConfigurer {
     private final AuthInterceptor authInterceptor;
     @Override
     public void addInterceptors(InterceptorRegistry registry){
-        List<String> excludePatterns = Arrays.asList("/api/auth/register","/api/auth/login","/dev","/h2/**","/ws/**","/api/chat/**");//interceptor 제외할 부분
+        List<String> excludePatterns = Arrays.asList(
+                "/api/auth/register","/api/auth/login","/dev","/h2/**","/ws/**","/api/chat/**",
+                "/swagger-ui/**", // 스웨거 UI 예외 처리
+                "/swagger-resources/**", // 스웨거 리소스 예외 처리
+                "/v3/api-docs/**" // 스웨거 API 문서 예외 처리
+        );//interceptor 제외할 부분
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(excludePatterns);

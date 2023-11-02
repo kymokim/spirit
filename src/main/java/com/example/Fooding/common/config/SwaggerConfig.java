@@ -21,7 +21,7 @@ import java.util.List;
 @EnableSwagger2
 public class SwaggerConfig{
 
-//    private static final String REFERENCE = "x-auth-token";
+    private static final String REFERENCE = "x-auth-token";
 
     @Bean
     public Docket api() {
@@ -31,9 +31,9 @@ public class SwaggerConfig{
                 .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build()
-                .apiInfo(apiInfo());
-//                .securityContexts(List.of(securityContext()))
-//                .securitySchemes(List.of(securityScheme()));
+                .apiInfo(apiInfo())
+                .securityContexts(List.of(securityContext()))
+                .securitySchemes(List.of(securityScheme()));
     }
 
     private ApiInfo apiInfo() {
@@ -44,22 +44,22 @@ public class SwaggerConfig{
                 .build();
     }
 
-//    private SecurityContext securityContext() {
-//        return SecurityContext
-//                .builder()
-//                .securityReferences(defaultAuth())
-//                .operationSelector(operationContext -> true)
-//                .build();
-//    }
-//
-//    private List<SecurityReference> defaultAuth() {
-//        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
-//        authorizationScopes[0] = new AuthorizationScope("global", "accessEverything");
-//        return List.of(new SecurityReference(REFERENCE, authorizationScopes));
-//    }
-//
-//    private ApiKey securityScheme() {
-//        String targetHeader = "x-auth-token";// 어떠한 헤더에 값을 대입할 것인가: "x-auth-token 헤더
-//        return new ApiKey(REFERENCE, targetHeader, "header");
-//    }
+    private SecurityContext securityContext() {
+        return SecurityContext
+                .builder()
+                .securityReferences(defaultAuth())
+                .operationSelector(operationContext -> true)
+                .build();
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = new AuthorizationScope("global", "accessEverything");
+        return List.of(new SecurityReference(REFERENCE, authorizationScopes));
+    }
+
+    private ApiKey securityScheme() {
+        String targetHeader = "x-auth-token";// 어떠한 헤더에 값을 대입할 것인가: "x-auth-token 헤더
+        return new ApiKey(REFERENCE, targetHeader, "header");
+    }
 }

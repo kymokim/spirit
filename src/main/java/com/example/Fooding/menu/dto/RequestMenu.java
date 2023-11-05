@@ -28,7 +28,7 @@ public class RequestMenu {
     @Data
     @Builder
     public static class UpdateMenuDto {
-        private Long id;
+        private Long menuId;
         private String menuName;
         private String menuContent;
         private Long price;

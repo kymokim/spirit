@@ -25,20 +25,18 @@ public class MenuController {
     public ResponseEntity<ResponseDto> createMenu(@RequestBody RequestMenu.CreateMenuDto createMenuDto) {
 
         menuService.createMenu(createMenuDto);
-
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu created successfully.")
                 .build();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @GetMapping("/get")
     public ResponseEntity<ResponseDto> getAllMenu() {
-        List<ResponseMenu.GetAllMenuDto> response = menuService.getAllMenu();
 
+        List<ResponseMenu.GetAllMenuDto> response = menuService.getAllMenu();
         ResponseDto responseDto = ResponseDto.builder()
-                .message("success")
+                .message("Menu list retrieved successfully.")
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -46,10 +44,10 @@ public class MenuController {
 
     @GetMapping("/get/{id}")
     public ResponseEntity<ResponseDto> getMenu(@PathVariable("id") Long id) {
-        ResponseMenu.GetMenuDto response = menuService.getMenu(id);
 
+        ResponseMenu.GetMenuDto response = menuService.getMenu(id);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("success")
+                .message("Menu retrieved successfully.")
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -59,11 +57,9 @@ public class MenuController {
     public ResponseEntity<ResponseDto> updateMenu(@RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
 
         menuService.updateMenu(updateMenuDto);
-
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu updated successfully.")
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

@@ -1,6 +1,6 @@
 package com.example.Fooding.auth.dto;
 
-import com.example.Fooding.auth.domain.Auth;
+import com.example.Fooding.auth.entity.Auth;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,12 +21,18 @@ public class ResponseAuth {
     @Builder
     public static class GetUserDto{
         private String email;
-        private String username;
+        private String name;
+        private String nickName;
+        private String ssNumber;
+        private String phoneNumber;
 
         public static GetUserDto toDto(Auth user){
             return GetUserDto.builder()
                     .email(user.getEmail())
-                    .username(user.getUsername())
+                    .name(user.getName())
+                    .nickName(user.getNickName())
+                    .ssNumber(user.getSsNumber())
+                    .phoneNumber(user.getPhoneNumber())
                     .build();
         }
     }

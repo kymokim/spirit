@@ -1,6 +1,6 @@
 package com.example.Fooding.auth.service;
 
-import com.example.Fooding.auth.domain.Auth;
+import com.example.Fooding.auth.entity.Auth;
 import com.example.Fooding.auth.dto.RequestAuth;
 import com.example.Fooding.auth.dto.ResponseAuth;
 import com.example.Fooding.auth.repository.AuthRepository;
@@ -37,7 +37,7 @@ public class AuthService implements AuthServiceInterface {
         if(user != null){
             throw new RegisterFailedException();
         }
-        user = authRepository.findByUsername(registerUserDto.getUsername());
+        user = authRepository.findByNickName(registerUserDto.getNickName());
         if(user != null){
             throw new RegisterFailedException();
         }
@@ -84,7 +84,7 @@ public class AuthService implements AuthServiceInterface {
         Auth originalUser = authRepository.findByEmail(email);
         if(originalUser == null)
             throw new NotFoundUserException();
-        Auth nameUser = authRepository.findByUsername(updateUserDto.getUsername());
+        Auth nameUser = authRepository.findByNickName(updateUserDto.getNickName());
         if(nameUser != null && !originalUser.equals(nameUser))
             throw new RegisterFailedException();
 

@@ -31,7 +31,7 @@ public class AuthController {
         ResponseMessage responseMessage = ResponseMessage.builder()
                 .message("User registered successfully.")
                 .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseMessage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
     }
 
     @PostMapping("/login")

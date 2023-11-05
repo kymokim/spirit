@@ -9,7 +9,7 @@ public class ResponseMenu {
     @Builder
     @Getter
     public static class GetMenuDto {
-        private Long id;
+        private Long menuId;
         private String menuName;
         private String menuContent;
         private Long price;
@@ -17,7 +17,7 @@ public class ResponseMenu {
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
-                    .id(menu.getId())
+                    .menuId(menu.getMenuId())
                     .menuName(menu.getMenuName())
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
@@ -29,7 +29,7 @@ public class ResponseMenu {
     @Builder
     @Getter
     public static class GetAllMenuDto {
-        private Long id;
+        private Long menuId;
         private String menuName;
         private String menuContent;
         private Long price;
@@ -37,7 +37,7 @@ public class ResponseMenu {
 
         public static GetAllMenuDto toDto(Menu menu) {
             return GetAllMenuDto.builder()
-                    .id(menu.getId())
+                    .menuId(menu.getMenuId())
                     .menuName(menu.getMenuName())
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
@@ -49,14 +49,14 @@ public class ResponseMenu {
     @Builder
     @Getter
     public static class storeIdMenuDto {
-        private Long id;
+        private Long menuId;
         private String menuName;
         private String menuContent;
         private Long price;
 
         public static storeIdMenuDto toDto(Menu menu) {
             return storeIdMenuDto.builder()
-                    .id(menu.getId())
+                    .menuId(menu.getMenuId())
                     .menuName(menu.getMenuName())
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())

@@ -25,7 +25,7 @@ public class MenuService {
         }
         Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto, store);
         menuRepository.save(menu);
-        store.addMenus(menu);
+        store.addMenu(menu);
     }
 
     public List<ResponseMenu.GetAllMenuDto> getAllMenu() {

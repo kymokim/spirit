@@ -15,17 +15,15 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @Data
-
-
 public class Store {
 
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long storeId;
 
-    //    @Id @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long userId;
+    @Column(name = "makerId")
+    private Long makerId;
 
-    //    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "ownerId")
     private Long ownerId;
 
     @Column(name = "storeName")
@@ -34,11 +32,14 @@ public class Store {
     @Column(name = "category")
     private String category;
 
-    @Column(name = "totalRate")
-    private Long totalRate;
-
     @Column(name = "address")
     private String address;
+
+    @Column(name = "storeNumber")
+    private String storeNumber;
+
+    @Column(name = "storeContent")
+    private String storeContent;
 
     @Column(name = "longitude")
     private Long longitude;
@@ -52,56 +53,49 @@ public class Store {
     @Column(name = "closeHour")
     private Long closeHour;
 
-    @Column(name = "storeNumber")
-    private Long storeNumber;
+    @Column(name = "totalRate")
+    private Long totalRate = 0L;
 
-    @Column(name = "storeContent")
-    private String storeContent;
+    @Column(name = "reviewCount")
+    private Long reviewCount = 0L;
 
     @Column(name = "storeLikeCount")
-    private Long storeLikeCount;
+    private Long storeLikeCount = 0L;
 
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Menu> menuList = new ArrayList<>();
 
     @Builder
-    public Store(Long ownerId, String storeName, String address, Long longitude, Long latitude,
-                 Long openHour, Long closeHour, Long storeNumber, String storeContent) {
-        this.ownerId = ownerId;
+    public Store(Long makerId, String storeName, String category, String address, String storeNumber, String storeContent,
+                 Long longitude, Long latitude, Long openHour, Long closeHour) {
+        this.makerId = makerId;
         this.storeName = storeName;
+        this.category = category;
         this.address = address;
+        this.storeNumber = storeNumber;
+        this.storeContent = storeContent;
         this.longitude = longitude;
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
-        this.storeNumber = storeNumber;
-        this.storeContent = storeContent;
     }
 
-    public void update(Long storeId, String storeName, String address, Long longitude, Long latitude,
-                       Long openHour, Long closeHour, Long storeNumber, String storeContent) {
-        this.storeId = storeId;
+    public void update(String storeName, String category, String address, String storeNumber, String storeContent,
+                       Long longitude, Long latitude, Long openHour, Long closeHour) {
         this.storeName = storeName;
+        this.category = category;
         this.address = address;
+        this.storeNumber = storeNumber;
+        this.storeContent = storeContent;
         this.longitude = longitude;
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
-        this.storeNumber = storeNumber;
-        this.storeContent = storeContent;
     }
 
-
-    public void nearlist(Long longitude, Long latitude){
-        this.longitude = longitude;
-        this.latitude = latitude;
-    }
-
-    public void addMenus(Menu menu) {
+    public void addMenu(Menu menu) {
         this.menuList.add(menu);
     }
-
-
 
 }

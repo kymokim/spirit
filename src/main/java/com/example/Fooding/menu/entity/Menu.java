@@ -16,14 +16,17 @@ import javax.persistence.*;
 public class Menu {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Long menuId;
 
-    @Column(name = "Name")
+    @Column(name = "menuName")
     private String menuName;
-    @Column(name = "content")
+    @Column(name = "menuContent")
     private String menuContent;
     @Column(name = "price")
     private Long price;
+
+    @Column(name = "menuLikeCount")
+    private Long menuLikeCount = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)

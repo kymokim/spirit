@@ -45,10 +45,10 @@ public class Store {
     private String imgUrl;
 
     @Column(name = "longitude")
-    private Long longitude;
+    private String longitude;
 
     @Column(name = "latitude")
-    private Long latitude;
+    private String latitude;
 
     @Column(name = "openHour")
     private Long openHour;
@@ -71,7 +71,7 @@ public class Store {
 
     @Builder
     public Store(Long makerId, String storeName, String category, String address, String storeNumber, String storeContent,
-                 Long longitude, Long latitude, Long openHour, Long closeHour) {
+                 String longitude, String latitude, Long openHour, Long closeHour) {
         this.makerId = makerId;
         this.storeName = storeName;
         this.category = category;
@@ -85,7 +85,7 @@ public class Store {
     }
 
     public void update(String storeName, String category, String address, String storeNumber, String storeContent,
-                       Long longitude, Long latitude, Long openHour, Long closeHour) {
+                       String longitude, String latitude, Long openHour, Long closeHour) {
         this.storeName = storeName;
         this.category = category;
         this.address = address;

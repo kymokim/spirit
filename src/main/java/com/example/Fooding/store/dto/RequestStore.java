@@ -16,8 +16,8 @@ public class RequestStore {
         private String address;
         private String storeNumber;
         private String storeContent;
-        private Long longitude;
-        private Long latitude;
+        private String longitude;
+        private String latitude;
         private Long openHour;
         private Long closeHour;
 
@@ -46,8 +46,8 @@ public class RequestStore {
         private String address;
         private String storeNumber;
         private String storeContent;
-        private Long longitude;
-        private Long latitude;
+        private String longitude;
+        private String latitude;
         private Long openHour;
         private Long closeHour;
 

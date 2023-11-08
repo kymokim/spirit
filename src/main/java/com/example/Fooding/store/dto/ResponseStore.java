@@ -23,8 +23,8 @@ public class ResponseStore {
         private String storeNumber;
         private String storeContent;
         private String imgUrl;
-        private Long longitude;
-        private Long latitude;
+        private String longitude;
+        private String latitude;
         private Long openHour;
         private Long closeHour;
         private Long totalRate;

@@ -59,4 +59,10 @@ public class RequestStore {
         }
     }
 
+    @Data
+    @Builder
+    public static class UploadImgDto{
+        private Long storeId;
+        private Long decId;
+    }
 }

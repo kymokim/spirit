@@ -26,6 +26,8 @@ public class S3Service {
     private String bucket;
     // S3 업로드
     public String upload(MultipartFile multipartFile, String dirName) throws IOException {
+        System.out.println(multipartFile.getName());
+        System.out.println(multipartFile.getOriginalFilename());
         //S3에 Multipartfile 타입은 전송이 안되므로 file로 타입 전환
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert failed"));

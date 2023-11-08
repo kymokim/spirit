@@ -26,7 +26,7 @@ public class RequestStore {
                     .makerId(makerId)
                     .storeName(createStoreDto.getStoreName())
                     .category(createStoreDto.getCategory())
-                    .address(createStoreDto.getCategory())
+                    .address(createStoreDto.getAddress())
                     .storeNumber(createStoreDto.getStoreNumber())
                     .storeContent(createStoreDto.getStoreContent())
                     .longitude(createStoreDto.getLongitude())

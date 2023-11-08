@@ -22,6 +22,7 @@ public class ResponseStore {
         private String address;
         private String storeNumber;
         private String storeContent;
+        private String imgUrl;
         private Long longitude;
         private Long latitude;
         private Long openHour;
@@ -45,6 +46,7 @@ public class ResponseStore {
                     .address(store.getAddress())
                     .storeNumber(store.getStoreNumber())
                     .storeContent(store.getStoreContent())
+                    .imgUrl(store.getImgUrl())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
@@ -84,6 +86,7 @@ public class ResponseStore {
         private String storeName;
         private String category;
         private String address;
+        private String imgUrl;
         private Long openHour;
         private Long closeHour;
         private Long totalRate;
@@ -96,6 +99,7 @@ public class ResponseStore {
                     .storeName(store.getStoreName())
                     .category(store.getCategory())
                     .address(store.getAddress())
+                    .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
                     .totalRate(store.getTotalRate())

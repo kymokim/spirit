@@ -2,6 +2,7 @@ package com.example.Fooding.store.controller;
 
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
 import com.example.Fooding.common.dto.ResponseDto;
+import com.example.Fooding.common.dto.ResponseMessage;
 import com.example.Fooding.store.dto.RequestStore;
 import com.example.Fooding.store.dto.ResponseStore;
 import com.example.Fooding.store.service.StoreService;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -30,6 +32,17 @@ public class StoreController {
         storeService.createStore(createStoreDto, token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/uploadImg")
+    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "file", required = false) MultipartFile file,
+                                                      @RequestPart(value = "uploadImgDto") RequestStore.UploadImgDto dto){
+        String url = storeService.uploadImg(file, dto.getStoreId());
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image uploaded successfully.")
+                .data(url)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

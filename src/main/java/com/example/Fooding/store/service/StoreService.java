@@ -3,13 +3,16 @@ package com.example.Fooding.store.service;
 import com.example.Fooding.auth.repository.AuthRepository;
 import com.example.Fooding.auth.security.JwtAuthToken;
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
+import com.example.Fooding.common.service.S3Service;
 import com.example.Fooding.store.dto.RequestStore;
 import com.example.Fooding.store.dto.ResponseStore;
 import com.example.Fooding.store.entity.Store;
 import com.example.Fooding.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final AuthRepository authRepository;
+    private final S3Service s3Service;
 
     public void createStore(RequestStore.CreateStoreDto createStoreDto, Optional<String> token) {
 
@@ -32,6 +36,25 @@ public class StoreService {
         Long makerId = authRepository.findByEmail(email).getId();
         Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, makerId);
         storeRepository.save(store);
+    }
+
+    public String uploadImg(MultipartFile file, long storeId){
+        Store store = storeRepository.findById(storeId).get();
+
+//        if (!store.getImgUrl().isEmpty())
+//            s3Service.deleteFile(store.getImgUrl());
+
+        String url = "";
+        try {
+            url = s3Service.upload(file,"store");
+        }
+        catch (IOException e){
+            System.out.println("S3 upload failed.");
+        }
+
+        store.setImgUrl(url);
+        storeRepository.save(store);
+        return url;
     }
 
     public List<ResponseStore.GetAllStoreDto> getAllStore() {

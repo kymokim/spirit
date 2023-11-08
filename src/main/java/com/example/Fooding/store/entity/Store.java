@@ -41,6 +41,9 @@ public class Store {
     @Column(name = "storeContent")
     private String storeContent;
 
+    @Column(name = "imgUrl")
+    private String imgUrl;
+
     @Column(name = "longitude")
     private Long longitude;
 

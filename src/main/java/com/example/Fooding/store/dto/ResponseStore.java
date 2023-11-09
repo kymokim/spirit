@@ -25,8 +25,8 @@ public class ResponseStore {
         private String imgUrl;
         private String longitude;
         private String latitude;
-        private Long openHour;
-        private Long closeHour;
+        private String openHour;
+        private String closeHour;
         private Long totalRate;
         private Long reviewCount;
         private Long storeLikeCount;
@@ -87,8 +87,8 @@ public class ResponseStore {
         private String category;
         private String address;
         private String imgUrl;
-        private Long openHour;
-        private Long closeHour;
+        private String openHour;
+        private String closeHour;
         private Long totalRate;
         private Long reviewCount;
         private Long storeLikeCount;

@@ -51,10 +51,10 @@ public class Store {
     private String latitude;
 
     @Column(name = "openHour")
-    private Long openHour;
+    private String openHour;
 
     @Column(name = "closeHour")
-    private Long closeHour;
+    private String closeHour;
 
     @Column(name = "totalRate")
     private Long totalRate = 0L;
@@ -71,7 +71,7 @@ public class Store {
 
     @Builder
     public Store(Long makerId, String storeName, String category, String address, String storeNumber, String storeContent,
-                 String longitude, String latitude, Long openHour, Long closeHour) {
+                 String longitude, String latitude, String openHour, String closeHour) {
         this.makerId = makerId;
         this.storeName = storeName;
         this.category = category;
@@ -85,7 +85,7 @@ public class Store {
     }
 
     public void update(String storeName, String category, String address, String storeNumber, String storeContent,
-                       String longitude, String latitude, Long openHour, Long closeHour) {
+                       String longitude, String latitude, String openHour, String closeHour) {
         this.storeName = storeName;
         this.category = category;
         this.address = address;

@@ -18,8 +18,8 @@ public class RequestStore {
         private String storeContent;
         private String longitude;
         private String latitude;
-        private Long openHour;
-        private Long closeHour;
+        private String openHour;
+        private String closeHour;
 
         public static Store toEntity(CreateStoreDto createStoreDto, Long makerId) {
             return Store.builder()
@@ -48,8 +48,8 @@ public class RequestStore {
         private String storeContent;
         private String longitude;
         private String latitude;
-        private Long openHour;
-        private Long closeHour;
+        private String openHour;
+        private String closeHour;
 
         public static Store toEntity(Store store, UpdateStoreDto updateStoreDto) {
             store.update(updateStoreDto.getStoreName(), updateStoreDto.getCategory(), updateStoreDto.getAddress(),

@@ -43,9 +43,9 @@ public class ReviewService {
 
     public List<ResponseReview.GetReviewDto> getReviewByStoreId(Store storeId) {
         List<Review> entityList = reviewRepository.findAllByStore(storeId);
-        List<ResponseReview.GetReviewDto> dtolist = new ArrayList<>();
-        entityList.stream().forEach(review -> dtolist.add(ResponseReview.GetReviewDto.toDto(review)));
-        return dtolist;
+        List<ResponseReview.GetReviewDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(review -> dtoList.add(ResponseReview.GetReviewDto.toDto(review)));
+        return dtoList;
     }
 
     public void updateReview(RequestReview.UpdateReviewDto updateReviewDto) {

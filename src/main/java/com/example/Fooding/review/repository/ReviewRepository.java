@@ -8,5 +8,4 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findAllByStore(Store store);
-    //List<Review> findAllByMakerId(Long makerId);
 }

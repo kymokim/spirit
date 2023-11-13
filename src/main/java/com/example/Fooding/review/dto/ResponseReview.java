@@ -12,14 +12,12 @@ public class ResponseReview {
         private Long reviewId;
         private String reviewContent;
         private Long rate;
-        private Long storeId;
 
         public static GetReviewDto toDto(Review review) {
             return GetReviewDto.builder()
                     .reviewId(review.getReviewId())
                     .reviewContent(review.getReviewContent())
                     .rate(review.getRate())
-                    .storeId(review.getStore().getStoreId())
                     .build();
         }
     }

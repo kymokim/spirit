@@ -89,6 +89,8 @@ public class ResponseStore {
         private String imgUrl;
         private String openHour;
         private String closeHour;
+        private String longitude;
+        private String latitude;
         private Long totalRate;
         private Long reviewCount;
         private Long storeLikeCount;
@@ -102,6 +104,8 @@ public class ResponseStore {
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .longitude(store.getLongitude())
+                    .latitude(store.getLatitude())
                     .totalRate(store.getTotalRate())
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())

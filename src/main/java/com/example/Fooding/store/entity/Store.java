@@ -101,4 +101,12 @@ public class Store {
         this.menuList.add(menu);
     }
 
+    public void increaseReviewCnt() {
+        this.reviewCount++;
+    }
+    public void decreaseReviewCnt() {
+        if(this.reviewCount > 0 )
+            this.reviewCount--;
+    }
+
 }

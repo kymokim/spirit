@@ -56,8 +56,9 @@ public class ReviewController {
     }
 
     @DeleteMapping("/delete/{reviewId}")
-    public ResponseEntity<ResponseDto> deleteReview(@PathVariable("reviewId") Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ResponseEntity<ResponseDto> deleteReview(@PathVariable("reviewId") Long reviewId, HttpServletRequest request) {
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        reviewService.deleteReview(reviewId, token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review deleted successfully.")
                 .build();

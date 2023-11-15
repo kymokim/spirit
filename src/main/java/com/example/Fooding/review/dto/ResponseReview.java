@@ -11,7 +11,7 @@ public class ResponseReview {
     public static class GetReviewDto {
         private Long reviewId;
         private String reviewContent;
-        private Long rate;
+        private Double rate;
 
         public static GetReviewDto toDto(Review review) {
             return GetReviewDto.builder()

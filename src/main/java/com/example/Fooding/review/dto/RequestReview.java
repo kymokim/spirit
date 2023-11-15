@@ -12,7 +12,7 @@ public class RequestReview {
     @Builder
     public static class CreateReviewDto {
         private String reviewContent;
-        private Long rate;
+        private Double rate;
         private Long storeId;
 
         public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long makerId) {
@@ -33,7 +33,7 @@ public class RequestReview {
     public static class UpdateReviewDto {
         private Long reviewId;
         private String reviewContent;
-        private Long rate;
+        private Double rate;
 
         public static Review toEntity(Review review, UpdateReviewDto updateReviewDto) {
             review.update(updateReviewDto.getReviewContent(), updateReviewDto.getRate());

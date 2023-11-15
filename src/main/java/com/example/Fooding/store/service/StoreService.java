@@ -60,13 +60,19 @@ public class StoreService {
     public List<ResponseStore.GetAllStoreDto> getAllStore() {
         List<Store> entityList = storeRepository.findAll();
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(store -> dtoList.add(ResponseStore.GetAllStoreDto.toDto(store)));
+        entityList.stream().forEach(store -> {
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
         return dtoList;
     }
 
     public ResponseStore.GetStoreDto getStore(Long id) {
         Store store = storeRepository.findById(id).get();
-        return ResponseStore.GetStoreDto.toDto(store);
+        Double rateAvg = store.getTotalRate() / store.getReviewCount();
+        rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+        return ResponseStore.GetStoreDto.toDto(store, rateAvg);
     }
 
     public void updateStore(RequestStore.UpdateStoreDto updateStoreDto) {

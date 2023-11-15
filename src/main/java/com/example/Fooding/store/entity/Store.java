@@ -57,7 +57,7 @@ public class Store {
     private String closeHour;
 
     @Column(name = "totalRate")
-    private Long totalRate = 0L;
+    private Double totalRate = 0D;
 
     @Column(name = "reviewCount")
     private Long reviewCount = 0L;

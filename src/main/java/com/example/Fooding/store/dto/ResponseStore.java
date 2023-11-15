@@ -27,12 +27,13 @@ public class ResponseStore {
         private String latitude;
         private String openHour;
         private String closeHour;
-        private Long totalRate;
+        private Double totalRate;
         private Long reviewCount;
         private Long storeLikeCount;
+        private Double rateAvg; // 추가
         private List<MenuListDto> menuList;
 
-        public static GetStoreDto toDto(Store store) {
+        public static GetStoreDto toDto(Store store, Double rateAvg) {
 
             List<MenuListDto> menuList = new ArrayList<>();
             if(!store.getMenuList().isEmpty())
@@ -51,7 +52,7 @@ public class ResponseStore {
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
-                    .totalRate(store.getTotalRate())
+                    .rateAvg(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
                     .menuList(menuList)
@@ -91,11 +92,12 @@ public class ResponseStore {
         private String closeHour;
         private String longitude;
         private String latitude;
-        private Long totalRate;
+        private Double totalRate;
         private Long reviewCount;
         private Long storeLikeCount;
+        private Double rateAvg; // 추가
 
-        public static GetAllStoreDto toDto(Store store) {
+        public static GetAllStoreDto toDto(Store store, Double rateAvg) {
             return GetAllStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
@@ -106,7 +108,7 @@ public class ResponseStore {
                     .closeHour(store.getCloseHour())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
-                    .totalRate(store.getTotalRate())
+                    .rateAvg(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
                     .build();

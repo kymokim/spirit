@@ -37,14 +37,15 @@ public class ReviewService {
             throw new EntityNotFoundException();
         }
 
+
         Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, makerId);
         reviewRepository.save(review);
 
+        Double totalRate = store.getTotalRate() + review.getRate();
+        store.setTotalRate(totalRate);
+
         store.increaseReviewCnt();
         storeRepository.save(store);
-
-
-
 
     }
 
@@ -74,6 +75,9 @@ public class ReviewService {
         } else throw new EntityNotFoundException();
         Store store = review.getStore();
         store.decreaseReviewCnt();
+
+        Double totalRate = store.getTotalRate() - review.getRate();
+        store.setTotalRate(totalRate);
         storeRepository.save(store);
 
     }

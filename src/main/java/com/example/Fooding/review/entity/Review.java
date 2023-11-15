@@ -27,21 +27,21 @@ public class Review {
     private String reviewContent;
 
     @Column(name = "rate")
-    private Long rate;
+    private Double rate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @Builder
-    public Review(Long makerId, String reviewContent, Long rate, Store store) {
+    public Review(Long makerId, String reviewContent, Double rate, Store store) {
         this.makerId = makerId;
         this.reviewContent = reviewContent;
         this.rate = rate;
         this.store = store;
     }
 
-    public void update(String reviewContent, Long rate) {
+    public void update(String reviewContent, Double rate) {
         this.reviewContent = reviewContent;
         this.rate = rate;
     }

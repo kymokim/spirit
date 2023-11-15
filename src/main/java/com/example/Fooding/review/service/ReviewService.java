@@ -39,6 +39,13 @@ public class ReviewService {
 
         Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, makerId);
         reviewRepository.save(review);
+
+        store.increaseReviewCnt();
+        storeRepository.save(store);
+
+
+
+
     }
 
     public List<ResponseReview.GetReviewDto> getReviewByStoreId(Store storeId) {
@@ -54,8 +61,20 @@ public class ReviewService {
         reviewRepository.save(updatedReview);
     }
 
-    public void deleteReview(Long reviewId) {
+    public void deleteReview(Long reviewId, Optional<String> token) {
+        String email = null;
+        if(token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long makerId = authRepository.findByEmail(email).getId();
         Review review = reviewRepository.findById(reviewId).get();
-        reviewRepository.delete(review);
+        if(review.getMakerId().equals(makerId)) {
+            reviewRepository.delete(review);
+        } else throw new EntityNotFoundException();
+        Store store = review.getStore();
+        store.decreaseReviewCnt();
+        storeRepository.save(store);
+
     }
 }

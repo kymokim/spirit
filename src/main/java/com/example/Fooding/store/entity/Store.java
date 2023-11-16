@@ -1,6 +1,8 @@
 package com.example.Fooding.store.entity;
 
+import com.example.Fooding.liveReview.entity.LiveReview;
 import com.example.Fooding.menu.entity.Menu;
+import com.example.Fooding.review.entity.Review;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -65,9 +67,14 @@ public class Store {
     @Column(name = "storeLikeCount")
     private Long storeLikeCount = 0L;
 
-
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Menu> menuList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Review> reviewList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<LiveReview> liveReviewList = new ArrayList<>();
 
     @Builder
     public Store(Long makerId, String storeName, String category, String address, String storeNumber, String storeContent,
@@ -101,12 +108,10 @@ public class Store {
         this.menuList.add(menu);
     }
 
-    public void increaseReviewCnt() {
+    public void increaseReviewCount() {
         this.reviewCount++;
     }
-    public void decreaseReviewCnt() {
-        if(this.reviewCount > 0 )
-            this.reviewCount--;
+    public void decreaseReviewCount() {
+        this.reviewCount--;
     }
-
 }

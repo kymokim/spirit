@@ -44,7 +44,7 @@ public class ReviewService {
         Double totalRate = store.getTotalRate() + review.getRate();
         store.setTotalRate(totalRate);
 
-        store.increaseReviewCnt();
+        store.increaseReviewCount();
         storeRepository.save(store);
 
     }
@@ -74,7 +74,10 @@ public class ReviewService {
             reviewRepository.delete(review);
         } else throw new EntityNotFoundException();
         Store store = review.getStore();
-        store.decreaseReviewCnt();
+
+        if (store.getReviewCount() > 0) {
+            store.decreaseReviewCount();
+        } else throw new RuntimeException("Review must be larger than 0.");
 
         Double totalRate = store.getTotalRate() - review.getRate();
         store.setTotalRate(totalRate);

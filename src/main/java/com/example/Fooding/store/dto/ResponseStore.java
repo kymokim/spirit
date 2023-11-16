@@ -27,10 +27,9 @@ public class ResponseStore {
         private String latitude;
         private String openHour;
         private String closeHour;
-        private Double totalRate;
+        private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
-        private Double rateAvg; // 추가
         private List<MenuListDto> menuList;
 
         public static GetStoreDto toDto(Store store, Double rateAvg) {
@@ -52,7 +51,7 @@ public class ResponseStore {
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
-                    .rateAvg(rateAvg)
+                    .storeRate(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
                     .menuList(menuList)
@@ -92,10 +91,9 @@ public class ResponseStore {
         private String closeHour;
         private String longitude;
         private String latitude;
-        private Double totalRate;
+        private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
-        private Double rateAvg; // 추가
 
         public static GetAllStoreDto toDto(Store store, Double rateAvg) {
             return GetAllStoreDto.builder()
@@ -108,7 +106,7 @@ public class ResponseStore {
                     .closeHour(store.getCloseHour())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
-                    .rateAvg(rateAvg)
+                    .storeRate(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
                     .build();

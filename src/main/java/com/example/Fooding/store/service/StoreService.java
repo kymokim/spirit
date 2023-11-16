@@ -33,8 +33,8 @@ public class StoreService {
             JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
             email = jwtAuthToken.getClaims().getSubject();
         }
-        Long makerId = authRepository.findByEmail(email).getId();
-        Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, makerId);
+        Long writerId = authRepository.findByEmail(email).getId();
+        Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, writerId);
         storeRepository.save(store);
     }
 

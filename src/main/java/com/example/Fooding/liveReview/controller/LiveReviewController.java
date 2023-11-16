@@ -45,6 +45,7 @@ public class LiveReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateLiveReview(@RequestBody RequestLiveReview.UpdateLiveReviewDto updateLiveReviewDto) {
         liveReviewService.updateLiveReview(updateLiveReviewDto);
@@ -54,6 +55,7 @@ public class LiveReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @DeleteMapping("/delete/{liveReviewId}")
     public ResponseEntity<ResponseDto> deleteLiveReview(@PathVariable("liveReviewId") Long liveReviewId) {
         liveReviewService.deleteLiveReview(liveReviewId);
@@ -63,4 +65,12 @@ public class LiveReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @DeleteMapping("{/delete/all}")
+    public ResponseEntity<ResponseDto> deleteAllLiveReview() {
+        liveReviewService.deleteAllLiveReview();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("All liveReview deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

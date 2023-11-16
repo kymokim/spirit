@@ -15,7 +15,7 @@ public class ResponseStore {
     @Getter
     @Builder
     public static class GetStoreDto {
-        private Long makerId;
+        private Long writerId;
         private Long ownerId;
         private String storeName;
         private String category;
@@ -39,7 +39,7 @@ public class ResponseStore {
                 store.getMenuList().stream().forEach(menu -> menuList.add(MenuListDto.toDto(menu)));
 
             return GetStoreDto.builder()
-                    .makerId(store.getMakerId())
+                    .writerId(store.getWriterId())
                     .ownerId(store.getOwnerId())
                     .storeName(store.getStoreName())
                     .category(store.getCategory())

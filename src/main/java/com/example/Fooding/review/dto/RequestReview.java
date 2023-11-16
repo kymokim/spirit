@@ -15,9 +15,10 @@ public class RequestReview {
         private Double rate;
         private Long storeId;
 
-        public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long makerId) {
+        public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long writerId, String writerNickName) {
             return Review.builder()
-                    .makerId(makerId)
+                    .writerId(writerId)
+                    .writerNickName(writerNickName)
                     .reviewContent(createReviewDto.getReviewContent())
                     .rate(createReviewDto.getRate())
                     .store(store)

@@ -1,5 +1,6 @@
 package com.example.Fooding.review.service;
 
+import com.example.Fooding.auth.entity.Auth;
 import com.example.Fooding.auth.repository.AuthRepository;
 import com.example.Fooding.auth.security.JwtAuthToken;
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
@@ -31,14 +32,14 @@ public class ReviewService {
             JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
             email = jwtAuthToken.getClaims().getSubject();
         }
-        Long makerId = authRepository.findByEmail(email).getId();
+        Auth writer = authRepository.findByEmail(email);
+
         Store store = storeRepository.findById(createReviewDto.getStoreId()).get();
         if(store == null) {
             throw new EntityNotFoundException();
         }
 
-
-        Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, makerId);
+        Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, writer.getId(), writer.getNickName());
         reviewRepository.save(review);
 
         Double totalRate = store.getTotalRate() + review.getRate();
@@ -68,9 +69,9 @@ public class ReviewService {
             JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
             email = jwtAuthToken.getClaims().getSubject();
         }
-        Long makerId = authRepository.findByEmail(email).getId();
+        Long writerId = authRepository.findByEmail(email).getId();
         Review review = reviewRepository.findById(reviewId).get();
-        if(review.getMakerId().equals(makerId)) {
+        if(review.getWriterId().equals(writerId)) {
             reviewRepository.delete(review);
         } else throw new EntityNotFoundException();
         Store store = review.getStore();

@@ -21,9 +21,9 @@ public class RequestStore {
         private String openHour;
         private String closeHour;
 
-        public static Store toEntity(CreateStoreDto createStoreDto, Long makerId) {
+        public static Store toEntity(CreateStoreDto createStoreDto, Long writerId) {
             return Store.builder()
-                    .makerId(makerId)
+                    .writerId(writerId)
                     .storeName(createStoreDto.getStoreName())
                     .category(createStoreDto.getCategory())
                     .address(createStoreDto.getAddress())

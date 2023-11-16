@@ -22,8 +22,8 @@ public class Store {
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     private Long storeId;
 
-    @Column(name = "makerId")
-    private Long makerId;
+    @Column(name = "writerId")
+    private Long writerId;
 
     @Column(name = "ownerId")
     private Long ownerId;
@@ -77,9 +77,9 @@ public class Store {
     private List<LiveReview> liveReviewList = new ArrayList<>();
 
     @Builder
-    public Store(Long makerId, String storeName, String category, String address, String storeNumber, String storeContent,
+    public Store(Long writerId, String storeName, String category, String address, String storeNumber, String storeContent,
                  String longitude, String latitude, String openHour, String closeHour) {
-        this.makerId = makerId;
+        this.writerId = writerId;
         this.storeName = storeName;
         this.category = category;
         this.address = address;

@@ -19,9 +19,11 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long reviewId;
 
-    @Column(name = "makerId")
-    private Long makerId;
+    @Column(name = "writerId")
+    private Long writerId;
 
+    @Column(name = "writerNickName")
+    private String writerNickName;
 
     @Column(name = "reviewContent")
     private String reviewContent;
@@ -34,8 +36,9 @@ public class Review {
     private Store store;
 
     @Builder
-    public Review(Long makerId, String reviewContent, Double rate, Store store) {
-        this.makerId = makerId;
+    public Review(Long writerId,String writerNickName, String reviewContent, Double rate, Store store) {
+        this.writerNickName = writerNickName;
+        this.writerId = writerId;
         this.reviewContent = reviewContent;
         this.rate = rate;
         this.store = store;

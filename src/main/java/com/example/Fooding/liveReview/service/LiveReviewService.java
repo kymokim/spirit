@@ -31,13 +31,13 @@ public class LiveReviewService {
             JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
             email = jwtAuthToken.getClaims().getSubject();
         }
-        Long makerId = authRepository.findByEmail(email).getId();
+        Long writerId = authRepository.findByEmail(email).getId();
         Store store = storeRepository.findById(createLiveReviewDto.getStoreId()).get();
         if(store == null) {
             throw new EntityNotFoundException();
         }
 
-        LiveReview liveReview = RequestLiveReview.CreateLiveReviewDto.toEntity(createLiveReviewDto, store, makerId);
+        LiveReview liveReview = RequestLiveReview.CreateLiveReviewDto.toEntity(createLiveReviewDto, store, writerId);
         liveReviewRepository.save(liveReview);
     }
 
@@ -48,14 +48,20 @@ public class LiveReviewService {
         return dtoList;
     }
 
+    @Deprecated
     public void updateLiveReview(RequestLiveReview.UpdateLiveReviewDto updateLiveReviewDto) {
         LiveReview originalLiveReview = liveReviewRepository.findById(updateLiveReviewDto.getLiveReviewId()).get();
         LiveReview updatedLiveReview = RequestLiveReview.UpdateLiveReviewDto.toEntity(originalLiveReview, updateLiveReviewDto);
         liveReviewRepository.save(updatedLiveReview);
     }
 
+    @Deprecated
     public void deleteLiveReview(Long liveReviewId) {
         LiveReview liveReview = liveReviewRepository.findById(liveReviewId).get();
         liveReviewRepository.delete(liveReview);
+    }
+
+    public void deleteAllLiveReview(){
+        liveReviewRepository.deleteAll();
     }
 }

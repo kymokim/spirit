@@ -19,9 +19,8 @@ public class LiveReview {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long liveReviewId;
 
-    @Column(name = "makerId")
-    private Long makerId;
-
+    @Column(name = "writerId")
+    private Long writerId;
 
     @Column(name = "liveReviewContent")
     private String liveReviewContent;
@@ -31,8 +30,8 @@ public class LiveReview {
     private Store store;
 
     @Builder
-    public LiveReview(Long makerId, String liveReviewContent, Store store) {
-        this.makerId = makerId;
+    public LiveReview(Long writerId, String liveReviewContent, Store store) {
+        this.writerId = writerId;
         this.liveReviewContent = liveReviewContent;
         this.store = store;
     }

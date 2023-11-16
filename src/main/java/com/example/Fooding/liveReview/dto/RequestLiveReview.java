@@ -14,9 +14,9 @@ public class RequestLiveReview {
         private String liveReviewContent;
         private Long storeId;
 
-        public static LiveReview toEntity(CreateLiveReviewDto createLiveReviewDto, Store store, Long makerId) {
+        public static LiveReview toEntity(CreateLiveReviewDto createLiveReviewDto, Store store, Long writerId) {
             return LiveReview.builder()
-                    .makerId(makerId)
+                    .writerId(writerId)
                     .liveReviewContent(createLiveReviewDto.getLiveReviewContent())
                     .store(store)
                     .build();

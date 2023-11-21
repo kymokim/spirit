@@ -75,6 +75,18 @@ public class StoreService {
         return ResponseStore.GetStoreDto.toDto(store, rateAvg);
     }
 
+    public List<ResponseStore.GetAllStoreDto> getStoreByCategory(String category) {
+        List<Store> entityList = storeRepository.findAllByCategory(category);
+        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(store -> {
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+    }
+
+
     public void updateStore(RequestStore.UpdateStoreDto updateStoreDto) {
         Store originalStore = storeRepository.findById(updateStoreDto.getStoreId()).get();
         Store updatedStore = RequestStore.UpdateStoreDto.toEntity(originalStore, updateStoreDto);

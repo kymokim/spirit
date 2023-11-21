@@ -67,6 +67,17 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+
+    @GetMapping("/getByCategory/{category}")
+    public ResponseEntity<ResponseDto> getStoreByCategory(@PathVariable("category") String category) {
+        List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByCategory(category);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateStore(@RequestBody RequestStore.UpdateStoreDto updateStoreDto){
         storeService.updateStore(updateStoreDto);

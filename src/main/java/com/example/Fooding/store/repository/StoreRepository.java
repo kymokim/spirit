@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface StoreRepository extends JpaRepository<Store, Long> {
     List<Store> findAllByCategory(String category);
-
+    List<Store> findAllByWriterId(Long writerId);
 }

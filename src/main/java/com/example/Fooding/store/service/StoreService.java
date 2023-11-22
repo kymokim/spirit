@@ -4,6 +4,8 @@ import com.example.Fooding.auth.repository.AuthRepository;
 import com.example.Fooding.auth.security.JwtAuthToken;
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
 import com.example.Fooding.common.service.S3Service;
+import com.example.Fooding.review.entity.Review;
+import com.example.Fooding.review.repository.ReviewRepository;
 import com.example.Fooding.store.dto.RequestStore;
 import com.example.Fooding.store.dto.ResponseStore;
 import com.example.Fooding.store.entity.Store;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class StoreService {
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final AuthRepository authRepository;
     private final S3Service s3Service;
+    private final ReviewRepository reviewRepository;
 
     public void createStore(RequestStore.CreateStoreDto createStoreDto, Optional<String> token) {
 
@@ -37,6 +41,7 @@ public class StoreService {
         Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, writerId);
         storeRepository.save(store);
     }
+
 
     public String uploadImg(MultipartFile file, long storeId){
         Store store = storeRepository.findById(storeId).get();
@@ -84,6 +89,44 @@ public class StoreService {
             dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
+    }
+
+    public List<ResponseStore.GetAllStoreDto> getByWriterStore(Optional<String> token) {
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long writerId = authRepository.findByEmail(email).getId();
+        List<Store> entityList = storeRepository.findAllByWriterId(writerId);
+        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(store -> {
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+    }
+
+    public List<ResponseStore.GetAllStoreDto> getByRecentVisitStore(Optional<String> token) {
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long writerId = authRepository.findByEmail(email).getId();
+        List<Review> reviewList = reviewRepository.findAllByWriterId(writerId);
+        List<Store> entityList = reviewList.stream()
+                .map(Review::getStore)
+                .collect(Collectors.toList());
+        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(store -> {
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+
     }
 
 

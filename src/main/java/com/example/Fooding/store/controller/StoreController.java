@@ -69,8 +69,30 @@ public class StoreController {
 
 
     @GetMapping("/getByCategory/{category}")
-    public ResponseEntity<ResponseDto> getStoreByCategory(@PathVariable("category") String category) {
+    public ResponseEntity<ResponseDto> getByCategory(@PathVariable("category") String category) {
         List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByCategory(category);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/getWrittenStore") //최근 방문 가게 리스트 구현하려다 자신이 작성한 가게 리스트 만듬...
+    public ResponseEntity<ResponseDto> getWrittenStore(HttpServletRequest request) {
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        List<ResponseStore.GetAllStoreDto> response = storeService.getByWriterStore(token);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/getRecentStore")
+    public ResponseEntity<ResponseDto> getRecentStore(HttpServletRequest request) {
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        List<ResponseStore.GetAllStoreDto> response = storeService.getByRecentVisitStore(token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(response)

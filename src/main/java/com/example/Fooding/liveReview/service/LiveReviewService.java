@@ -48,14 +48,12 @@ public class LiveReviewService {
         return dtoList;
     }
 
-    @Deprecated
     public void updateLiveReview(RequestLiveReview.UpdateLiveReviewDto updateLiveReviewDto) {
         LiveReview originalLiveReview = liveReviewRepository.findById(updateLiveReviewDto.getLiveReviewId()).get();
         LiveReview updatedLiveReview = RequestLiveReview.UpdateLiveReviewDto.toEntity(originalLiveReview, updateLiveReviewDto);
         liveReviewRepository.save(updatedLiveReview);
     }
 
-    @Deprecated
     public void deleteLiveReview(Long liveReviewId) {
         LiveReview liveReview = liveReviewRepository.findById(liveReviewId).get();
         liveReviewRepository.delete(liveReview);

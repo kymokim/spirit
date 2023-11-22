@@ -59,13 +59,13 @@ public class Store {
     private String closeHour;
 
     @Column(name = "totalRate")
-    private Double totalRate = 0D;
+    private Double totalRate = (Double) 0D;
 
     @Column(name = "reviewCount")
-    private Long reviewCount = 0L;
+    private Long reviewCount = (Long) 0L;
 
     @Column(name = "storeLikeCount")
-    private Long storeLikeCount = 0L;
+    private Long storeLikeCount = (Long) 0L;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Menu> menuList = new ArrayList<>();

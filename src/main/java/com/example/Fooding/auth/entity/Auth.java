@@ -2,6 +2,7 @@ package com.example.Fooding.auth.entity;
 
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,9 +13,10 @@ import javax.persistence.*;
 @Entity
 @Getter
 @NoArgsConstructor
+@Data
 public class Auth {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(name="email")

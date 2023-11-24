@@ -41,10 +41,17 @@ dependencies {
 	//Swagger
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 
+	//database
+	implementation 'org.mariadb.jdbc:mariadb-java-client:3.3.0'
+	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.0'
+
+	//h2
+//	runtimeOnly 'com.h2database:h2'
+
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	runtimeOnly 'com.h2database:h2'
+
 }
 
 tasks.named('test') {

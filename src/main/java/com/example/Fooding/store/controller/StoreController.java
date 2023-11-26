@@ -47,6 +47,26 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping("/like/{storeId}")
+    public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId, HttpServletRequest request){
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        storeService.likeStore(storeId, token);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store liked successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/unlike/{storeId}")
+    public ResponseEntity<ResponseDto> unlikeStore(@PathVariable("storeId") Long storeId, HttpServletRequest request){
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        storeService.unlikeStore(storeId, token);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store unliked successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping("/get")
     public ResponseEntity<ResponseDto> getAllStore() {
         List<ResponseStore.GetAllStoreDto> response = storeService.getAllStore();
@@ -57,9 +77,9 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<ResponseDto> getStore(@PathVariable("id") Long id) {
-        ResponseStore.GetStoreDto response = storeService.getStore(id);
+    @GetMapping("/get/{storeId}")
+    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId) {
+        ResponseStore.GetStoreDto response = storeService.getStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
                 .data(response)

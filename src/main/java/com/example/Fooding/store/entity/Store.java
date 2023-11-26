@@ -114,4 +114,6 @@ public class Store {
     public void decreaseReviewCount() {
         this.reviewCount--;
     }
+    public void increaseStoreLikeCount(){ this. storeLikeCount++; }
+    public void decreaseStoreLikeCount(){ this. storeLikeCount--; }
 }

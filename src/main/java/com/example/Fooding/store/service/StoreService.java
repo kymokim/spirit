@@ -8,7 +8,9 @@ import com.example.Fooding.review.entity.Review;
 import com.example.Fooding.review.repository.ReviewRepository;
 import com.example.Fooding.store.dto.RequestStore;
 import com.example.Fooding.store.dto.ResponseStore;
+import com.example.Fooding.store.entity.LikedStore;
 import com.example.Fooding.store.entity.Store;
+import com.example.Fooding.store.repository.LikedStoreRepository;
 import com.example.Fooding.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 
 public class StoreService {
     private final StoreRepository storeRepository;
+    private final LikedStoreRepository likedStoreRepository;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final AuthRepository authRepository;
     private final S3Service s3Service;
@@ -60,6 +63,37 @@ public class StoreService {
         store.setImgUrl(url);
         storeRepository.save(store);
         return url;
+    }
+
+    public void likeStore(Long storeId, Optional<String> token){
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long userId = authRepository.findByEmail(email).getId();
+        LikedStore likedStore = LikedStore.builder()
+                .storeId(storeId)
+                .userId(userId)
+                .build();
+        likedStoreRepository.save(likedStore);
+        Store store = storeRepository.findById(storeId).get();
+        store.increaseStoreLikeCount();
+        storeRepository.save(store);
+    }
+
+    public void unlikeStore(Long storeId, Optional<String> token){
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long userId = authRepository.findByEmail(email).getId();
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
+        likedStoreRepository.delete(likedStore);
+        Store store = storeRepository.findById(storeId).get();
+        store.decreaseStoreLikeCount();
+        storeRepository.save(store);
     }
 
     public List<ResponseStore.GetAllStoreDto> getAllStore() {

@@ -2,6 +2,7 @@ package com.example.Fooding.auth.entity;
 
 
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import javax.persistence.*;
 @Entity
 @Getter
 @NoArgsConstructor
+@Data
 public class Auth {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -38,8 +40,11 @@ public class Auth {
     @Column(name="salt")
     private String salt;
 
+    @Column(name = "userImg")
+    private String userImg;
+
     @Builder
-    public Auth(String email, String password, String name, String nickName, String ssNumber, String phoneNumber, String salt){
+    public Auth(String email, String password, String name, String nickName, String ssNumber, String phoneNumber, String salt, String userImg){
         this.email = email;
         this.password = password;
         this.name = name;
@@ -47,7 +52,7 @@ public class Auth {
         this.ssNumber = ssNumber;
         this.phoneNumber = phoneNumber;
         this.salt = salt;
-
+        this.userImg = userImg;
     }
 
     public void update(String password, String name, String nickName, String ssNumber, String phoneNumber, String salt) {

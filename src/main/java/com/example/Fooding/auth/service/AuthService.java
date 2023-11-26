@@ -11,10 +11,14 @@ import com.example.Fooding.auth.util.SHA256Util;
 import com.example.Fooding.common.exception.error.LoginFailedException;
 import com.example.Fooding.common.exception.error.NotFoundUserException;
 import com.example.Fooding.common.exception.error.RegisterFailedException;
+import com.example.Fooding.common.service.S3Service;
+import com.example.Fooding.store.entity.Store;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -26,8 +30,7 @@ public class AuthService implements AuthServiceInterface {
 
     private final AuthRepository authRepository;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
-
-    //private final S3Service s3Service; // aws
+    private final S3Service s3Service;
 
     @Transactional
     @Override
@@ -62,6 +65,28 @@ public class AuthService implements AuthServiceInterface {
 
         String accessToken = createAccessToken(user.getEmail());
         return Optional.ofNullable(ResponseAuth.LoginUserRsDto.toDto(accessToken));
+    }
+
+    @Override
+    @Transactional
+    public String uploadImg(MultipartFile file, Optional<String> token) {
+        String email = null;
+        if(token.isPresent()){
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Auth user = authRepository.findByEmail(email);
+        String url = "";
+        try {
+            url = s3Service.upload(file,"user");
+        }
+        catch (IOException e){
+            System.out.println("S3 upload failed.");
+        }
+
+        user.setUserImg(url);
+        authRepository.save(user);
+        return url;
     }
 
     @Override

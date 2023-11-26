@@ -25,6 +25,7 @@ public class ResponseAuth {
         private String nickName;
         private String ssNumber;
         private String phoneNumber;
+        private String userImg;
 
         public static GetUserDto toDto(Auth user){
             return GetUserDto.builder()
@@ -33,6 +34,7 @@ public class ResponseAuth {
                     .nickName(user.getNickName())
                     .ssNumber(user.getSsNumber())
                     .phoneNumber(user.getPhoneNumber())
+                    .userImg(user.getUserImg())
                     .build();
         }
     }

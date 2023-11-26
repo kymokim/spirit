@@ -4,12 +4,15 @@ import com.example.Fooding.auth.dto.RequestAuth;
 import com.example.Fooding.auth.dto.ResponseAuth;
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
 import com.example.Fooding.auth.service.AuthService;
+import com.example.Fooding.common.dto.ResponseDto;
 import com.example.Fooding.common.dto.ResponseMessage;
 import com.example.Fooding.common.exception.error.LoginFailedException;
+import com.example.Fooding.store.dto.RequestStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -42,6 +45,17 @@ public class AuthController {
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+    }
+
+    @PostMapping("/uploadImg")
+    public ResponseEntity<ResponseDto> uploadUserImg(@RequestPart(value = "file", required = false) MultipartFile file, HttpServletRequest request){
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        String url = authService.uploadImg(file, token);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image uploaded successfully.")
+                .data(url)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @PutMapping("/update")

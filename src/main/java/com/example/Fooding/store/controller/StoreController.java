@@ -78,8 +78,9 @@ public class StoreController {
     }
 
     @GetMapping("/get/{storeId}")
-    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId) {
-        ResponseStore.GetStoreDto response = storeService.getStore(storeId);
+    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId, HttpServletRequest request) {
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
                 .data(response)
@@ -93,6 +94,17 @@ public class StoreController {
         List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByCategory(category);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/getLikedStore")
+    public ResponseEntity<ResponseDto> getLikedStore(HttpServletRequest request){
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        List<ResponseStore.GetLikedStoreDto> response = storeService.getLikedStore(token);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Liked store list retrieved successfully.")
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

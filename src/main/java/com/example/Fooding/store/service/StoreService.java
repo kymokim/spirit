@@ -107,11 +107,40 @@ public class StoreService {
         return dtoList;
     }
 
-    public ResponseStore.GetStoreDto getStore(Long id) {
-        Store store = storeRepository.findById(id).get();
+    public List<ResponseStore.GetLikedStoreDto> getLikedStore(Optional<String> token){
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long userId = authRepository.findByEmail(email).getId();
+        List<LikedStore> entityList = likedStoreRepository.findAllByUserId(userId);
+        List<ResponseStore.GetLikedStoreDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(likedStore -> {
+            Store store = storeRepository.findById(likedStore.getStoreId()).get();
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetLikedStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+    }
+
+    public ResponseStore.GetStoreDto getStore(Long storeId, Optional<String> token) {
+        Store store = storeRepository.findById(storeId).get();
         Double rateAvg = store.getTotalRate() / store.getReviewCount();
         rateAvg = Math.round(rateAvg * 100.0) / 100.0;
-        return ResponseStore.GetStoreDto.toDto(store, rateAvg);
+
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+        Long userId = authRepository.findByEmail(email).getId();
+        boolean isStoreLiked = false;
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
+        if (likedStore != null)
+            isStoreLiked = true;
+        return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked);
     }
 
     public List<ResponseStore.GetAllStoreDto> getStoreByCategory(String category) {

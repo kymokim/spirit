@@ -30,9 +30,10 @@ public class ResponseStore {
         private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
+        private Boolean isStoreLiked;
         private List<MenuListDto> menuList;
 
-        public static GetStoreDto toDto(Store store, Double rateAvg) {
+        public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked) {
 
             List<MenuListDto> menuList = new ArrayList<>();
             if(!store.getMenuList().isEmpty())
@@ -54,6 +55,7 @@ public class ResponseStore {
                     .storeRate(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
+                    .isStoreLiked(isStoreLiked)
                     .menuList(menuList)
                     .build();
         }
@@ -97,6 +99,40 @@ public class ResponseStore {
 
         public static GetAllStoreDto toDto(Store store, Double rateAvg) {
             return GetAllStoreDto.builder()
+                    .storeId(store.getStoreId())
+                    .storeName(store.getStoreName())
+                    .category(store.getCategory())
+                    .address(store.getAddress())
+                    .imgUrl(store.getImgUrl())
+                    .openHour(store.getOpenHour())
+                    .closeHour(store.getCloseHour())
+                    .longitude(store.getLongitude())
+                    .latitude(store.getLatitude())
+                    .storeRate(rateAvg)
+                    .reviewCount(store.getReviewCount())
+                    .storeLikeCount(store.getStoreLikeCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetLikedStoreDto {
+        private Long storeId;
+        private String storeName;
+        private String category;
+        private String address;
+        private String imgUrl;
+        private String openHour;
+        private String closeHour;
+        private String longitude;
+        private String latitude;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long storeLikeCount;
+
+        public static GetLikedStoreDto toDto(Store store, Double rateAvg) {
+            return GetLikedStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
                     .category(store.getCategory())

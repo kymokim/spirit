@@ -49,4 +49,26 @@ public class ResponseMenu {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class GetLikedMenuDto{
+        private Long menuId;
+        private String menuName;
+        private String menuContent;
+        private Long price;
+        private Long menuLikeCount;
+        private Long storeId;
+
+        public static GetLikedMenuDto toDto(Menu menu) {
+            return GetLikedMenuDto.builder()
+                    .menuId(menu.getMenuId())
+                    .menuName(menu.getMenuName())
+                    .menuContent(menu.getMenuContent())
+                    .price(menu.getPrice())
+                    .menuLikeCount(menu.getMenuLikeCount())
+                    .storeId(menu.getStore().getStoreId())
+                    .build();
+        }
+    }
 }

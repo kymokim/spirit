@@ -20,8 +20,10 @@ public class Menu {
 
     @Column(name = "menuName")
     private String menuName;
+
     @Column(name = "menuContent")
     private String menuContent;
+
     @Column(name = "price")
     private Long price;
 
@@ -44,5 +46,12 @@ public class Menu {
         this.menuName = menuName;
         this.menuContent = menuContent;
         this.price = price;
+    }
+
+    public void increaseMenuLikeCount(){
+        this.menuLikeCount++;
+    }
+    public void decreaseMenuLikeCount(){
+        this.menuLikeCount--;
     }
 }

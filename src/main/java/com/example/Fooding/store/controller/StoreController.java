@@ -29,17 +29,30 @@ public class StoreController {
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createStore(@RequestBody RequestStore.CreateStoreDto createStoreDto, HttpServletRequest request){
         Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        storeService.createStore(createStoreDto, token);
+        Long storeId = storeService.createStore(createStoreDto, token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
+                .data(storeId)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping("/uploadImg")
+//    @PostMapping("/uploadImg")
+//    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "file", required = false) MultipartFile file,
+//                                                      @RequestPart(value = "uploadImgDto") RequestStore.UploadImgDto dto){
+//        String url = storeService.uploadImg(file, dto.getStoreId());
+//        ResponseDto responseDto = ResponseDto.builder()
+//                .message("Image uploaded successfully.")
+//                .data(url)
+//                .build();
+//        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+//    }
+
+    @PostMapping("/uploadImg/{storeId}")
     public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                      @RequestPart(value = "uploadImgDto") RequestStore.UploadImgDto dto){
-        String url = storeService.uploadImg(file, dto.getStoreId());
+                                                      @PathVariable("storeId") Long storeId){
+        String url = storeService.uploadImg(file, storeId);
+
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
                 .data(url)

@@ -11,11 +11,13 @@ public class ResponseLiveReview {
     public static class GetLiveReviewDto {
         private Long liveReviewId;
         private String liveReviewContent;
+        private String writerNickName;
 
-        public static GetLiveReviewDto toDto(LiveReview liveReview) {
+        public static GetLiveReviewDto toDto(LiveReview liveReview, String writerNickName) {
             return GetLiveReviewDto.builder()
                     .liveReviewId(liveReview.getLiveReviewId())
                     .liveReviewContent(liveReview.getLiveReviewContent())
+                    .writerNickName(writerNickName)
                     .build();
         }
     }

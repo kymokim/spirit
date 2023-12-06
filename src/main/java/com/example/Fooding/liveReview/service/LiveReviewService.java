@@ -44,7 +44,7 @@ public class LiveReviewService {
     public List<ResponseLiveReview.GetLiveReviewDto> getLiveReviewByStoreId(Store storeId) {
         List<LiveReview> entityList = liveReviewRepository.findAllByStore(storeId);
         List<ResponseLiveReview.GetLiveReviewDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(liveReview -> dtoList.add(ResponseLiveReview.GetLiveReviewDto.toDto(liveReview)));
+        entityList.stream().forEach(liveReview -> dtoList.add(ResponseLiveReview.GetLiveReviewDto.toDto(liveReview, authRepository.findById(liveReview.getWriterId()).get().getNickName())));
         return dtoList;
     }
 

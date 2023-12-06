@@ -33,7 +33,7 @@ public class StoreService {
     private final S3Service s3Service;
     private final ReviewRepository reviewRepository;
 
-    public void createStore(RequestStore.CreateStoreDto createStoreDto, Optional<String> token) {
+    public Long createStore(RequestStore.CreateStoreDto createStoreDto, Optional<String> token) {
 
         String email = null;
         if (token.isPresent()) {
@@ -43,6 +43,7 @@ public class StoreService {
         Long writerId = authRepository.findByEmail(email).getId();
         Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, writerId);
         storeRepository.save(store);
+        return store.getStoreId();
     }
 
 

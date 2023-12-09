@@ -69,6 +69,7 @@ public class ResponseStore {
         private String menuContent;
         private Long price;
         private Long menuLikeCount;
+        private String imgUrl;
 
         public static MenuListDto toDto(Menu menu) {
             return MenuListDto.builder()
@@ -77,6 +78,7 @@ public class ResponseStore {
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
                     .menuLikeCount(menu.getMenuLikeCount())
+                    .imgUrl(menu.getImgUrl())
                     .build();
         }
     }

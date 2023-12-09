@@ -24,6 +24,8 @@ public class Menu {
     private String menuContent;
     @Column(name = "price")
     private Long price;
+    @Column(name = "imgUrl")
+    private String imgUrl;
 
     @Column(name = "menuLikeCount")
     private Long menuLikeCount = 0L;

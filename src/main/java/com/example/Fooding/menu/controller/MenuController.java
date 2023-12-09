@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,9 +25,22 @@ public class MenuController {
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createMenu(@RequestBody RequestMenu.CreateMenuDto createMenuDto) {
 
-        menuService.createMenu(createMenuDto);
+        Long menuId = menuService.createMenu(createMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu created successfully.")
+                .data(menuId)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/uploadImg/{menuId}")
+    public ResponseEntity<ResponseDto> uploadMenuImg(@RequestPart(value = "file", required = false) MultipartFile file,
+                                                      @PathVariable("menuId") Long menuId){
+        String url = menuService.uploadImg(file, menuId);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image uploaded successfully.")
+                .data(url)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

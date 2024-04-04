@@ -12,7 +12,6 @@ import com.example.Fooding.common.exception.error.LoginFailedException;
 import com.example.Fooding.common.exception.error.NotFoundUserException;
 import com.example.Fooding.common.exception.error.RegisterFailedException;
 import com.example.Fooding.common.service.S3Service;
-import com.example.Fooding.store.entity.Store;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

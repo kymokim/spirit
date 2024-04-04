@@ -5,8 +5,6 @@ import com.example.Fooding.store.entity.Store;
 import lombok.Builder;
 import lombok.Getter;
 
-import javax.persistence.Column;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 

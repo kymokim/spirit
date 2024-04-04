@@ -7,14 +7,14 @@ import com.example.Fooding.auth.service.AuthService;
 import com.example.Fooding.common.dto.ResponseDto;
 import com.example.Fooding.common.dto.ResponseMessage;
 import com.example.Fooding.common.exception.error.LoginFailedException;
-import com.example.Fooding.store.dto.RequestStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
 import javax.validation.Valid;
 import java.util.Optional;
 

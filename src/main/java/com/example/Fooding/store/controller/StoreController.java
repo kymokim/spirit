@@ -2,7 +2,6 @@ package com.example.Fooding.store.controller;
 
 import com.example.Fooding.auth.security.JwtAuthTokenProvider;
 import com.example.Fooding.common.dto.ResponseDto;
-import com.example.Fooding.common.dto.ResponseMessage;
 import com.example.Fooding.store.dto.RequestStore;
 import com.example.Fooding.store.dto.ResponseStore;
 import com.example.Fooding.store.service.StoreService;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 

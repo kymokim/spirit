@@ -4,7 +4,6 @@ import com.example.Fooding.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.persistence.Column;
 
 public class RequestStore {
 

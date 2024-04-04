@@ -6,14 +6,13 @@ import com.example.Fooding.review.dto.RequestReview;
 import com.example.Fooding.review.dto.ResponseReview;
 import com.example.Fooding.review.service.ReviewService;
 import com.example.Fooding.store.entity.Store;
-import io.jsonwebtoken.JwtParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 

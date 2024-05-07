@@ -1,0 +1,11 @@
+package com.kymokim.spirit.store.repository;
+
+import com.kymokim.spirit.store.entity.Store;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+
+public interface StoreRepository extends JpaRepository<Store, Long> {
+    List<Store> findAllByCategory(String category);
+    List<Store> findAllByWriterId(Long writerId);
+}

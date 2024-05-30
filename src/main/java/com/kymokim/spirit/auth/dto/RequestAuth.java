@@ -4,6 +4,10 @@ import com.kymokim.spirit.auth.entity.Auth;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class RequestAuth {
     @Builder
     @Data
@@ -12,8 +16,6 @@ public class RequestAuth {
         private String password;
         private String name;
         private String nickName;
-        private String ssNumber;
-        private String phoneNumber;
 
         public static Auth toEntity(RegisterUserDto registerUserDto, String salt, String encryptedPassword){
             return Auth.builder()
@@ -21,8 +23,6 @@ public class RequestAuth {
                     .password(encryptedPassword)
                     .name(registerUserDto.getName())
                     .nickName(registerUserDto.getNickName())
-                    .ssNumber(registerUserDto.getSsNumber())
-                    .phoneNumber(registerUserDto.getPhoneNumber())
                     .salt(salt)
                     .build();
         }
@@ -41,12 +41,36 @@ public class RequestAuth {
         private String password;
         private String name;
         private String nickName;
-        private String ssNumber;
-        private String phoneNumber;
 
         public static Auth toEntity(Auth user, UpdateUserDto updateUserDto, String salt, String encryptedPassword){
-            user.update(encryptedPassword, updateUserDto.getName(), updateUserDto.getNickName(), updateUserDto.getSsNumber(), updateUserDto.getPhoneNumber(), salt);
+            user.update(encryptedPassword, updateUserDto.getName(), updateUserDto.getNickName(), salt);
             return user;
         }
+    }
+
+    @Builder
+    @Data
+    public static class ChangePasswordDto{
+        @NotNull
+        private String password;
+        private String temp;
+    }
+
+    @Builder
+    @Data
+    public static class SendEmailDto{
+        @Email
+        @NotEmpty(message = "Enter email.")
+        private String email;
+        private String temp;
+    }
+
+    @Builder
+    @Data
+    public static class VerifyEmailDto{
+        @Email
+        @NotEmpty(message = "Enter email.")
+        private String email;
+        private String verificationCode;
     }
 }

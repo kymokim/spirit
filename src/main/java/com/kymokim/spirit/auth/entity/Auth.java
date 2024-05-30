@@ -31,11 +31,6 @@ public class Auth {
     @Column(name="nickName")
     private String nickName;
 
-    @Column(name="ssNumber")
-    private String ssNumber;
-
-    @Column(name="phoneNumber")
-    private String phoneNumber;
 
     @Column(name="salt")
     private String salt;
@@ -44,23 +39,24 @@ public class Auth {
     private String userImg;
 
     @Builder
-    public Auth(String email, String password, String name, String nickName, String ssNumber, String phoneNumber, String salt, String userImg){
+    public Auth(String email, String password, String name, String nickName, String salt, String userImg){
         this.email = email;
         this.password = password;
         this.name = name;
         this.nickName = nickName;
-        this.ssNumber = ssNumber;
-        this.phoneNumber = phoneNumber;
         this.salt = salt;
         this.userImg = userImg;
     }
 
-    public void update(String password, String name, String nickName, String ssNumber, String phoneNumber, String salt) {
+    public void update(String password, String name, String nickName, String salt) {
         this.password = password;
         this.name = name;
         this.nickName = nickName;
-        this.ssNumber = ssNumber;
-        this.phoneNumber = phoneNumber;
+        this.salt = salt;
+    }
+
+    public void changePassword(String password, String salt){
+        this.password = password;
         this.salt = salt;
     }
 }

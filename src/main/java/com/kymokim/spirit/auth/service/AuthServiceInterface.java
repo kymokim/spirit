@@ -15,6 +15,10 @@ public interface AuthServiceInterface {
 
     String createAccessToken(String userid);
 
+    String getTempToken(String email, String verificationCode);
+
+    void changePassword(Optional<String> token, String password);
+
     void updateUser(Optional<String> token, RequestAuth.UpdateUserDto updateUserDto);
 
     ResponseAuth.GetUserDto getUser(Optional<String> token);

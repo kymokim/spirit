@@ -4,6 +4,7 @@ import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.dto.ResponseAuth;
 import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.auth.service.AuthService;
+import com.kymokim.spirit.auth.service.EmailService;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.common.dto.ResponseMessage;
 import com.kymokim.spirit.common.exception.error.LoginFailedException;
@@ -26,6 +27,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
+    private final EmailService emailService;
 
 
     @PostMapping("/register")
@@ -47,6 +49,36 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
     }
 
+    @PostMapping ("/sendEmail")
+    public String sendEmail(@RequestBody @Valid RequestAuth.SendEmailDto sendEmailDto){
+        System.out.println("이메일 인증 이메일 :"+sendEmailDto.getEmail());
+        return emailService.writeEmail(sendEmailDto.getEmail());
+    }
+
+    @PostMapping("/verifyEmail")
+    public ResponseEntity<ResponseMessage> verifyEmail(@RequestBody @Valid RequestAuth.VerifyEmailDto verifyEmailDto){
+        Boolean Checked=emailService.verifyEmail(verifyEmailDto.getEmail(),verifyEmailDto.getVerificationCode());
+        if(Checked){
+            ResponseMessage responseMessage = ResponseMessage.builder()
+                    .message("Email verified successfully.")
+                    .build();
+            return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        }
+        else{
+            throw new NullPointerException("Verification failed.");
+        }
+    }
+
+    @PostMapping("/getTempToken")
+    public ResponseEntity<ResponseMessage> getTempToken(@RequestBody @Valid RequestAuth.VerifyEmailDto verifyEmailDto){
+        String tempToken = authService.getTempToken(verifyEmailDto.getEmail(), verifyEmailDto.getVerificationCode());
+        ResponseMessage responseMessage = ResponseMessage.builder()
+                .message("TempToken issued successfully.")
+                .data(tempToken)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+    }
+
     @PostMapping("/uploadImg")
     public ResponseEntity<ResponseDto> uploadUserImg(@RequestPart(value = "file", required = false) MultipartFile file, HttpServletRequest request){
         Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
@@ -64,6 +96,16 @@ public class AuthController {
         authService.updateUser(token, updateUserDto);
         ResponseMessage responseMessage = ResponseMessage.builder()
                 .message("User information updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+    }
+
+    @PutMapping("/changePassword")
+    public ResponseEntity<ResponseMessage> changePassword(HttpServletRequest request, @Valid @RequestBody RequestAuth.ChangePasswordDto changePasswordDto){
+        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
+        authService.changePassword(token, changePasswordDto.getPassword());
+        ResponseMessage responseMessage = ResponseMessage.builder()
+                .message("Password changed successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
     }

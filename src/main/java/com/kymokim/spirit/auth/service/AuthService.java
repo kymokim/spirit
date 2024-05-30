@@ -7,12 +7,14 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.auth.security.JwtAuthToken;
 import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.auth.security.role.Role;
+import com.kymokim.spirit.auth.util.RedisUtil;
 import com.kymokim.spirit.auth.util.SHA256Util;
 import com.kymokim.spirit.common.exception.error.LoginFailedException;
 import com.kymokim.spirit.common.exception.error.NotFoundUserException;
 import com.kymokim.spirit.common.exception.error.RegisterFailedException;
 import com.kymokim.spirit.common.service.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,6 +32,7 @@ public class AuthService implements AuthServiceInterface {
     private final AuthRepository authRepository;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final S3Service s3Service;
+    private final RedisUtil redisUtil;
 
     @Transactional
     @Override
@@ -96,6 +99,19 @@ public class AuthService implements AuthServiceInterface {
     }
 
     @Override
+    public String getTempToken(String email, String verificationCode){
+        JwtAuthToken tempToken = null;
+        if(redisUtil.getData(verificationCode)==null){
+            throw new RuntimeException();
+        }
+        else if(redisUtil.getData(verificationCode).equals(email)){
+            Date expiredDate = Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
+            tempToken = jwtAuthTokenProvider.createAuthToken(email, Role.USER.getCode(),expiredDate);
+        }
+        return tempToken.getToken();
+    }
+
+    @Override
     @Transactional
     public void updateUser(Optional<String> token, RequestAuth.UpdateUserDto updateUserDto) {
 
@@ -116,6 +132,25 @@ public class AuthService implements AuthServiceInterface {
         String encryptedPassword = SHA256Util.getEncrypt(updateUserDto.getPassword(), salt);
         Auth updatedUser = RequestAuth.UpdateUserDto.toEntity(originalUser, updateUserDto, salt, encryptedPassword);
         authRepository.save(updatedUser);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(Optional<String> token, String password){
+        String email = null;
+        if (token.isPresent()) {
+            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
+            email = jwtAuthToken.getClaims().getSubject();
+        }
+
+        Auth user = authRepository.findByEmail(email);
+        if(user == null)
+            throw new NotFoundUserException();
+
+        String salt = SHA256Util.generateSalt();
+        String encryptedPassword = SHA256Util.getEncrypt(password, salt);
+        user.changePassword(encryptedPassword, salt);
+        authRepository.save(user);
     }
 
     @Override

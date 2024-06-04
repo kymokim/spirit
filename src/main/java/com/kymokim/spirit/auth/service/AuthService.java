@@ -9,9 +9,7 @@ import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.auth.security.role.Role;
 import com.kymokim.spirit.auth.util.RedisUtil;
 import com.kymokim.spirit.auth.util.SHA256Util;
-import com.kymokim.spirit.common.exception.error.LoginFailedException;
-import com.kymokim.spirit.common.exception.error.NotFoundUserException;
-import com.kymokim.spirit.common.exception.error.RegisterFailedException;
+import com.kymokim.spirit.common.exception.error.*;
 import com.kymokim.spirit.common.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +38,11 @@ public class AuthService implements AuthServiceInterface {
 
         Auth user = authRepository.findByEmail(registerUserDto.getEmail());
         if(user != null){
-            throw new RegisterFailedException();
+            throw new ExistingEmailException();
         }
         user = authRepository.findByNickName(registerUserDto.getNickName());
         if(user != null){
-            throw new RegisterFailedException();
+            throw new ExistingNicknameException();
         }
 
         String salt = SHA256Util.generateSalt();

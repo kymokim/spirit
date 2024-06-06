@@ -11,12 +11,14 @@ public class RequestStore {
     @Builder
     public static class CreateStoreDto {
         private String storeName;
-        private String category;
+        private String firstCategory;
+        private String secondCategory;
+        private String thirdCategory;
         private String address;
         private String storeNumber;
         private String storeContent;
-        private String longitude;
-        private String latitude;
+        private double longitude;
+        private double latitude;
         private String openHour;
         private String closeHour;
 
@@ -24,7 +26,9 @@ public class RequestStore {
             return Store.builder()
                     .writerId(writerId)
                     .storeName(createStoreDto.getStoreName())
-                    .category(createStoreDto.getCategory())
+                    .firstCategory(createStoreDto.getFirstCategory())
+                    .secondCategory(createStoreDto.getSecondCategory())
+                    .thirdCategory(createStoreDto.getThirdCategory())
                     .address(createStoreDto.getAddress())
                     .storeNumber(createStoreDto.getStoreNumber())
                     .storeContent(createStoreDto.getStoreContent())
@@ -41,18 +45,20 @@ public class RequestStore {
     public static class UpdateStoreDto {
         private Long storeId;
         private String storeName;
-        private String category;
+        private String firstCategory;
+        private String secondCategory;
+        private String thirdCategory;
         private String address;
         private String storeNumber;
         private String storeContent;
-        private String longitude;
-        private String latitude;
+        private double longitude;
+        private double latitude;
         private String openHour;
         private String closeHour;
 
         public static Store toEntity(Store store, UpdateStoreDto updateStoreDto) {
-            store.update(updateStoreDto.getStoreName(), updateStoreDto.getCategory(), updateStoreDto.getAddress(),
-                    updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
+            store.update(updateStoreDto.getStoreName(), updateStoreDto.getFirstCategory(), updateStoreDto.getSecondCategory(), updateStoreDto.getThirdCategory(),
+                    updateStoreDto.getAddress(), updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
                     updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour());
             return store;
         }

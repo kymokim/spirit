@@ -4,6 +4,8 @@ import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
+import com.kymokim.spirit.store.dto.StoreSearchCriteria;
+import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -102,8 +104,14 @@ public class StoreController {
 
 
     @GetMapping("/getByCategory/{category}")
-    public ResponseEntity<ResponseDto> getByCategory(@PathVariable("category") String category) {
-        List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByCategory(category);
+    public ResponseEntity<ResponseDto> getByCategory(@PathVariable("category") String category,
+                                                     @RequestParam("latitude") double latitude,
+                                                     @RequestParam("longitude") double longitude) {
+        StoreSearchCriteria criteria = new StoreSearchCriteria();
+        criteria.setLatitude(latitude);
+        criteria.setLongitude(longitude);
+        criteria.setRadius(2);
+        List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByCategory(criteria, category);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(response)
@@ -144,6 +152,7 @@ public class StoreController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
 
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateStore(@RequestBody RequestStore.UpdateStoreDto updateStoreDto){

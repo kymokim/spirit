@@ -16,13 +16,15 @@ public class ResponseStore {
         private Long writerId;
         private Long ownerId;
         private String storeName;
-        private String category;
+        private String firstCategory;
+        private String secondCategory;
+        private String thirdCategory;
         private String address;
         private String storeNumber;
         private String storeContent;
         private String imgUrl;
-        private String longitude;
-        private String latitude;
+        private double longitude;
+        private double latitude;
         private String openHour;
         private String closeHour;
         private Double storeRate;
@@ -41,7 +43,9 @@ public class ResponseStore {
                     .writerId(store.getWriterId())
                     .ownerId(store.getOwnerId())
                     .storeName(store.getStoreName())
-                    .category(store.getCategory())
+                    .firstCategory(store.getFirstCategory())
+                    .secondCategory(store.getSecondCategory())
+                    .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
                     .storeNumber(store.getStoreNumber())
                     .storeContent(store.getStoreContent())
@@ -86,13 +90,15 @@ public class ResponseStore {
     public static class GetAllStoreDto {
         private Long storeId;
         private String storeName;
-        private String category;
+        private String firstCategory;
+        private String secondCategory;
+        private String thirdCategory;
         private String address;
         private String imgUrl;
         private String openHour;
         private String closeHour;
-        private String longitude;
-        private String latitude;
+        private double longitude;
+        private double latitude;
         private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
@@ -101,7 +107,9 @@ public class ResponseStore {
             return GetAllStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
-                    .category(store.getCategory())
+                    .firstCategory(store.getFirstCategory())
+                    .secondCategory(store.getSecondCategory())
+                    .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
@@ -120,13 +128,15 @@ public class ResponseStore {
     public static class GetLikedStoreDto {
         private Long storeId;
         private String storeName;
-        private String category;
+        private String firstCategory;
+        private String secondCategory;
+        private String thirdCategory;
         private String address;
         private String imgUrl;
         private String openHour;
         private String closeHour;
-        private String longitude;
-        private String latitude;
+        private double longitude;
+        private double latitude;
         private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
@@ -135,7 +145,9 @@ public class ResponseStore {
             return GetLikedStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
-                    .category(store.getCategory())
+                    .firstCategory(store.getFirstCategory())
+                    .secondCategory(store.getSecondCategory())
+                    .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())

@@ -31,8 +31,14 @@ public class Store {
     @Column(name = "storeName")
     private String storeName;
 
-    @Column(name = "category")
-    private String category;
+    @Column(name = "firstCategory")
+    private String firstCategory;
+
+    @Column(name = "secondCategory")
+    private String secondCategory;
+
+    @Column(name = "thirdCategory")
+    private String thirdCategory;
 
     @Column(name = "address")
     private String address;
@@ -47,10 +53,10 @@ public class Store {
     private String imgUrl;
 
     @Column(name = "longitude")
-    private String longitude;
+    private double longitude;
 
     @Column(name = "latitude")
-    private String latitude;
+    private double latitude;
 
     @Column(name = "openHour")
     private String openHour;
@@ -77,11 +83,13 @@ public class Store {
     private List<LiveReview> liveReviewList = new ArrayList<>();
 
     @Builder
-    public Store(Long writerId, String storeName, String category, String address, String storeNumber, String storeContent,
-                 String longitude, String latitude, String openHour, String closeHour) {
+    public Store(Long writerId, String storeName, String firstCategory, String secondCategory, String thirdCategory,
+                 String address, String storeNumber, String storeContent, double longitude, double latitude, String openHour, String closeHour) {
         this.writerId = writerId;
         this.storeName = storeName;
-        this.category = category;
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+        this.thirdCategory = thirdCategory;
         this.address = address;
         this.storeNumber = storeNumber;
         this.storeContent = storeContent;
@@ -91,10 +99,12 @@ public class Store {
         this.closeHour = closeHour;
     }
 
-    public void update(String storeName, String category, String address, String storeNumber, String storeContent,
-                       String longitude, String latitude, String openHour, String closeHour) {
+    public void update(String storeName, String firstCategory, String secondCategory, String thirdCategory,
+                       String address, String storeNumber, String storeContent, double longitude, double latitude, String openHour, String closeHour) {
         this.storeName = storeName;
-        this.category = category;
+        this.firstCategory = firstCategory;
+        this.secondCategory = secondCategory;
+        this.thirdCategory = thirdCategory;
         this.address = address;
         this.storeNumber = storeNumber;
         this.storeContent = storeContent;

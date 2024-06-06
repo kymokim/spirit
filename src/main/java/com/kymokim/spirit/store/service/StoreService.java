@@ -8,6 +8,7 @@ import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
+import com.kymokim.spirit.store.dto.StoreSearchCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
@@ -144,8 +145,9 @@ public class StoreService {
         return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked);
     }
 
-    public List<ResponseStore.GetAllStoreDto> getStoreByCategory(String category) {
-        List<Store> entityList = storeRepository.findAllByCategory(category);
+    public List<ResponseStore.GetAllStoreDto> getStoreByCategory(StoreSearchCriteria criteria, String category) {
+        //List<Store> entityList = storeRepository.findAllByCategory(category);
+        List<Store> entityList = storeRepository.findStoresByCategory(criteria, category);
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
             Double rateAvg = store.getTotalRate() / store.getReviewCount();
@@ -192,6 +194,10 @@ public class StoreService {
         return dtoList;
 
     }
+
+//    public List<Store> getByCriteria(StoreSearchCriteria criteria){
+//        return storeRepository.findStoresByCriteria(criteria);
+//    }
 
 
     public void updateStore(RequestStore.UpdateStoreDto updateStoreDto) {

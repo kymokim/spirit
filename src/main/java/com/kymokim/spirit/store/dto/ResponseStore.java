@@ -27,6 +27,8 @@ public class ResponseStore {
         private double latitude;
         private String openHour;
         private String closeHour;
+        private Boolean hasScreen;
+        private Boolean isGroupAvailable;
         private Double storeRate;
         private Long reviewCount;
         private Long storeLikeCount;
@@ -54,6 +56,8 @@ public class ResponseStore {
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .hasScreen(store.getHasScreen())
+                    .isGroupAvailable(store.getIsGroupAvailable())
                     .storeRate(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
@@ -97,6 +101,8 @@ public class ResponseStore {
         private String imgUrl;
         private String openHour;
         private String closeHour;
+        private Boolean hasScreen;
+        private Boolean isGroupAvailable;
         private double longitude;
         private double latitude;
         private Double storeRate;
@@ -114,6 +120,8 @@ public class ResponseStore {
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .hasScreen(store.getHasScreen())
+                    .isGroupAvailable(store.getIsGroupAvailable())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
                     .storeRate(rateAvg)

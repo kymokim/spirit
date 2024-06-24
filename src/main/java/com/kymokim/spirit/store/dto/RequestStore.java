@@ -21,6 +21,8 @@ public class RequestStore {
         private double latitude;
         private String openHour;
         private String closeHour;
+        private Boolean hasScreen;
+        private Boolean isGroupAvailable;
 
         public static Store toEntity(CreateStoreDto createStoreDto, Long writerId) {
             return Store.builder()
@@ -36,6 +38,8 @@ public class RequestStore {
                     .latitude(createStoreDto.getLatitude())
                     .openHour(createStoreDto.getOpenHour())
                     .closeHour(createStoreDto.getCloseHour())
+                    .hasScreen(createStoreDto.getHasScreen())
+                    .isGroupAvailable(createStoreDto.getIsGroupAvailable())
                     .build();
         }
     }
@@ -55,11 +59,13 @@ public class RequestStore {
         private double latitude;
         private String openHour;
         private String closeHour;
+        private Boolean hasScreen;
+        private Boolean isGroupAvailable;
 
         public static Store toEntity(Store store, UpdateStoreDto updateStoreDto) {
             store.update(updateStoreDto.getStoreName(), updateStoreDto.getFirstCategory(), updateStoreDto.getSecondCategory(), updateStoreDto.getThirdCategory(),
                     updateStoreDto.getAddress(), updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
-                    updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour());
+                    updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour(), updateStoreDto.getHasScreen(), updateStoreDto.getIsGroupAvailable());
             return store;
         }
     }

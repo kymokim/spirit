@@ -64,6 +64,12 @@ public class Store {
     @Column(name = "closeHour")
     private String closeHour;
 
+    @Column(name = "hasScreen")
+    private Boolean hasScreen;
+
+    @Column(name = "isGroupAvailable")
+    private Boolean isGroupAvailable;
+
     @Column(name = "totalRate")
     private Double totalRate = 0D;
 
@@ -84,7 +90,8 @@ public class Store {
 
     @Builder
     public Store(Long writerId, String storeName, String firstCategory, String secondCategory, String thirdCategory,
-                 String address, String storeNumber, String storeContent, double longitude, double latitude, String openHour, String closeHour) {
+                 String address, String storeNumber, String storeContent, double longitude, double latitude,
+                 String openHour, String closeHour, Boolean hasScreen, Boolean isGroupAvailable) {
         this.writerId = writerId;
         this.storeName = storeName;
         this.firstCategory = firstCategory;
@@ -97,10 +104,13 @@ public class Store {
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
+        this.hasScreen = hasScreen;
+        this.isGroupAvailable = isGroupAvailable;
     }
 
     public void update(String storeName, String firstCategory, String secondCategory, String thirdCategory,
-                       String address, String storeNumber, String storeContent, double longitude, double latitude, String openHour, String closeHour) {
+                       String address, String storeNumber, String storeContent, double longitude, double latitude,
+                       String openHour, String closeHour, Boolean hasScreen, Boolean isGroupAvailable) {
         this.storeName = storeName;
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
@@ -112,6 +122,8 @@ public class Store {
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
+        this.hasScreen = hasScreen;
+        this.isGroupAvailable = isGroupAvailable;
     }
 
     public void addMenu(Menu menu) {

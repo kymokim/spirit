@@ -50,7 +50,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPQLQuery<Store> query = findStores(criteria);
         QStore store = QStore.store;
 
-        query.orderBy(distance.asc()).select(store, distance.as("distance"));
+        query.orderBy(distance.asc());
         return query.fetch();
     }
 

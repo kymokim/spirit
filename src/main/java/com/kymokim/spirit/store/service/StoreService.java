@@ -157,6 +157,17 @@ public class StoreService {
         return dtoList;
     }
 
+    public List<ResponseStore.GetAllStoreDto> getStoreByDistance(StoreSearchCriteria criteria){
+        List<Store> entityList = storeRepository.findStoresByDistance(criteria);
+        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
+        entityList.stream().forEach(store -> {
+            Double rateAvg = store.getTotalRate() / store.getReviewCount();
+            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+    }
+
     public List<ResponseStore.GetAllStoreDto> getByWriterStore(Optional<String> token) {
         String email = null;
         if (token.isPresent()) {

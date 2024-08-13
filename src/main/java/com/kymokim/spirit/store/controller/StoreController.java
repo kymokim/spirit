@@ -119,6 +119,21 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @GetMapping("/getByDistance")
+    public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
+                                                           @RequestParam("longitude") double longitude) {
+        StoreSearchCriteria criteria = new StoreSearchCriteria();
+        criteria.setLatitude(latitude);
+        criteria.setLongitude(longitude);
+        criteria.setRadius(2);
+        List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByDistance(criteria);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping("/getLikedStore")
     public ResponseEntity<ResponseDto> getLikedStore(HttpServletRequest request){
         Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);

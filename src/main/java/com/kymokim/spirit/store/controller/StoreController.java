@@ -5,6 +5,7 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.StoreSearchCriteria;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Controller
 @RestController

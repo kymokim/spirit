@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
@@ -15,9 +16,7 @@ public class RequestStore {
     @Builder
     public static class CreateStoreDto {
         private String storeName;
-        private String firstCategory;
-        private String secondCategory;
-        private String thirdCategory;
+        private Set<Category> categories;
         private String address;
         private String addressDetail;
         private String storeNumber;
@@ -34,9 +33,7 @@ public class RequestStore {
             return Store.builder()
                     .writerId(writerId)
                     .storeName(createStoreDto.getStoreName())
-                    .firstCategory(createStoreDto.getFirstCategory())
-                    .secondCategory(createStoreDto.getSecondCategory())
-                    .thirdCategory(createStoreDto.getThirdCategory())
+                    .categories(createStoreDto.getCategories())
                     .address(createStoreDto.getAddress())
                     .addressDetail(createStoreDto.getAddressDetail())
                     .storeNumber(createStoreDto.getStoreNumber())
@@ -57,9 +54,7 @@ public class RequestStore {
     public static class UpdateStoreDto {
         private Long storeId;
         private String storeName;
-        private String firstCategory;
-        private String secondCategory;
-        private String thirdCategory;
+        private Set<Category> categories;
         private String address;
         private String addressDetail;
         private String storeNumber;
@@ -73,7 +68,7 @@ public class RequestStore {
         private Boolean isGroupAvailable;
 
         public static Store toEntity(Store store, UpdateStoreDto updateStoreDto) {
-            store.update(updateStoreDto.getStoreName(), updateStoreDto.getFirstCategory(), updateStoreDto.getSecondCategory(), updateStoreDto.getThirdCategory(),
+            store.update(updateStoreDto.getStoreName(), updateStoreDto.getCategories(),
                     updateStoreDto.getAddress(), updateStoreDto.getAddressDetail(), updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
                     updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour(), updateStoreDto.getClosedDays(), updateStoreDto.getHasScreen(), updateStoreDto.getIsGroupAvailable());
             return store;

@@ -9,6 +9,7 @@ import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.StoreSearchCriteria;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service

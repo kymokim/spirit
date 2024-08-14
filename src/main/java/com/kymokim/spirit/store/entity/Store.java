@@ -35,14 +35,11 @@ public class Store {
     @Column(name = "storeName")
     private String storeName;
 
-    @Column(name = "firstCategory")
-    private String firstCategory;
-
-    @Column(name = "secondCategory")
-    private String secondCategory;
-
-    @Column(name = "thirdCategory")
-    private String thirdCategory;
+    @ElementCollection(targetClass = Category.class)
+    @CollectionTable(name = "store_categories", joinColumns = @JoinColumn(name = "store_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categories")
+    private Set<Category> categories;
 
     @Column(name = "address")
     private String address;
@@ -71,6 +68,9 @@ public class Store {
     @Column(name = "closeHour")
     private LocalTime closeHour;
 
+    @ElementCollection(targetClass = DayOfWeek.class)
+    @CollectionTable(name = "store_closed_days", joinColumns = @JoinColumn(name = "store_id"))
+    @Enumerated(EnumType.STRING)
     @Column(name = "closedDays")
     private Set<DayOfWeek> closedDays;
 
@@ -99,14 +99,12 @@ public class Store {
     private List<LiveReview> liveReviewList = new ArrayList<>();
 
     @Builder
-    public Store(Long writerId, String storeName, String firstCategory, String secondCategory, String thirdCategory,
+    public Store(Long writerId, String storeName, Set<Category> categories,
                  String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
                  LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
         this.writerId = writerId;
         this.storeName = storeName;
-        this.firstCategory = firstCategory;
-        this.secondCategory = secondCategory;
-        this.thirdCategory = thirdCategory;
+        this.categories = categories;
         this.address = address;
         this.addressDetail = addressDetail;
         this.storeNumber = storeNumber;
@@ -120,13 +118,11 @@ public class Store {
         this.isGroupAvailable = isGroupAvailable;
     }
 
-    public void update(String storeName, String firstCategory, String secondCategory, String thirdCategory,
+    public void update(String storeName, Set<Category> categories,
                        String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
                        LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
         this.storeName = storeName;
-        this.firstCategory = firstCategory;
-        this.secondCategory = secondCategory;
-        this.thirdCategory = thirdCategory;
+        this.categories = categories;
         this.address = address;
         this.addressDetail = addressDetail;
         this.storeNumber = storeNumber;

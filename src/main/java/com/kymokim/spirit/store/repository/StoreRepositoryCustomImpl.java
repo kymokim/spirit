@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.repository;
 
 import com.kymokim.spirit.store.dto.StoreSearchCriteria;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.QStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.querydsl.core.types.dsl.Expressions;
@@ -11,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import java.util.List;
+import java.util.Set;
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext
@@ -34,12 +36,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     @Override
     public List<Store> findStoresByCategory(StoreSearchCriteria criteria, String category) {
-
+        System.out.println(category);
         JPQLQuery<Store> query = findStores(criteria);
         QStore store = QStore.store;
 
-        if (category != null && !category.isEmpty()) {
-            query.where(store.firstCategory.eq(category).or(store.secondCategory.eq(category).or(store.thirdCategory.eq(category))));
+        if (category != null) {
+            query.where(store.categories.contains(Category.valueOf(category)));
         }
 
         return query.fetch();

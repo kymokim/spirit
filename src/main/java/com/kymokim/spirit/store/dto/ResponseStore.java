@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,9 +20,7 @@ public class ResponseStore {
         private Long writerId;
         private Long ownerId;
         private String storeName;
-        private String firstCategory;
-        private String secondCategory;
-        private String thirdCategory;
+        private Set<Category> categories;
         private String address;
         private String addressDetail;
         private String storeNumber;
@@ -50,9 +49,7 @@ public class ResponseStore {
                     .writerId(store.getWriterId())
                     .ownerId(store.getOwnerId())
                     .storeName(store.getStoreName())
-                    .firstCategory(store.getFirstCategory())
-                    .secondCategory(store.getSecondCategory())
-                    .thirdCategory(store.getThirdCategory())
+                    .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
                     .storeNumber(store.getStoreNumber())
@@ -101,9 +98,7 @@ public class ResponseStore {
     public static class GetAllStoreDto {
         private Long storeId;
         private String storeName;
-        private String firstCategory;
-        private String secondCategory;
-        private String thirdCategory;
+        private Set<Category> categories;
         private String address;
         private String addressDetail;
         private String imgUrl;
@@ -122,9 +117,7 @@ public class ResponseStore {
             return GetAllStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
-                    .firstCategory(store.getFirstCategory())
-                    .secondCategory(store.getSecondCategory())
-                    .thirdCategory(store.getThirdCategory())
+                    .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
                     .imgUrl(store.getImgUrl())
@@ -147,9 +140,7 @@ public class ResponseStore {
     public static class GetLikedStoreDto {
         private Long storeId;
         private String storeName;
-        private String firstCategory;
-        private String secondCategory;
-        private String thirdCategory;
+        private Set<Category> categories;
         private String address;
         private String addressDetail;
         private String imgUrl;
@@ -166,9 +157,7 @@ public class ResponseStore {
             return GetLikedStoreDto.builder()
                     .storeId(store.getStoreId())
                     .storeName(store.getStoreName())
-                    .firstCategory(store.getFirstCategory())
-                    .secondCategory(store.getSecondCategory())
-                    .thirdCategory(store.getThirdCategory())
+                    .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
                     .imgUrl(store.getImgUrl())

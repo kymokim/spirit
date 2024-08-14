@@ -9,8 +9,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Table(name = "store")
 @Entity
@@ -43,6 +47,9 @@ public class Store {
     @Column(name = "address")
     private String address;
 
+    @Column(name = "addressDetail")
+    private String addressDetail;
+
     @Column(name = "storeNumber")
     private String storeNumber;
 
@@ -59,10 +66,13 @@ public class Store {
     private double latitude;
 
     @Column(name = "openHour")
-    private String openHour;
+    private LocalTime openHour;
 
     @Column(name = "closeHour")
-    private String closeHour;
+    private LocalTime closeHour;
+
+    @Column(name = "closedDays")
+    private Set<DayOfWeek> closedDays;
 
     @Column(name = "hasScreen")
     private Boolean hasScreen;
@@ -90,38 +100,42 @@ public class Store {
 
     @Builder
     public Store(Long writerId, String storeName, String firstCategory, String secondCategory, String thirdCategory,
-                 String address, String storeNumber, String storeContent, double longitude, double latitude,
-                 String openHour, String closeHour, Boolean hasScreen, Boolean isGroupAvailable) {
+                 String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
+                 LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
         this.writerId = writerId;
         this.storeName = storeName;
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
         this.thirdCategory = thirdCategory;
         this.address = address;
+        this.addressDetail = addressDetail;
         this.storeNumber = storeNumber;
         this.storeContent = storeContent;
         this.longitude = longitude;
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
+        this.closedDays = closedDays;
         this.hasScreen = hasScreen;
         this.isGroupAvailable = isGroupAvailable;
     }
 
     public void update(String storeName, String firstCategory, String secondCategory, String thirdCategory,
-                       String address, String storeNumber, String storeContent, double longitude, double latitude,
-                       String openHour, String closeHour, Boolean hasScreen, Boolean isGroupAvailable) {
+                       String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
+                       LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
         this.storeName = storeName;
         this.firstCategory = firstCategory;
         this.secondCategory = secondCategory;
         this.thirdCategory = thirdCategory;
         this.address = address;
+        this.addressDetail = addressDetail;
         this.storeNumber = storeNumber;
         this.storeContent = storeContent;
         this.longitude = longitude;
         this.latitude = latitude;
         this.openHour = openHour;
         this.closeHour = closeHour;
+        this.closedDays = closedDays;
         this.hasScreen = hasScreen;
         this.isGroupAvailable = isGroupAvailable;
     }

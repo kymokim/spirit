@@ -4,6 +4,10 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
+import java.util.Set;
+
 
 public class RequestStore {
 
@@ -15,12 +19,14 @@ public class RequestStore {
         private String secondCategory;
         private String thirdCategory;
         private String address;
+        private String addressDetail;
         private String storeNumber;
         private String storeContent;
         private double longitude;
         private double latitude;
-        private String openHour;
-        private String closeHour;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
         private Boolean hasScreen;
         private Boolean isGroupAvailable;
 
@@ -32,12 +38,14 @@ public class RequestStore {
                     .secondCategory(createStoreDto.getSecondCategory())
                     .thirdCategory(createStoreDto.getThirdCategory())
                     .address(createStoreDto.getAddress())
+                    .addressDetail(createStoreDto.getAddressDetail())
                     .storeNumber(createStoreDto.getStoreNumber())
                     .storeContent(createStoreDto.getStoreContent())
                     .longitude(createStoreDto.getLongitude())
                     .latitude(createStoreDto.getLatitude())
                     .openHour(createStoreDto.getOpenHour())
                     .closeHour(createStoreDto.getCloseHour())
+                    .closedDays(createStoreDto.getClosedDays())
                     .hasScreen(createStoreDto.getHasScreen())
                     .isGroupAvailable(createStoreDto.getIsGroupAvailable())
                     .build();
@@ -53,19 +61,21 @@ public class RequestStore {
         private String secondCategory;
         private String thirdCategory;
         private String address;
+        private String addressDetail;
         private String storeNumber;
         private String storeContent;
         private double longitude;
         private double latitude;
-        private String openHour;
-        private String closeHour;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
         private Boolean hasScreen;
         private Boolean isGroupAvailable;
 
         public static Store toEntity(Store store, UpdateStoreDto updateStoreDto) {
             store.update(updateStoreDto.getStoreName(), updateStoreDto.getFirstCategory(), updateStoreDto.getSecondCategory(), updateStoreDto.getThirdCategory(),
-                    updateStoreDto.getAddress(), updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
-                    updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour(), updateStoreDto.getHasScreen(), updateStoreDto.getIsGroupAvailable());
+                    updateStoreDto.getAddress(), updateStoreDto.getAddressDetail(), updateStoreDto.getStoreNumber(), updateStoreDto.getStoreContent(), updateStoreDto.getLongitude(),
+                    updateStoreDto.getLatitude(), updateStoreDto.getOpenHour(), updateStoreDto.getCloseHour(), updateStoreDto.getClosedDays(), updateStoreDto.getHasScreen(), updateStoreDto.getIsGroupAvailable());
             return store;
         }
     }

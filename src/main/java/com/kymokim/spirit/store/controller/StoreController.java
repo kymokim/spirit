@@ -121,7 +121,7 @@ public class StoreController {
 
     @GetMapping("/getByDistance")
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
-                                                           @RequestParam("longitude") double longitude) {
+                                                     @RequestParam("longitude") double longitude) {
         StoreSearchCriteria criteria = new StoreSearchCriteria();
         criteria.setLatitude(latitude);
         criteria.setLongitude(longitude);

@@ -5,8 +5,11 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ResponseStore {
 
@@ -20,13 +23,15 @@ public class ResponseStore {
         private String secondCategory;
         private String thirdCategory;
         private String address;
+        private String addressDetail;
         private String storeNumber;
         private String storeContent;
         private String imgUrl;
         private double longitude;
         private double latitude;
-        private String openHour;
-        private String closeHour;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
         private Boolean hasScreen;
         private Boolean isGroupAvailable;
         private Double storeRate;
@@ -49,6 +54,7 @@ public class ResponseStore {
                     .secondCategory(store.getSecondCategory())
                     .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
+                    .addressDetail(store.getAddressDetail())
                     .storeNumber(store.getStoreNumber())
                     .storeContent(store.getStoreContent())
                     .imgUrl(store.getImgUrl())
@@ -56,6 +62,7 @@ public class ResponseStore {
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .closedDays(store.getClosedDays())
                     .hasScreen(store.getHasScreen())
                     .isGroupAvailable(store.getIsGroupAvailable())
                     .storeRate(rateAvg)
@@ -98,9 +105,11 @@ public class ResponseStore {
         private String secondCategory;
         private String thirdCategory;
         private String address;
+        private String addressDetail;
         private String imgUrl;
-        private String openHour;
-        private String closeHour;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
         private Boolean hasScreen;
         private Boolean isGroupAvailable;
         private double longitude;
@@ -117,9 +126,11 @@ public class ResponseStore {
                     .secondCategory(store.getSecondCategory())
                     .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
+                    .addressDetail(store.getAddressDetail())
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .closedDays(store.getClosedDays())
                     .hasScreen(store.getHasScreen())
                     .isGroupAvailable(store.getIsGroupAvailable())
                     .longitude(store.getLongitude())
@@ -140,9 +151,11 @@ public class ResponseStore {
         private String secondCategory;
         private String thirdCategory;
         private String address;
+        private String addressDetail;
         private String imgUrl;
-        private String openHour;
-        private String closeHour;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
         private double longitude;
         private double latitude;
         private Double storeRate;
@@ -157,9 +170,11 @@ public class ResponseStore {
                     .secondCategory(store.getSecondCategory())
                     .thirdCategory(store.getThirdCategory())
                     .address(store.getAddress())
+                    .addressDetail(store.getAddressDetail())
                     .imgUrl(store.getImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
+                    .closedDays(store.getClosedDays())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
                     .storeRate(rateAvg)

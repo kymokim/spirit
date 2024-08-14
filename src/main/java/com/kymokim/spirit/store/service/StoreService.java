@@ -19,6 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -144,7 +147,7 @@ public class StoreService {
         LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
         if (likedStore != null)
             isStoreLiked = true;
-        return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked);
+        return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked, isStoreOpen(store));
     }
 
     public List<ResponseStore.GetAllStoreDto> getStoreByCategory(StoreSearchCriteria criteria, String category) {
@@ -163,9 +166,11 @@ public class StoreService {
         List<Store> entityList = storeRepository.findStoresByDistance(criteria);
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
-            Double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+            if (isStoreOpen(store)) {
+                Double rateAvg = store.getTotalRate() / store.getReviewCount();
+                rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+                dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+            }
         });
         return dtoList;
     }
@@ -208,9 +213,32 @@ public class StoreService {
 
     }
 
-//    public List<Store> getByCriteria(StoreSearchCriteria criteria){
-//        return storeRepository.findStoresByCriteria(criteria);
-//    }
+    public boolean isStoreOpen(Store store) {
+        LocalDateTime now = LocalDateTime.now();
+        DayOfWeek today = now.getDayOfWeek();
+        LocalTime currentTime = now.toLocalTime();
+
+        // 휴무일에 포함되어 있는지 확인
+        if (store.getClosedDays().contains(today)) {
+            return false;
+        }
+
+        // 영업 시간 확인
+        LocalTime openHour = store.getOpenHour();
+        LocalTime closeHour = store.getCloseHour();
+
+        // 영업 시간 내인지 확인
+        if (openHour.isBefore(closeHour)) { // 정상적인 하루 내 영업 시간
+            if (currentTime.isAfter(openHour) && currentTime.isBefore(closeHour)) {
+                return true;
+            }
+        } else { // 자정을 넘어가는 영업 시간
+            if (currentTime.isAfter(openHour) || currentTime.isBefore(closeHour)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 
     public void updateStore(RequestStore.UpdateStoreDto updateStoreDto) {

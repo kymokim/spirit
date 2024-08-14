@@ -37,9 +37,10 @@ public class ResponseStore {
         private Long reviewCount;
         private Long storeLikeCount;
         private Boolean isStoreLiked;
+        private Boolean isStoreOpen;
         private List<MenuListDto> menuList;
 
-        public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked) {
+        public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked, Boolean isStoreOpen) {
 
             List<MenuListDto> menuList = new ArrayList<>();
             if(!store.getMenuList().isEmpty())
@@ -66,6 +67,7 @@ public class ResponseStore {
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
                     .isStoreLiked(isStoreLiked)
+                    .isStoreOpen(isStoreOpen)
                     .menuList(menuList)
                     .build();
         }

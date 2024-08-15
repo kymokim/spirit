@@ -26,6 +26,8 @@ public class Menu {
     private Long price;
     @Column(name = "imgUrl")
     private String imgUrl;
+    @Column(name = "isMain")
+    private Boolean isMain;
 
     @Column(name = "menuLikeCount")
     private Long menuLikeCount = 0L;
@@ -35,16 +37,18 @@ public class Menu {
     private Store store;
 
     @Builder
-    public Menu(String menuName, String menuContent, Long price, Store store ) {
+    public Menu(String menuName, String menuContent, Long price, Store store, boolean isMain) {
         this.menuName = menuName;
         this.menuContent = menuContent;
         this.price = price;
         this.store = store;
+        this.isMain = isMain;
     }
 
-    public void update(String menuName, String menuContent, Long price ) {
+    public void update(String menuName, String menuContent, Long price, boolean isMain) {
         this.menuName = menuName;
         this.menuContent = menuContent;
         this.price = price;
+        this.isMain = isMain;
     }
 }

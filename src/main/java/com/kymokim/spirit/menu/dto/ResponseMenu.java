@@ -16,6 +16,7 @@ public class ResponseMenu {
         private Long menuLikeCount;
         private Long storeId;
         private String imgUrl;
+        private boolean isMain;
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
@@ -26,6 +27,7 @@ public class ResponseMenu {
                     .menuLikeCount(menu.getMenuLikeCount())
                     .storeId(menu.getStore().getStoreId())
                     .imgUrl(menu.getImgUrl())
+                    .isMain(menu.getIsMain())
                     .build();
         }
     }
@@ -40,6 +42,7 @@ public class ResponseMenu {
         private Long menuLikeCount;
         private Long storeId;
         private String imgUrl;
+        private boolean isMain;
 
         public static GetAllMenuDto toDto(Menu menu) {
             return GetAllMenuDto.builder()
@@ -50,6 +53,7 @@ public class ResponseMenu {
                     .menuLikeCount(menu.getMenuLikeCount())
                     .storeId(menu.getStore().getStoreId())
                     .imgUrl(menu.getImgUrl())
+                    .isMain(menu.getIsMain())
                     .build();
         }
     }

@@ -35,6 +35,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    //토큰 받아서 본인이 작성자인지 알려주는 boolean 값 리턴 필요
     @GetMapping("/get/{storeId}")
     public ResponseEntity<ResponseDto> getReviewByStoreId(@PathVariable("storeId") Store storeId) {
         List<ResponseReview.GetReviewDto> response = reviewService.getReviewByStoreId(storeId);
@@ -45,6 +46,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    //토큰 받아서 본인만 수정 가능하게 변경
     @PutMapping("/update")
     public ResponseEntity<ResponseDto> updateReview(@RequestBody RequestReview.UpdateReviewDto updateReviewDto) {
         reviewService.updateReview(updateReviewDto);

@@ -29,6 +29,14 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 criteria.getLatitude(), store.latitude, store.longitude, criteria.getLongitude(), criteria.getLatitude(), store.latitude);
     }
 
+    public List<Store> findNearByStores(StoreSearchCriteria criteria){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        distance = calculateHaversine(criteria, store);
+
+        return queryFactory.selectFrom(store).where(distance.loe(criteria.getRadius())).fetch();
+    }
+
     @Override
     public List<Store> findStoresByCategory(StoreSearchCriteria criteria, String category) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);

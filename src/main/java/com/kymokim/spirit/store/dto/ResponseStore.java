@@ -38,9 +38,10 @@ public class ResponseStore {
         private Long storeLikeCount;
         private Boolean isStoreLiked;
         private Boolean isStoreOpen;
+        private Double distance;
         private List<MenuListDto> menuList;
 
-        public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked, Boolean isStoreOpen) {
+        public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked, Boolean isStoreOpen, Double distance) {
 
             List<MenuListDto> menuList = new ArrayList<>();
             if(!store.getMenuList().isEmpty())
@@ -68,6 +69,7 @@ public class ResponseStore {
                     .storeLikeCount(store.getStoreLikeCount())
                     .isStoreLiked(isStoreLiked)
                     .isStoreOpen(isStoreOpen)
+                    .distance(distance)
                     .menuList(menuList)
                     .build();
         }
@@ -82,6 +84,7 @@ public class ResponseStore {
         private Long price;
         private Long menuLikeCount;
         private String imgUrl;
+        private Boolean isMain;
 
         public static MenuListDto toDto(Menu menu) {
             return MenuListDto.builder()
@@ -91,6 +94,7 @@ public class ResponseStore {
                     .price(menu.getPrice())
                     .menuLikeCount(menu.getMenuLikeCount())
                     .imgUrl(menu.getImgUrl())
+                    .isMain(menu.getIsMain())
                     .build();
         }
     }
@@ -133,6 +137,50 @@ public class ResponseStore {
                     .storeRate(rateAvg)
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getStoreLikeCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetByDistanceDto {
+        private Long storeId;
+        private String storeName;
+        private Set<Category> categories;
+        private String address;
+        private String addressDetail;
+        private String imgUrl;
+        private LocalTime openHour;
+        private LocalTime closeHour;
+        private Set<DayOfWeek> closedDays;
+        private Boolean hasScreen;
+        private Boolean isGroupAvailable;
+        private double longitude;
+        private double latitude;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long storeLikeCount;
+        private Double distance;
+
+        public static GetByDistanceDto toDto(Store store, Double rateAvg, Double distance) {
+            return GetByDistanceDto.builder()
+                    .storeId(store.getStoreId())
+                    .storeName(store.getStoreName())
+                    .categories(store.getCategories())
+                    .address(store.getAddress())
+                    .addressDetail(store.getAddressDetail())
+                    .imgUrl(store.getImgUrl())
+                    .openHour(store.getOpenHour())
+                    .closeHour(store.getCloseHour())
+                    .closedDays(store.getClosedDays())
+                    .hasScreen(store.getHasScreen())
+                    .isGroupAvailable(store.getIsGroupAvailable())
+                    .longitude(store.getLongitude())
+                    .latitude(store.getLatitude())
+                    .storeRate(rateAvg)
+                    .reviewCount(store.getReviewCount())
+                    .storeLikeCount(store.getStoreLikeCount())
+                    .distance(distance)
                     .build();
         }
     }

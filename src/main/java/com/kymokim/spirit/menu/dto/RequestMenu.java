@@ -14,12 +14,14 @@ public class RequestMenu {
         private String menuContent;
         private Long price;
         private Long storeId;
+        private boolean isMain;
 
         public static Menu toEntity(CreateMenuDto createMenuDto, Store store) {
             return Menu.builder()
                     .menuName(createMenuDto.getMenuName())
                     .menuContent(createMenuDto.getMenuContent())
                     .price(createMenuDto.getPrice())
+                    .isMain(createMenuDto.isMain())
                     .store(store)
                     .build();
         }
@@ -32,9 +34,10 @@ public class RequestMenu {
         private String menuName;
         private String menuContent;
         private Long price;
+        private boolean isMain;
 
         public static Menu toEntity(Menu menu, UpdateMenuDto updateMenuDto) {
-            menu.update(updateMenuDto.getMenuName(), updateMenuDto.getMenuContent(), updateMenuDto.getPrice());
+            menu.update(updateMenuDto.getMenuName(), updateMenuDto.getMenuContent(), updateMenuDto.getPrice(), updateMenuDto.isMain());
             return menu;
         }
     }

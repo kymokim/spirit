@@ -94,9 +94,15 @@ public class StoreController {
     }
 
     @GetMapping("/get/{storeId}")
-    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId, HttpServletRequest request) {
+    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId, HttpServletRequest request,
+                                                @RequestParam("latitude") double latitude,
+                                                @RequestParam("longitude") double longitude) {
+        StoreSearchCriteria criteria = new StoreSearchCriteria();
+        criteria.setLatitude(latitude);
+        criteria.setLongitude(longitude);
+        criteria.setRadius(2);
         Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token);
+        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token, criteria);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
                 .data(response)
@@ -128,7 +134,7 @@ public class StoreController {
         criteria.setLatitude(latitude);
         criteria.setLongitude(longitude);
         criteria.setRadius(2);
-        List<ResponseStore.GetAllStoreDto> response = storeService.getStoreByDistance(criteria);
+        List<ResponseStore.GetByDistanceDto> response = storeService.getStoreByDistance(criteria);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(response)

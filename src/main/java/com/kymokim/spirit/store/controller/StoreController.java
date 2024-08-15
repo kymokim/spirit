@@ -101,10 +101,29 @@ public class StoreController {
         criteria.setLatitude(latitude);
         criteria.setLongitude(longitude);
         criteria.setRadius(2);
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token, criteria);
+        Optional<String> token = null;
+        if (request != null) {
+            token = jwtAuthTokenProvider.getAuthToken(request);
+        }
+        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token, criteria);;
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/recommend")
+    public ResponseEntity<ResponseDto> recommendStore(@RequestBody RequestStore.recommendStoreDto recommendStoreDto,
+                                                      @RequestParam("latitude") double latitude,
+                                                      @RequestParam("longitude") double longitude){
+        StoreSearchCriteria criteria = new StoreSearchCriteria();
+        criteria.setLatitude(latitude);
+        criteria.setLongitude(longitude);
+        criteria.setRadius(2);
+        List<ResponseStore.GetAllStoreDto> response = storeService.recommendStore(criteria, recommendStoreDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

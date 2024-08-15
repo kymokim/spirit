@@ -51,6 +51,14 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class recommendStoreDto{
+        private Long temperature;
+        private Long rainProbability;
+        private String condition;
+    }
+
+    @Data
+    @Builder
     public static class UpdateStoreDto {
         private Long storeId;
         private String storeName;

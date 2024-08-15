@@ -102,12 +102,29 @@ public class StoreService {
         storeRepository.save(store);
     }
 
+    public List<ResponseStore.GetAllStoreDto> recommendStore(StoreSearchCriteria criteria, RequestStore.recommendStoreDto recommendStoreDto){
+        Long temperature = recommendStoreDto.getTemperature();
+        Long rainProbability = recommendStoreDto.getRainProbability();
+        String condition = recommendStoreDto.getCondition();
+        List<Store> storeList = null;
+        if (condition.equals("clear") && temperature <= 26 && rainProbability <= 40) {
+            storeList = storeRepository.findStoresByCategory(criteria, "OUTDOOR");
+        } else if (condition.equals("raining") && rainProbability >= 60) {
+            storeList = storeRepository.findStoresByCategory(criteria, "JEONMAK");
+        }
+        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
+        storeList.stream().forEach(store -> {
+            double rateAvg = calculateRate(store);
+            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
+        });
+        return dtoList;
+    }
+
     public List<ResponseStore.GetAllStoreDto> getAllStore() {
         List<Store> entityList = storeRepository.findAll();
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
-            double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            double rateAvg = calculateRate(store);
             dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
@@ -124,8 +141,7 @@ public class StoreService {
         List<ResponseStore.GetLikedStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(likedStore -> {
             Store store = storeRepository.findById(likedStore.getStoreId()).get();
-            double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            double rateAvg = calculateRate(store);
             dtoList.add(ResponseStore.GetLikedStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
@@ -133,21 +149,20 @@ public class StoreService {
 
     public ResponseStore.GetStoreDto getStore(Long storeId, Optional<String> token, StoreSearchCriteria criteria) {
         Store store = storeRepository.findById(storeId).get();
-        double rateAvg = store.getTotalRate() / store.getReviewCount();
-        rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+        double rateAvg = calculateRate(store);
 
         double distance = calculateDistance(criteria.getLatitude(), criteria.getLongitude(), store.getLatitude(), store.getLongitude()) * 1000.0;
 
         String email = null;
+        boolean isStoreLiked = false;
         if (token.isPresent()) {
             JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
             email = jwtAuthToken.getClaims().getSubject();
+            Long userId = authRepository.findByEmail(email).getId();
+            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
+            if (likedStore != null)
+                isStoreLiked = true;
         }
-        Long userId = authRepository.findByEmail(email).getId();
-        boolean isStoreLiked = false;
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
-        if (likedStore != null)
-            isStoreLiked = true;
         return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked, isStoreOpen(store), distance);
     }
 
@@ -169,8 +184,7 @@ public class StoreService {
         List<Store> entityList = storeRepository.findStoresByCategory(criteria, category);
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
-            double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            double rateAvg = calculateRate(store);
             dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
@@ -183,8 +197,7 @@ public class StoreService {
             Store store = entry.getKey();
             double distance = entry.getValue() * 1000.0;
             if (isStoreOpen(store)) {
-                double rateAvg = store.getTotalRate() / store.getReviewCount();
-                rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+                double rateAvg = calculateRate(store);
                 dtoList.add(ResponseStore.GetByDistanceDto.toDto(store, rateAvg, distance));
             }
         });
@@ -201,8 +214,7 @@ public class StoreService {
         List<Store> entityList = storeRepository.findAllByWriterId(writerId);
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
-            double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            double rateAvg = calculateRate(store);
             dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
@@ -221,8 +233,7 @@ public class StoreService {
                 .collect(Collectors.toList());
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
-            double rateAvg = store.getTotalRate() / store.getReviewCount();
-            rateAvg = Math.round(rateAvg * 100.0) / 100.0;
+            double rateAvg = calculateRate(store);
             dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
         });
         return dtoList;
@@ -254,6 +265,11 @@ public class StoreService {
             }
         }
         return false;
+    }
+
+    public double calculateRate(Store store){
+        double rateAvg = store.getTotalRate() / store.getReviewCount();
+        return Math.round(rateAvg * 100.0) / 100.0;
     }
 
 

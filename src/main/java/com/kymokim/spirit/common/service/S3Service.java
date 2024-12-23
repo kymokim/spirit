@@ -42,7 +42,7 @@ public class S3Service {
     }
     private String putS3(File uploadFile, String fileName){
         //외부에서 정적 파일을 읽을 수 있도록 public 읽기 권한으로 put
-        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile).withCannedAcl(CannedAccessControlList.PublicRead));
+        amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, uploadFile));
         //업로드 된 파일의 S3 URL 주소 반환
         return amazonS3Client.getUrl(bucket, fileName).toString();
     }

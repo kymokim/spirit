@@ -1,4 +1,5 @@
 FROM openjdk:21
-WORKDIR /home/kymokim/spirit
-COPY /build/libs/spirit-0.0.1-SNAPSHOT.jar /home/kymokim/spirit/spirit.jar
-ENTRYPOINT ["java","-jar","spirit.jar"]
+ARG JAR_FILE=build/libs/*.jar
+COPY ${JAR_FILE} app.jar
+ENV SPRING_PROFILES_ACTIVE=dev
+CMD ["sh", "-c", "java -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE} -jar app.jar"]

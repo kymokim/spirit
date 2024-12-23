@@ -57,6 +57,9 @@ jobs:
           java-version: 21
 
       # 3. Gradle 빌드 및 Docker 이미지 생성
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
       - name: Build Docker image
         run: |
           # Gradle 빌드 명령어 실행

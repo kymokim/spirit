@@ -59,7 +59,7 @@ jobs:
       - name: Create application.yml dynamically
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
           APP_CONFIG_FILE: src/main/resources/application-${{ env.PROFILE }}.yml
-          DB_URL: ${{ secrets['DB_URL_' + env.PROFILE | upper] }}
+          DB_URL: ${{ secrets['DB_URL_${{ env.PROFILE | upper }}'] }}
         run: |
           echo "spring:" > ${APP_CONFIG_FILE}
           echo "  datasource:" >> ${APP_CONFIG_FILE}

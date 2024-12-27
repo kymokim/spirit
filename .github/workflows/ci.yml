@@ -35,6 +35,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      # application-S3.properties 생성
+      - name: Create application-s3.properties
+        run: |
+            echo "cloud.aws.credentials.access-key=${{ secrets.AWS_S3_ACCESS_KEY }}" >> src/main/resources/secret/application-s3.properties
+            echo "cloud.aws.credentials.secret-key=${{ secrets.AWS_S3_SECRET_KEY }}" >> src/main/resources/secret/application-s3.properties
+            echo "cloud.aws.s3.bucket=${{ secrets.S3_BUCKET }}" >> src/main/resources/secret/application-s3.properties
+            echo "cloud.aws.region.static=${{ secrets.AWS_REGION }}" >> src/main/resources/secret/application-s3.properties
+
       # 4. Gradle 빌드 및 테스트 실행
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -59,6 +67,7 @@ jobs:
         with:
           name: build-artifacts
           path: build/libs
+
   notify-discord:
     runs-on: ubuntu-latest
     needs: build

@@ -56,10 +56,20 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      - name: Set DB_URL based on PROFILE
+        run: |
+          if [ "${PROFILE}" = "prod" ]; then
+            echo "DB_URL=${{ secrets.DB_URL_PROD }}" >> $GITHUB_ENV
+          elif [ "${PROFILE}" = "dev" ]; then
+            echo "DB_URL=${{ secrets.DB_URL_DEV }}" >> $GITHUB_ENV
+          else
+            echo "Unknown PROFILE: ${PROFILE}"
+            exit 1
+          fi
+
       - name: Create application.yml dynamically
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
           APP_CONFIG_FILE: src/main/resources/application-${{ env.PROFILE }}.yml
-          DB_URL: ${{ secrets['DB_URL_${{ env.PROFILE.toUpper() }}'] }}
         run: |
           echo "spring:" > ${APP_CONFIG_FILE}
           echo "  datasource:" >> ${APP_CONFIG_FILE}

@@ -91,8 +91,10 @@ jobs:
         run: |
           echo "cloud.aws.credentials.access-key=${{ secrets.AWS_S3_ACCESS_KEY }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.credentials.secret-key=${{ secrets.AWS_S3_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
+          echo "cloud.aws.stack.auto=false" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.bucket=${{ secrets.S3_BUCKET }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.region.static=${{ secrets.AWS_REGION }}" >> ${APP_CONFIG_FILE}
+          echo "cloud.aws.s3.bucket.url=${{ secrets.S3_BUCKET_URL }}" >> ${APP_CONFIG_FILE}
 
       # 3. Gradle 빌드 및 Docker 이미지 생성
       - name: Grant execute permission for gradlew

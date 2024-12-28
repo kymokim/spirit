@@ -41,7 +41,7 @@ jobs:
           APP_CONFIG_FILE: src/main/resources/secret/application-s3.properties
         run: |
           echo "cloud.aws.credentials.access-key=${{ secrets.AWS_S3_ACCESS_KEY_ID }}" >> ${APP_CONFIG_FILE}
-          echo "cloud.aws.credentials.secret-key=${{ secrets.AWS_S3_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
+          echo "cloud.aws.credentials.secret-key=${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.stack.auto=false" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.bucket=${{ secrets.S3_BUCKET }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.region.static=${{ secrets.AWS_REGION }}" >> ${APP_CONFIG_FILE}

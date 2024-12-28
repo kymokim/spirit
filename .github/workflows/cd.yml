@@ -95,6 +95,7 @@ jobs:
           echo "cloud.aws.s3.bucket=${{ secrets.S3_BUCKET }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.region.static=${{ secrets.AWS_REGION }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.bucket.url=${{ secrets.S3_BUCKET_URL }}" >> ${APP_CONFIG_FILE}
+          echo "cloud.aws.s3.signature-version=v4" >> ${APP_CONFIG_FILE}
 
       # 3. Gradle 빌드 및 Docker 이미지 생성
       - name: Grant execute permission for gradlew

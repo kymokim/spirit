@@ -102,6 +102,8 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Docker image
+        env:
+          SPRING_PROFILES_ACTIVE:${{env.PROFILE}}
         run: |
           # Gradle 빌드 명령어 실행
           ./gradlew build

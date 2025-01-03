@@ -11,7 +11,9 @@ import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.StoreSearchCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.StoreImage;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
+import com.kymokim.spirit.store.repository.StoreImageRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,10 +23,7 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,13 +31,14 @@ import java.util.stream.Collectors;
 
 public class StoreService {
     private final StoreRepository storeRepository;
+    private final StoreImageRepository storeImageRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final AuthRepository authRepository;
     private final S3Service s3Service;
     private final ReviewRepository reviewRepository;
 
-    public Long createStore(RequestStore.CreateStoreDto createStoreDto, Optional<String> token) {
+    public Long createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto, Optional<String> token) throws IOException {
 
         String email = null;
         if (token.isPresent()) {
@@ -48,27 +48,39 @@ public class StoreService {
         Long writerId = authRepository.findByEmail(email).getId();
         Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, writerId);
         storeRepository.save(store);
+
+        if (files != null) {
+            List<MultipartFile> fileList = Arrays.asList(files);
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getStoreId()));
+            for (String url : imageUrls){
+                StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
+                storeImageRepository.save(storeImage);
+                store.addImgUrlList(storeImage);
+            }
+            storeRepository.save(store);
+        }
+
         return store.getStoreId();
     }
 
-
-    public String uploadImg(MultipartFile file, long storeId){
+    public void uploadStoreImg(MultipartFile[] files, long storeId) throws IOException {
         Store store = storeRepository.findById(storeId).get();
-
-//        if (!store.getImgUrl().isEmpty())
-//            s3Service.deleteFile(store.getImgUrl());
-
-        String url = "";
-        try {
-            url = s3Service.upload(file,"store");
+        if (files != null) {
+            List<MultipartFile> fileList = Arrays.asList(files);
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getStoreId()));
+            for (String url : imageUrls){
+                StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
+                storeImageRepository.save(storeImage);
+                store.addImgUrlList(storeImage);
+            }
+            storeRepository.save(store);
         }
-        catch (IOException e){
-            System.out.println("S3 upload failed.");
-        }
+    }
 
-        store.setImgUrl(url);
+    public void setMainImg(String url, long storeId){
+        Store store = storeRepository.findById(storeId).get();
+        store.setMainImgUrl(url);
         storeRepository.save(store);
-        return url;
     }
 
     public void likeStore(Long storeId, Optional<String> token){
@@ -102,6 +114,7 @@ public class StoreService {
         storeRepository.save(store);
     }
 
+    @Deprecated
     public List<ResponseStore.GetAllStoreDto> recommendStore(StoreSearchCriteria criteria, RequestStore.recommendStoreDto recommendStoreDto){
         Long temperature = recommendStoreDto.getTemperature();
         Long rainProbability = recommendStoreDto.getRainProbability();

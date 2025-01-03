@@ -25,7 +25,7 @@ public class ResponseStore {
         private String addressDetail;
         private String storeNumber;
         private String storeContent;
-        private String imgUrl;
+        private String mainImgUrl;
         private double longitude;
         private double latitude;
         private LocalTime openHour;
@@ -39,13 +39,13 @@ public class ResponseStore {
         private Boolean isStoreLiked;
         private Boolean isStoreOpen;
         private Double distance;
-        private List<MenuListDto> menuList;
+        private List<String> imgUrlList;
 
         public static GetStoreDto toDto(Store store, Double rateAvg, Boolean isStoreLiked, Boolean isStoreOpen, Double distance) {
 
-            List<MenuListDto> menuList = new ArrayList<>();
-            if(!store.getMenuList().isEmpty())
-                store.getMenuList().stream().forEach(menu -> menuList.add(MenuListDto.toDto(menu)));
+            List<String> imgUrlList = new ArrayList<>();
+            if(!store.getImgUrlList().isEmpty())
+                store.getImgUrlList().stream().forEach(storeImage -> imgUrlList.add(storeImage.getUrl()));
 
             return GetStoreDto.builder()
                     .writerId(store.getWriterId())
@@ -56,7 +56,7 @@ public class ResponseStore {
                     .addressDetail(store.getAddressDetail())
                     .storeNumber(store.getStoreNumber())
                     .storeContent(store.getStoreContent())
-                    .imgUrl(store.getImgUrl())
+                    .mainImgUrl(store.getMainImgUrl())
                     .longitude(store.getLongitude())
                     .latitude(store.getLatitude())
                     .openHour(store.getOpenHour())
@@ -70,31 +70,7 @@ public class ResponseStore {
                     .isStoreLiked(isStoreLiked)
                     .isStoreOpen(isStoreOpen)
                     .distance(distance)
-                    .menuList(menuList)
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
-    public static class MenuListDto {
-        private Long menuId;
-        private String menuName;
-        private String menuContent;
-        private Long price;
-        private Long menuLikeCount;
-        private String imgUrl;
-        private Boolean isMain;
-
-        public static MenuListDto toDto(Menu menu) {
-            return MenuListDto.builder()
-                    .menuId(menu.getMenuId())
-                    .menuName(menu.getMenuName())
-                    .menuContent(menu.getMenuContent())
-                    .price(menu.getPrice())
-                    .menuLikeCount(menu.getMenuLikeCount())
-                    .imgUrl(menu.getImgUrl())
-                    .isMain(menu.getIsMain())
+                    .imgUrlList(imgUrlList)
                     .build();
         }
     }
@@ -107,7 +83,7 @@ public class ResponseStore {
         private Set<Category> categories;
         private String address;
         private String addressDetail;
-        private String imgUrl;
+        private String mainImgUrl;
         private LocalTime openHour;
         private LocalTime closeHour;
         private Set<DayOfWeek> closedDays;
@@ -126,7 +102,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
-                    .imgUrl(store.getImgUrl())
+                    .mainImgUrl(store.getMainImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
                     .closedDays(store.getClosedDays())
@@ -149,7 +125,7 @@ public class ResponseStore {
         private Set<Category> categories;
         private String address;
         private String addressDetail;
-        private String imgUrl;
+        private String mainImgUrl;
         private LocalTime openHour;
         private LocalTime closeHour;
         private Set<DayOfWeek> closedDays;
@@ -169,7 +145,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
-                    .imgUrl(store.getImgUrl())
+                    .mainImgUrl(store.getMainImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
                     .closedDays(store.getClosedDays())
@@ -193,7 +169,7 @@ public class ResponseStore {
         private Set<Category> categories;
         private String address;
         private String addressDetail;
-        private String imgUrl;
+        private String mainImgUrl;
         private LocalTime openHour;
         private LocalTime closeHour;
         private Set<DayOfWeek> closedDays;
@@ -210,7 +186,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .address(store.getAddress())
                     .addressDetail(store.getAddressDetail())
-                    .imgUrl(store.getImgUrl())
+                    .mainImgUrl(store.getMainImgUrl())
                     .openHour(store.getOpenHour())
                     .closeHour(store.getCloseHour())
                     .closedDays(store.getClosedDays())

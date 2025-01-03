@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,9 +32,11 @@ public class StoreController {
     private final JwtAuthTokenProvider jwtAuthTokenProvider;
 
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createStore(@RequestBody RequestStore.CreateStoreDto createStoreDto, HttpServletRequest request){
+    public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
+                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreDto createStoreDto,
+                                                   HttpServletRequest request) throws IOException {
         Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        Long storeId = storeService.createStore(createStoreDto, token);
+        Long storeId = storeService.createStore(files, createStoreDto, token);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
                 .data(storeId)
@@ -40,28 +44,25 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-//    @PostMapping("/uploadImg")
-//    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "file", required = false) MultipartFile file,
-//                                                      @RequestPart(value = "uploadImgDto") RequestStore.UploadImgDto dto){
-//        String url = storeService.uploadImg(file, dto.getStoreId());
-//        ResponseDto responseDto = ResponseDto.builder()
-//                .message("Image uploaded successfully.")
-//                .data(url)
-//                .build();
-//        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-//    }
-
     @PostMapping("/uploadImg/{storeId}")
-    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                      @PathVariable("storeId") Long storeId){
-        String url = storeService.uploadImg(file, storeId);
-
+    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "files", required = true) MultipartFile[] files,
+                                                      @PathVariable("storeId") Long storeId) throws IOException {
+        storeService.uploadStoreImg(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
-                .data(url)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @PostMapping("/setMainImg/{storeId}")
+    public ResponseEntity<ResponseDto> setMainImg(@RequestBody RequestStore.SetMainImgDto setMainImgDto){
+        storeService.setMainImg(setMainImgDto.getUrl(), setMainImgDto.getStoreId());
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image set as main successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
 
     @PostMapping("/like/{storeId}")
     public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId, HttpServletRequest request){
@@ -113,6 +114,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PostMapping("/recommend")
     public ResponseEntity<ResponseDto> recommendStore(@RequestBody RequestStore.recommendStoreDto recommendStoreDto,
                                                       @RequestParam("latitude") double latitude,

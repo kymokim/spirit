@@ -56,6 +56,17 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @GetMapping("/getByStoreId/{storeId}")
+    public ResponseEntity<ResponseDto> getByStoreId(@PathVariable("id") Long storeId) {
+
+        List<ResponseMenu.MenuListDto> response = menuService.getByStoreId(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Menu retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping("/get/{id}")
     public ResponseEntity<ResponseDto> getMenu(@PathVariable("id") Long id) {
 

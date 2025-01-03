@@ -5,6 +5,7 @@ import com.kymokim.spirit.menu.dto.RequestMenu;
 import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.repository.MenuRepository;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,14 @@ public class MenuService {
         menu.setImgUrl(url);
         menuRepository.save(menu);
         return url;
+    }
+
+    public List<ResponseMenu.MenuListDto> getByStoreId(Long storeId){
+        Store store = storeRepository.findById(storeId).get();
+        List<ResponseMenu.MenuListDto> menuList = new ArrayList<>();
+        if(!store.getMenuList().isEmpty())
+            store.getMenuList().stream().forEach(menu -> menuList.add(ResponseMenu.MenuListDto.toDto(menu)));
+        return menuList;
     }
 
     public List<ResponseMenu.GetAllMenuDto> getAllMenu() {

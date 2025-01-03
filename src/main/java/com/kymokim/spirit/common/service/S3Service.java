@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +31,18 @@ public class S3Service {
         File uploadFile = convert(multipartFile)
                 .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert failed"));
         return upload(uploadFile, dirName);
+    }
+
+    // 다중 파일 업로드
+    public List<String> uploadMultiple(List<MultipartFile> multipartFiles, String dirName) throws IOException {
+        List<String> uploadedUrls = new ArrayList<>();
+        for (MultipartFile multipartFile : multipartFiles) {
+            File uploadFile = convert(multipartFile)
+                    .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert failed"));
+            String uploadUrl = upload(uploadFile, dirName);
+            uploadedUrls.add(uploadUrl);
+        }
+        return uploadedUrls;
     }
 
     private String upload(File uploadFile, String dirName) {

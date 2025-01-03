@@ -53,8 +53,8 @@ public class Store {
     @Column(name = "storeContent")
     private String storeContent;
 
-    @Column(name = "imgUrl")
-    private String imgUrl;
+    @Column(name = "mainImgUrl")
+    private String mainImgUrl;
 
     @Column(name = "longitude")
     private double longitude;
@@ -98,6 +98,9 @@ public class Store {
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<LiveReview> liveReviewList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<StoreImage> imgUrlList = new ArrayList<>();
+
     @Builder
     public Store(Long writerId, String storeName, Set<Category> categories,
                  String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
@@ -139,7 +142,9 @@ public class Store {
     public void addMenu(Menu menu) {
         this.menuList.add(menu);
     }
-
+    public void addImgUrlList(StoreImage storeImage){
+        this.imgUrlList.add(storeImage);
+    }
     public void increaseReviewCount() {
         this.reviewCount++;
     }

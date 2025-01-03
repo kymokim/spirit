@@ -85,8 +85,8 @@ public class RequestStore {
 
     @Data
     @Builder
-    public static class UploadImgDto{
+    public static class SetMainImgDto{
         private Long storeId;
-        private Long decId;
+        private String url;
     }
 }

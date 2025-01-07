@@ -57,7 +57,7 @@ public class MenuController {
     }
 
     @GetMapping("/getByStoreId/{storeId}")
-    public ResponseEntity<ResponseDto> getByStoreId(@PathVariable("id") Long storeId) {
+    public ResponseEntity<ResponseDto> getByStoreId(@PathVariable("storeId") Long storeId) {
 
         List<ResponseMenu.MenuListDto> response = menuService.getByStoreId(storeId);
         ResponseDto responseDto = ResponseDto.builder()

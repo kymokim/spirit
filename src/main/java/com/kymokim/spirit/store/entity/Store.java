@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.entity;
 
-import com.kymokim.spirit.liveReview.entity.LiveReview;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.review.entity.Review;
 import lombok.Builder;
@@ -94,9 +93,6 @@ public class Store {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Review> reviewList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<LiveReview> liveReviewList = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<StoreImage> imgUrlList = new ArrayList<>();

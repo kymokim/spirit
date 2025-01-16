@@ -2,123 +2,193 @@ package com.kymokim.spirit.auth.controller;
 
 import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.dto.ResponseAuth;
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.auth.service.AuthService;
-import com.kymokim.spirit.auth.service.EmailService;
 import com.kymokim.spirit.common.dto.ResponseDto;
-import com.kymokim.spirit.common.dto.ResponseMessage;
-import com.kymokim.spirit.common.exception.error.LoginFailedException;
+import com.kymokim.spirit.common.exception.ErrorResponse;
+import com.kymokim.spirit.common.security.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import javax.validation.Valid;
-import java.util.Optional;
 
-
+@Tag(name = "Auth API")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
-    private final EmailService emailService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-
+    @Operation(summary = "회원가입")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "이미 해당 소셜 정보로 가입한 경우[21003]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @PostMapping("/register")
-    public ResponseEntity<ResponseMessage> registerUser(@Valid @RequestBody RequestAuth.RegisterUserDto registerUserDto) {
+    public ResponseEntity<ResponseDto> registerUser(@Valid @RequestBody RequestAuth.RegisterUserDto registerUserDto) {
         authService.registerUser(registerUserDto);
-        ResponseMessage responseMessage = ResponseMessage.builder()
-                .message("User registered successfully.")
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<ResponseMessage> loginUser(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
-        ResponseAuth.LoginUserRsDto response = authService.loginUser(loginUserRqDto).orElseThrow(() -> new LoginFailedException());
-        ResponseMessage responseMessage = ResponseMessage.builder()
-                .message("User logged in successfully.")
-                .data(response)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-    }
-
-    @PostMapping ("/sendEmail")
-    public String sendEmail(@RequestBody @Valid RequestAuth.SendEmailDto sendEmailDto){
-        System.out.println("이메일 인증 이메일 :"+sendEmailDto.getEmail());
-        return emailService.writeEmail(sendEmailDto.getEmail());
-    }
-
-    @PostMapping("/verifyEmail")
-    public ResponseEntity<ResponseMessage> verifyEmail(@RequestBody @Valid RequestAuth.VerifyEmailDto verifyEmailDto){
-        Boolean Checked=emailService.verifyEmail(verifyEmailDto.getEmail(),verifyEmailDto.getVerificationCode());
-        if(Checked){
-            ResponseMessage responseMessage = ResponseMessage.builder()
-                    .message("Email verified successfully.")
-                    .build();
-            return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-        }
-        else{
-            throw new NullPointerException("Verification failed.");
-        }
-    }
-
-    @PostMapping("/getTempToken")
-    public ResponseEntity<ResponseMessage> getTempToken(@RequestBody @Valid RequestAuth.VerifyEmailDto verifyEmailDto){
-        String tempToken = authService.getTempToken(verifyEmailDto.getEmail(), verifyEmailDto.getVerificationCode());
-        ResponseMessage responseMessage = ResponseMessage.builder()
-                .message("TempToken issued successfully.")
-                .data(tempToken)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
-    }
-
-    @PostMapping("/uploadImg")
-    public ResponseEntity<ResponseDto> uploadUserImg(@RequestPart(value = "file", required = false) MultipartFile file, HttpServletRequest request){
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        String url = authService.uploadImg(file, token);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Image uploaded successfully.")
-                .data(url)
+                .message("User registered successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<ResponseMessage> updateUser(HttpServletRequest request, @Valid @RequestBody RequestAuth.UpdateUserDto updateUserDto) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        authService.updateUser(token, updateUserDto);
-        ResponseMessage responseMessage = ResponseMessage.builder()
-                .message("User information updated successfully.")
+    @Operation(summary = "로그인", description = "반환되는 accessToken, refreshToken 전부 저장 후" +
+            "\n\n모든 요청의 x-auth-token 헤더에 accessToken을 담아서 사용(/reissue-token, /logout API는 refreshToken)" +
+            "\n\naccessToken(유효기간 1시간) 만료(401 에러) 시 /reissue-token API로 액세스 토큰 재발급" +
+            "\n\nrefreshToken(유효기간 30일)은 만료(401 에러) 시 /login API로 액세스, 리프레쉬 전부 재발급")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/login")
+    public ResponseEntity<ResponseDto> loginUser(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
+        ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginUser(loginUserRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User logged in successfully.")
+                .data(loginUserRsDto)
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PutMapping("/changePassword")
-    public ResponseEntity<ResponseMessage> changePassword(HttpServletRequest request, @Valid @RequestBody RequestAuth.ChangePasswordDto changePasswordDto){
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        authService.changePassword(token, changePasswordDto.getPassword());
-        ResponseMessage responseMessage = ResponseMessage.builder()
-                .message("Password changed successfully.")
+    @Operation(summary = "액세스 토큰 재발급", description = "x-auth-token 헤더에 refreshToken 입력" +
+            "\n\n해당 API 호출 시 리프레쉬 토큰이 만료 7일 전부터 자동 갱신되므로 반환되는 액세스, 리프레쉬 토큰 전부 저장 필요")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(리프레쉬 토큰 만료), 리프레시 토큰이 일치하지 않는 경우[21002]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @GetMapping("/reissue-token")
+    public ResponseEntity<ResponseDto> reissueToken(HttpServletRequest request){
+        String refreshToken = jwtTokenProvider.resolveToken(request);
+        ResponseAuth.ReissueTokenDto reissueTokenDto = authService.reissueToken(refreshToken);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Token reissued successfully.")
+                .data(reissueTokenDto)
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "유저 이미지 등록/수정", description = "새로 등록된 파일 전송")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "이미지 파일이 없을 경우[21006]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> uploadImg(@Valid @RequestPart(value = "file") MultipartFile file) {
+        authService.uploadImg(file);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User image uploaded successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "유저 이미지 삭제")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "저장된 이미지 주소가 없을 경우[21001]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @DeleteMapping("/delete-image")
+    public ResponseEntity<ResponseDto> deleteImg(){
+        authService.deleteImg();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User image deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "닉네임 사용 가능 여부(중복 여부) 확인", description = "토큰 불필요")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공")
+    })
+    @PostMapping("/check-nickname")
+    public ResponseEntity<ResponseDto> checkNickname(@Valid @RequestParam String nickname) {
+        ResponseAuth.CheckNicknameDto checkNicknameDto = authService.checkNickname(nickname);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User nickname check result retrieved.")
+                .data(checkNicknameDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "닉네임 수정")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "이미 사용중인 닉네임인 경우[21004]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PutMapping("/update-nickname")
+    public ResponseEntity<ResponseDto> updateNickname(@Valid @RequestParam String nickname) {
+        authService.updateNickname(nickname);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User nickname updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "유저 정보 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료)",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
     @GetMapping("/get")
-    public ResponseEntity<ResponseMessage> getUser(HttpServletRequest request) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        ResponseAuth.GetUserDto response = authService.getUser(token);
-        ResponseMessage responseMessage = ResponseMessage.builder()
+    public ResponseEntity<ResponseDto> getUser() {
+        ResponseAuth.GetUserDto response = authService.getUser();
+        ResponseDto responseDto = ResponseDto.builder()
                 .message("User information retrieved successfully.")
                 .data(response)
                 .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "로그아웃", description = "x-auth-token 헤더에 refreshToken 입력")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료), 리프레시 토큰이 일치하지 않는 경우[21002]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseDto> logoutUser(HttpServletRequest request){
+        String refreshToken = jwtTokenProvider.resolveToken(request);
+        authService.logoutUser(refreshToken);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("User logged out successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

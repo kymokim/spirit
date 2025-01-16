@@ -1,6 +1,5 @@
 package com.kymokim.spirit.review.controller;
 
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
@@ -23,12 +22,10 @@ import java.util.Optional;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
 
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createReview(@RequestBody RequestReview.CreateReviewDto createReviewDto, HttpServletRequest request) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        reviewService.createReview(createReviewDto, token);
+    public ResponseEntity<ResponseDto> createReview(@RequestBody RequestReview.CreateReviewDto createReviewDto) {
+        reviewService.createReview(createReviewDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review created successfully.")
                 .build();
@@ -57,9 +54,8 @@ public class ReviewController {
     }
 
     @DeleteMapping("/delete/{reviewId}")
-    public ResponseEntity<ResponseDto> deleteReview(@PathVariable("reviewId") Long reviewId, HttpServletRequest request) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        reviewService.deleteReview(reviewId, token);
+    public ResponseEntity<ResponseDto> deleteReview(@PathVariable("reviewId") Long reviewId) {
+        reviewService.deleteReview(reviewId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review deleted successfully.")
                 .build();

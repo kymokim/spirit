@@ -1,169 +1,155 @@
 package com.kymokim.spirit.auth.service;
 
+import com.kymokim.spirit.auth.dto.CommonAuth;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.dto.ResponseAuth;
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
-import com.kymokim.spirit.auth.security.JwtAuthToken;
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
-import com.kymokim.spirit.auth.security.role.Role;
-import com.kymokim.spirit.auth.util.RedisUtil;
-import com.kymokim.spirit.auth.util.SHA256Util;
-import com.kymokim.spirit.common.exception.error.*;
+import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.common.security.JwtTokenProvider;
+import com.kymokim.spirit.common.service.RedisService;
 import com.kymokim.spirit.common.service.S3Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
-public class AuthService implements AuthServiceInterface {
+public class AuthService{
 
     private final AuthRepository authRepository;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
     private final S3Service s3Service;
-    private final RedisUtil redisUtil;
 
     @Transactional
-    @Override
     public void registerUser(RequestAuth.RegisterUserDto registerUserDto) {
 
-        Auth user = authRepository.findByEmail(registerUserDto.getEmail());
+        Auth user = authRepository.findBySocialInfo(CommonAuth.SocialInfoDto.toEntity(registerUserDto.getSocialInfoDto()));
         if(user != null){
-            throw new ExistingEmailException();
+            throw new CustomException(AuthErrorCode.USER_SOCIAL_INFO_EXISTS);
         }
-        user = authRepository.findByNickName(registerUserDto.getNickName());
-        if(user != null){
-            throw new ExistingNicknameException();
-        }
-
-        String salt = SHA256Util.generateSalt();
-        String encryptedPassword = SHA256Util.getEncrypt(registerUserDto.getPassword(),salt);
-        user = RequestAuth.RegisterUserDto.toEntity(registerUserDto, salt, encryptedPassword);
+        user = RequestAuth.RegisterUserDto.toEntity(registerUserDto);
         authRepository.save(user);
     }
 
-    @Override
+    //일단 socialToken은 받기만 하고 추후 검증 로직 추가
     @Transactional
-    public Optional<ResponseAuth.LoginUserRsDto> loginUser(RequestAuth.LoginUserRqDto loginUserRqDto) {
-        Auth user = authRepository.findByEmail(loginUserRqDto.getEmail());
-        if(user == null)
-            throw new LoginFailedException();
-
-        String salt = user.getSalt();
-        user = authRepository.findByEmailAndPassword(loginUserRqDto.getEmail(), SHA256Util.getEncrypt(loginUserRqDto.getPassword(),salt));
-        if(user == null)
-            throw new LoginFailedException();
-
-        String accessToken = createAccessToken(user.getEmail());
-        return Optional.ofNullable(ResponseAuth.LoginUserRsDto.toDto(accessToken));
-    }
-
-    @Override
-    @Transactional
-    public String uploadImg(MultipartFile file, Optional<String> token) {
-        String email = null;
-        if(token.isPresent()){
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
+    public ResponseAuth.LoginUserRsDto loginUser(RequestAuth.LoginUserRqDto loginUserRqDto) {
+        Auth user = authRepository.findBySocialInfo(CommonAuth.SocialInfoDto.toEntity(loginUserRqDto.getSocialInfoDto()));
+        if(user == null) {
+            throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
         }
-        Auth user = authRepository.findByEmail(email);
-        String url = "";
-        try {
-            url = s3Service.upload(file,"user");
-        }
-        catch (IOException e){
-            System.out.println("S3 upload failed.");
-        }
-
-        user.setUserImg(url);
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        user.setRefreshToken(refreshToken);
         authRepository.save(user);
-        return url;
+        return ResponseAuth.LoginUserRsDto.toDto(accessToken, refreshToken);
     }
 
-    @Override
-    public String createAccessToken(String userid) {
-        Date expiredDate = Date.from(LocalDateTime.now().plusDays(1).atZone(ZoneId.systemDefault()).toInstant());
-        JwtAuthToken accessToken = jwtAuthTokenProvider.createAuthToken(userid, Role.USER.getCode(),expiredDate);
-        return accessToken.getToken();
-    }
-
-    @Override
-    public String getTempToken(String email, String verificationCode){
-        JwtAuthToken tempToken = null;
-        if(redisUtil.getData(verificationCode)==null){
-            throw new RuntimeException();
-        }
-        else if(redisUtil.getData(verificationCode).equals(email)){
-            Date expiredDate = Date.from(LocalDateTime.now().plusMinutes(10).atZone(ZoneId.systemDefault()).toInstant());
-            tempToken = jwtAuthTokenProvider.createAuthToken(email, Role.USER.getCode(),expiredDate);
-        }
-        return tempToken.getToken();
-    }
-
-    @Override
     @Transactional
-    public void updateUser(Optional<String> token, RequestAuth.UpdateUserDto updateUserDto) {
-
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
+    public ResponseAuth.ReissueTokenDto reissueToken(String refreshToken){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        String accessToken;
+        if (user.getRefreshToken().equals(refreshToken)) {
+            accessToken = jwtTokenProvider.createAccessToken(user.getId());
+            if (jwtTokenProvider.checkExpiry(refreshToken)){
+                refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+                user.setRefreshToken(refreshToken);
+                authRepository.save(user);
+            }
+            return ResponseAuth.ReissueTokenDto.toDto(accessToken, refreshToken);
         }
-
-        Auth originalUser = authRepository.findByEmail(email);
-        if(originalUser == null)
-            throw new NotFoundUserException();
-        Auth nameUser = authRepository.findByNickName(updateUserDto.getNickName());
-        if(nameUser != null && !originalUser.equals(nameUser))
-            throw new RegisterFailedException();
-
-        String salt = SHA256Util.generateSalt();
-        String encryptedPassword = SHA256Util.getEncrypt(updateUserDto.getPassword(), salt);
-        Auth updatedUser = RequestAuth.UpdateUserDto.toEntity(originalUser, updateUserDto, salt, encryptedPassword);
-        authRepository.save(updatedUser);
+        else
+            throw new CustomException(AuthErrorCode.REFRESH_TOKEN_MATCH_FAILED);
     }
 
-    @Override
+    // 기존에 등록된 이미지가 없으면 업로드, 있으면 업데이트
     @Transactional
-    public void changePassword(Optional<String> token, String password){
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
+    public void uploadImg(MultipartFile file) {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        String imageUrl;
+        if (file != null){
+            if (user.getImgUrl() == null) {
+                imageUrl = s3Service.upload(file, "user/" + String.valueOf(user.getId()));
+            }
+            else {
+                imageUrl = s3Service.update(file, "user/" + String.valueOf(user.getId()), user.getImgUrl());
+            }
+        } else {
+            throw new CustomException(AuthErrorCode.USER_IMG_FILE_EMPTY);
         }
-
-        Auth user = authRepository.findByEmail(email);
-        if(user == null)
-            throw new NotFoundUserException();
-
-        String salt = SHA256Util.generateSalt();
-        String encryptedPassword = SHA256Util.getEncrypt(password, salt);
-        user.changePassword(encryptedPassword, salt);
+        user.setImgUrl(imageUrl);
         authRepository.save(user);
     }
 
-    @Override
     @Transactional
-    public ResponseAuth.GetUserDto getUser(Optional<String> token) {
-
-        String email = null;
-        if(token.isPresent()){
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
+    public void deleteImg(){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        String originUrl;
+        if (!user.getImgUrl().isEmpty()){
+            originUrl = user.getImgUrl();
+        } else {
+            throw new CustomException(AuthErrorCode.USER_ORIGIN_IMG_URL_EMPTY);
         }
-        Auth user = authRepository.findByEmail(email);
-        if (user == null)
-            throw new NotFoundUserException();
+        s3Service.deleteFile(originUrl);
+        user.setImgUrl(null);
+        authRepository.save(user);
+    }
+
+    @Transactional
+    public ResponseAuth.CheckNicknameDto checkNickname(String nickname){
+        return ResponseAuth.CheckNicknameDto.toDto(isNicknameUsable(nickname));
+    }
+
+    //현재는 닉네임 중복검사 로직만 존재
+    @Transactional
+    public Boolean isNicknameUsable(String nickname){
+        Auth user = authRepository.findByNickname(nickname);
+        return user == null;
+    }
+
+    @Transactional
+    public void updateNickname(String nickname) {
+
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+
+        if (!isNicknameUsable(nickname))
+            throw new CustomException(AuthErrorCode.USER_NICKNAME_EXISTS);
+
+        user.setNickname(nickname);
+        authRepository.save(user);
+    }
+
+    @Transactional
+    public ResponseAuth.GetUserDto getUser() {
+
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
 
         return ResponseAuth.GetUserDto.toDto(user);
+    }
+
+    @Transactional
+    public void logoutUser(String refreshToken){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        if (user.getRefreshToken().equals(refreshToken)) {
+            user.setRefreshToken(null);
+            authRepository.save(user);
+        } else
+            throw new CustomException(AuthErrorCode.REFRESH_TOKEN_MATCH_FAILED);
     }
 }

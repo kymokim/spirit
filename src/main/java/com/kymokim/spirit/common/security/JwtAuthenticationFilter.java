@@ -35,7 +35,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 LOGGER.info("[doFilterInternal] token 값 유효성 체크 완료");
             }
         } catch (CustomException e) {
-            request.setAttribute("javax.servlet.error.exception", e); // 예외를 Request에 저장
+            request.setAttribute("java.lang.exception", e); // 예외를 Request에 저장
+            throw e;
         }
         filterChain.doFilter(request, response);
     }

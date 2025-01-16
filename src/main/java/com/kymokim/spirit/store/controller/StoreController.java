@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.controller;
 
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -29,14 +28,11 @@ import java.util.Set;
 public class StoreController {
 
     private final StoreService storeService;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreDto createStoreDto,
-                                                   HttpServletRequest request) throws IOException {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        Long storeId = storeService.createStore(files, createStoreDto, token);
+                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreDto createStoreDto) throws IOException {
+        Long storeId = storeService.createStore(files, createStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
                 .data(storeId)
@@ -46,7 +42,7 @@ public class StoreController {
 
     @PostMapping("/uploadImg/{storeId}")
     public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "files", required = true) MultipartFile[] files,
-                                                      @PathVariable("storeId") Long storeId) throws IOException {
+                                                      @PathVariable("storeId") Long storeId) {
         storeService.uploadStoreImg(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
@@ -65,9 +61,8 @@ public class StoreController {
 
 
     @PostMapping("/like/{storeId}")
-    public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId, HttpServletRequest request){
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        storeService.likeStore(storeId, token);
+    public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId){
+        storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store liked successfully.")
                 .build();
@@ -75,9 +70,8 @@ public class StoreController {
     }
 
     @PostMapping("/unlike/{storeId}")
-    public ResponseEntity<ResponseDto> unlikeStore(@PathVariable("storeId") Long storeId, HttpServletRequest request){
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        storeService.unlikeStore(storeId, token);
+    public ResponseEntity<ResponseDto> unlikeStore(@PathVariable("storeId") Long storeId){
+        storeService.unlikeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store unliked successfully.")
                 .build();
@@ -95,18 +89,14 @@ public class StoreController {
     }
 
     @GetMapping("/get/{storeId}")
-    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId, HttpServletRequest request,
+    public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId,
                                                 @RequestParam("latitude") double latitude,
                                                 @RequestParam("longitude") double longitude) {
         StoreSearchCriteria criteria = new StoreSearchCriteria();
         criteria.setLatitude(latitude);
         criteria.setLongitude(longitude);
         criteria.setRadius(2);
-        Optional<String> token = null;
-        if (request != null) {
-            token = jwtAuthTokenProvider.getAuthToken(request);
-        }
-        ResponseStore.GetStoreDto response = storeService.getStore(storeId, token, criteria);;
+        ResponseStore.GetStoreDto response = storeService.getStore(storeId, criteria);;
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
                 .data(response)
@@ -164,9 +154,8 @@ public class StoreController {
     }
 
     @GetMapping("/getLikedStore")
-    public ResponseEntity<ResponseDto> getLikedStore(HttpServletRequest request){
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        List<ResponseStore.GetLikedStoreDto> response = storeService.getLikedStore(token);
+    public ResponseEntity<ResponseDto> getLikedStore(){
+        List<ResponseStore.GetLikedStoreDto> response = storeService.getLikedStore();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Liked store list retrieved successfully.")
                 .data(response)
@@ -176,9 +165,8 @@ public class StoreController {
 
     @Deprecated
     @GetMapping("/getWrittenStore") //최근 방문 가게 리스트 구현하려다 자신이 작성한 가게 리스트 만듬...
-    public ResponseEntity<ResponseDto> getWrittenStore(HttpServletRequest request) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        List<ResponseStore.GetAllStoreDto> response = storeService.getByWriterStore(token);
+    public ResponseEntity<ResponseDto> getWrittenStore() {
+        List<ResponseStore.GetAllStoreDto> response = storeService.getByWriterStore();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(response)
@@ -187,9 +175,8 @@ public class StoreController {
     }
 
     @GetMapping("/getRecentStore")
-    public ResponseEntity<ResponseDto> getRecentStore(HttpServletRequest request) {
-        Optional<String> token = jwtAuthTokenProvider.getAuthToken(request);
-        List<ResponseStore.GetAllStoreDto> response = storeService.getByRecentVisitStore(token);
+    public ResponseEntity<ResponseDto> getRecentStore() {
+        List<ResponseStore.GetAllStoreDto> response = storeService.getByRecentVisitStore();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(response)

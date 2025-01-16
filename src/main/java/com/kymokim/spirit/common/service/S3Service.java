@@ -1,5 +1,7 @@
 package com.kymokim.spirit.common.service;
 
+import com.kymokim.spirit.common.exception.CommonErrorCode;
+import com.kymokim.spirit.common.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -10,11 +12,9 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -27,22 +27,29 @@ public class S3Service {
     private String bucket;
 
     // S3 업로드
-    public String upload(MultipartFile multipartFile, String dirName) throws IOException {
-        File uploadFile = convert(multipartFile)
-                .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert failed"));
+    public String upload(MultipartFile multipartFile, String dirName) {
+        File uploadFile = convert(multipartFile);
         return upload(uploadFile, dirName);
     }
 
     // 다중 파일 업로드
-    public List<String> uploadMultiple(List<MultipartFile> multipartFiles, String dirName) throws IOException {
+    public List<String> uploadMultiple(List<MultipartFile> multipartFiles, String dirName){
         List<String> uploadedUrls = new ArrayList<>();
         for (MultipartFile multipartFile : multipartFiles) {
-            File uploadFile = convert(multipartFile)
-                    .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert failed"));
+            File uploadFile = convert(multipartFile);
             String uploadUrl = upload(uploadFile, dirName);
             uploadedUrls.add(uploadUrl);
         }
         return uploadedUrls;
+    }
+
+    public String update(MultipartFile multipartFile, String dirName, String oldFileUrl){
+        if (oldFileUrl != null){
+            deleteFile(oldFileUrl);
+        }
+        else
+            throw new CustomException(CommonErrorCode.OLD_IMG_URL_EMPTY);
+        return upload(multipartFile, dirName);
     }
 
     private String upload(File uploadFile, String dirName) {
@@ -71,17 +78,27 @@ public class S3Service {
         }
     }
 
-    private Optional<File> convert(MultipartFile file) throws IOException {
+    private File convert(MultipartFile file) {
+        // 원본 파일 이름으로 새 File 객체 생성
         File convertFile = new File(file.getOriginalFilename());
-        if (convertFile.createNewFile()) {
-            try (FileOutputStream fileOutputStream = new FileOutputStream(convertFile)) {
-                fileOutputStream.write(file.getBytes());
+        try {
+            // 파일이 성공적으로 생성되었는지 확인
+            if (convertFile.createNewFile()) {
+                // 파일 출력 스트림에 데이터를 작성
+                try (FileOutputStream fileOutputStream = new FileOutputStream(convertFile)) {
+                    fileOutputStream.write(file.getBytes());
+                }
+                return convertFile; // 변환된 파일 반환
+            } else {
+                throw new CustomException(CommonErrorCode.NEW_FILE_CREATE_FAILED);
             }
-            return Optional.of(convertFile);
+        } catch (Exception e) {
+            System.out.println("file conversion failed : " + e);
+            throw new CustomException(CommonErrorCode.FILE_CONVERSION_FAILED);
         }
-        return Optional.empty();
     }
 
+    //DOESN'T WORK NEEDS TO BE FIXED
     public void deleteFile(String url) {
         // 파일 URL에서 파일 이름 추출
         String[] fileNameParts = url.split("/");

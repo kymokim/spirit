@@ -1,6 +1,8 @@
 package com.kymokim.spirit.auth.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.SocialInfo;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,18 +14,17 @@ public class RequestAuth {
     @Builder
     @Data
     public static class RegisterUserDto{
-        private String email;
-        private String password;
-        private String name;
-        private String nickName;
+        @Schema(description = "소셜 로그인 정보")
+        @NotEmpty(message = "소셜 로그인 정보가 비었습니다")
+        private CommonAuth.SocialInfoDto socialInfoDto;
+        @Schema(description = "닉네임")
+        @NotEmpty(message = "닉네임이 비었습니다")
+        private String nickname;
 
-        public static Auth toEntity(RegisterUserDto registerUserDto, String salt, String encryptedPassword){
+        public static Auth toEntity(RegisterUserDto registerUserDto){
             return Auth.builder()
-                    .email(registerUserDto.getEmail())
-                    .password(encryptedPassword)
-                    .name(registerUserDto.getName())
-                    .nickName(registerUserDto.getNickName())
-                    .salt(salt)
+                    .socialInfo(CommonAuth.SocialInfoDto.toEntity(registerUserDto.getSocialInfoDto()))
+                    .nickname(registerUserDto.getNickname())
                     .build();
         }
     }
@@ -31,46 +32,11 @@ public class RequestAuth {
     @Builder
     @Data
     public static class LoginUserRqDto{
-        private String email;
-        private String password;
-    }
-
-    @Builder
-    @Data
-    public static class UpdateUserDto{
-        private String password;
-        private String name;
-        private String nickName;
-
-        public static Auth toEntity(Auth user, UpdateUserDto updateUserDto, String salt, String encryptedPassword){
-            user.update(encryptedPassword, updateUserDto.getName(), updateUserDto.getNickName(), salt);
-            return user;
-        }
-    }
-
-    @Builder
-    @Data
-    public static class ChangePasswordDto{
-        @NotNull
-        private String password;
-        private String temp;
-    }
-
-    @Builder
-    @Data
-    public static class SendEmailDto{
-        @Email
-        @NotEmpty(message = "Enter email.")
-        private String email;
-        private String temp;
-    }
-
-    @Builder
-    @Data
-    public static class VerifyEmailDto{
-        @Email
-        @NotEmpty(message = "Enter email.")
-        private String email;
-        private String verificationCode;
+        @Schema(description = "소셜 로그인 정보")
+        @NotEmpty(message = "소셜 로그인 정보가 비었습니다")
+        private CommonAuth.SocialInfoDto socialInfoDto;
+        @Schema(description = "소셜 로그인 토큰")
+        @NotEmpty(message = "소셜 로그인 토큰이 비었습니다")
+        private String socialToken;
     }
 }

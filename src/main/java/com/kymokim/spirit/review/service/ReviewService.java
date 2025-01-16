@@ -1,9 +1,9 @@
 package com.kymokim.spirit.review.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
-import com.kymokim.spirit.auth.security.JwtAuthToken;
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
+import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
 import com.kymokim.spirit.review.entity.Review;
@@ -11,6 +11,7 @@ import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -23,23 +24,18 @@ import java.util.Optional;
 public class ReviewService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
     private final AuthRepository authRepository;
 
-    public void createReview(RequestReview.CreateReviewDto createReviewDto, Optional<String> token) {
-        String email = null;
-        if(token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Auth writer = authRepository.findByEmail(email);
-
+    public void createReview(RequestReview.CreateReviewDto createReviewDto) {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth writer = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
         Store store = storeRepository.findById(createReviewDto.getStoreId()).get();
         if(store == null) {
             throw new EntityNotFoundException();
         }
 
-        Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, writer.getId(), writer.getNickName());
+        Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, writer.getId(), writer.getNickname());
         reviewRepository.save(review);
 
         Double totalRate = store.getTotalRate() + review.getRate();
@@ -63,15 +59,10 @@ public class ReviewService {
         reviewRepository.save(updatedReview);
     }
 
-    public void deleteReview(Long reviewId, Optional<String> token) {
-        String email = null;
-        if(token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long writerId = authRepository.findByEmail(email).getId();
+    public void deleteReview(Long reviewId) {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
         Review review = reviewRepository.findById(reviewId).get();
-        if(review.getWriterId().equals(writerId)) {
+        if(review.getWriterId().equals(userId)) {
             reviewRepository.delete(review);
         } else throw new EntityNotFoundException();
         Store store = review.getStore();

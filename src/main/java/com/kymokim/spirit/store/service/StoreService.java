@@ -1,8 +1,6 @@
 package com.kymokim.spirit.store.service;
 
 import com.kymokim.spirit.auth.repository.AuthRepository;
-import com.kymokim.spirit.auth.security.JwtAuthToken;
-import com.kymokim.spirit.auth.security.JwtAuthTokenProvider;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
@@ -16,6 +14,7 @@ import com.kymokim.spirit.store.repository.LikedStoreRepository;
 import com.kymokim.spirit.store.repository.StoreImageRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,20 +32,13 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
     private final LikedStoreRepository likedStoreRepository;
-    private final JwtAuthTokenProvider jwtAuthTokenProvider;
-    private final AuthRepository authRepository;
     private final S3Service s3Service;
     private final ReviewRepository reviewRepository;
 
-    public Long createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto, Optional<String> token) throws IOException {
+    public Long createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto) {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
 
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long writerId = authRepository.findByEmail(email).getId();
-        Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, writerId);
+        Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, userId);
         storeRepository.save(store);
 
         if (files != null) {
@@ -63,7 +55,7 @@ public class StoreService {
         return store.getStoreId();
     }
 
-    public void uploadStoreImg(MultipartFile[] files, long storeId) throws IOException {
+    public void uploadStoreImg(MultipartFile[] files, long storeId) {
         Store store = storeRepository.findById(storeId).get();
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -83,13 +75,8 @@ public class StoreService {
         storeRepository.save(store);
     }
 
-    public void likeStore(Long storeId, Optional<String> token){
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long userId = authRepository.findByEmail(email).getId();
+    public void likeStore(Long storeId){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
         LikedStore likedStore = LikedStore.builder()
                 .storeId(storeId)
                 .userId(userId)
@@ -100,13 +87,8 @@ public class StoreService {
         storeRepository.save(store);
     }
 
-    public void unlikeStore(Long storeId, Optional<String> token){
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long userId = authRepository.findByEmail(email).getId();
+    public void unlikeStore(Long storeId){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
         LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
         likedStoreRepository.delete(likedStore);
         Store store = storeRepository.findById(storeId).get();
@@ -143,13 +125,8 @@ public class StoreService {
         return dtoList;
     }
 
-    public List<ResponseStore.GetLikedStoreDto> getLikedStore(Optional<String> token){
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long userId = authRepository.findByEmail(email).getId();
+    public List<ResponseStore.GetLikedStoreDto> getLikedStore(){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
         List<LikedStore> entityList = likedStoreRepository.findAllByUserId(userId);
         List<ResponseStore.GetLikedStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(likedStore -> {
@@ -160,22 +137,17 @@ public class StoreService {
         return dtoList;
     }
 
-    public ResponseStore.GetStoreDto getStore(Long storeId, Optional<String> token, StoreSearchCriteria criteria) {
+    public ResponseStore.GetStoreDto getStore(Long storeId, StoreSearchCriteria criteria) {
         Store store = storeRepository.findById(storeId).get();
         double rateAvg = calculateRate(store);
 
         double distance = calculateDistance(criteria.getLatitude(), criteria.getLongitude(), store.getLatitude(), store.getLongitude()) * 1000.0;
 
-        String email = null;
         boolean isStoreLiked = false;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-            Long userId = authRepository.findByEmail(email).getId();
-            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
-            if (likedStore != null)
-                isStoreLiked = true;
-        }
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
+        if (likedStore != null)
+            isStoreLiked = true;
         return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked, isStoreOpen(store), distance);
     }
 
@@ -217,14 +189,9 @@ public class StoreService {
         return dtoList;
     }
 
-    public List<ResponseStore.GetAllStoreDto> getByWriterStore(Optional<String> token) {
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long writerId = authRepository.findByEmail(email).getId();
-        List<Store> entityList = storeRepository.findAllByWriterId(writerId);
+    public List<ResponseStore.GetAllStoreDto> getByWriterStore() {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<Store> entityList = storeRepository.findAllByWriterId(userId);
         List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
         entityList.stream().forEach(store -> {
             double rateAvg = calculateRate(store);
@@ -233,14 +200,9 @@ public class StoreService {
         return dtoList;
     }
 
-    public List<ResponseStore.GetAllStoreDto> getByRecentVisitStore(Optional<String> token) {
-        String email = null;
-        if (token.isPresent()) {
-            JwtAuthToken jwtAuthToken = jwtAuthTokenProvider.convertAuthToken(token.get());
-            email = jwtAuthToken.getClaims().getSubject();
-        }
-        Long writerId = authRepository.findByEmail(email).getId();
-        List<Review> reviewList = reviewRepository.findAllByWriterId(writerId);
+    public List<ResponseStore.GetAllStoreDto> getByRecentVisitStore() {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        List<Review> reviewList = reviewRepository.findAllByWriterId(userId);
         List<Store> entityList = reviewList.stream()
                 .map(Review::getStore)
                 .collect(Collectors.toList());

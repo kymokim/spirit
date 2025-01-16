@@ -42,12 +42,7 @@ public class MenuService {
 //            s3Service.deleteFile(store.getImgUrl());
 
         String url = "";
-        try {
-            url = s3Service.upload(file,"store");
-        }
-        catch (IOException e){
-            System.out.println("S3 upload failed.");
-        }
+        url = s3Service.upload(file,"store");
 
         menu.setImgUrl(url);
         menuRepository.save(menu);

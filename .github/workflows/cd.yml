@@ -51,7 +51,7 @@ jobs:
 
         # 2. Java 버전 설정
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
@@ -98,6 +98,13 @@ jobs:
           echo "cloud.aws.s3.bucket.url=${{ secrets.S3_BUCKET_URL }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.signature-version=v4" >> ${APP_CONFIG_FILE}
 
+      - name: Create jwt-secret-keys.properties
+        env:
+          APP_CONFIG_FILE: src/main/resources/secret/jwt-secret-key.properties
+        run: |
+          mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
+          echo "jwt.secret=${{ secrets.JWT_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
+
       # 3. Gradle 빌드 및 Docker 이미지 생성
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
@@ -110,7 +117,7 @@ jobs:
           docker build -t ${{env.SERVICE}}:${{env.PROFILE}}-latest .
       # 4. AWS 자격증명
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}

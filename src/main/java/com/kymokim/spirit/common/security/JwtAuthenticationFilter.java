@@ -1,5 +1,6 @@
 package com.kymokim.spirit.common.security;
 
+import com.kymokim.spirit.common.exception.CustomException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,15 +24,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String token = jwtTokenProvider.resolveToken(request);
-        LOGGER.info("[doFilterInternal] token 값 추출 완료. token : {}", token);
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            LOGGER.info("[doFilterInternal] token 값 유효성 체크 완료");
+        try {
+            String token = jwtTokenProvider.resolveToken(request);
+            LOGGER.info("[doFilterInternal] token 값 추출 완료. token : {}", token);
+
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                LOGGER.info("[doFilterInternal] token 값 유효성 체크 완료");
+            }
+        } catch (CustomException e) {
+            request.setAttribute("javax.servlet.error.exception", e); // 예외를 Request에 저장
         }
-
         filterChain.doFilter(request, response);
     }
 }

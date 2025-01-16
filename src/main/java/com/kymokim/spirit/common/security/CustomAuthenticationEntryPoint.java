@@ -1,6 +1,7 @@
 package com.kymokim.spirit.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kymokim.spirit.common.exception.CustomException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,8 +22,14 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        LOGGER.info("[commence] 인증 실패로 response.sendError 발생");
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + authException.getMessage());
+        Throwable cause = (Throwable) request.getAttribute("javax.servlet.error.exception");
+
+        if (cause instanceof CustomException) {
+            CustomException customException = (CustomException) cause;
+            response.setStatus(customException.getErrorCode().getHttpStatus().value());
+            response.getWriter().write(customException.getErrorCode().getMessage() + customException.getErrorCode().getCode());
+        } else {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        }
     }
 }

@@ -22,10 +22,10 @@ public class CommonAuth {
                     .build();
         }
 
-        public static SocialInfo toEntity(SocialInfoDto socialInfoDto){
+        public SocialInfo toEntity(){
             return SocialInfo.builder()
-                    .type(socialInfoDto.getType())
-                    .id(socialInfoDto.getId())
+                    .type(this.type)
+                    .id(this.id)
                     .build();
         }
     }

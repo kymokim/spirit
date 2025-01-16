@@ -24,21 +24,28 @@ public class AuthService{
     private final JwtTokenProvider jwtTokenProvider;
     private final S3Service s3Service;
 
+    private Auth resolveUser(){
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        return user;
+    }
+
     @Transactional
     public void registerUser(RequestAuth.RegisterUserDto registerUserDto) {
 
-        Auth user = authRepository.findBySocialInfo(CommonAuth.SocialInfoDto.toEntity(registerUserDto.getSocialInfoDto()));
+        Auth user = authRepository.findBySocialInfo(registerUserDto.getSocialInfoDto().toEntity());
         if(user != null){
             throw new CustomException(AuthErrorCode.USER_SOCIAL_INFO_EXISTS);
         }
-        user = RequestAuth.RegisterUserDto.toEntity(registerUserDto);
+        user = registerUserDto.toEntity();
         authRepository.save(user);
     }
 
     //일단 socialToken은 받기만 하고 추후 검증 로직 추가
     @Transactional
     public ResponseAuth.LoginUserRsDto loginUser(RequestAuth.LoginUserRqDto loginUserRqDto) {
-        Auth user = authRepository.findBySocialInfo(CommonAuth.SocialInfoDto.toEntity(loginUserRqDto.getSocialInfoDto()));
+        Auth user = authRepository.findBySocialInfo(loginUserRqDto.getSocialInfoDto().toEntity());
         if(user == null) {
             throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
         }
@@ -51,9 +58,7 @@ public class AuthService{
 
     @Transactional
     public ResponseAuth.ReissueTokenDto reissueToken(String refreshToken){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        Auth user = resolveUser();
         String accessToken;
         if (user.getRefreshToken().equals(refreshToken)) {
             accessToken = jwtTokenProvider.createAccessToken(user.getId());
@@ -71,9 +76,7 @@ public class AuthService{
     // 기존에 등록된 이미지가 없으면 업로드, 있으면 업데이트
     @Transactional
     public void uploadImg(MultipartFile file) {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        Auth user = resolveUser();
         String imageUrl;
         if (file != null){
             if (user.getImgUrl() == null) {
@@ -91,9 +94,7 @@ public class AuthService{
 
     @Transactional
     public void deleteImg(){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        Auth user = resolveUser();
         String originUrl;
         if (!user.getImgUrl().isEmpty()){
             originUrl = user.getImgUrl();
@@ -120,10 +121,7 @@ public class AuthService{
     @Transactional
     public void updateNickname(String nickname) {
 
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
-
+        Auth user = resolveUser();
         if (!isNicknameUsable(nickname))
             throw new CustomException(AuthErrorCode.USER_NICKNAME_EXISTS);
 
@@ -133,19 +131,13 @@ public class AuthService{
 
     @Transactional
     public ResponseAuth.GetUserDto getUser() {
-
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
-
+        Auth user = resolveUser();
         return ResponseAuth.GetUserDto.toDto(user);
     }
 
     @Transactional
     public void logoutUser(String refreshToken){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        Auth user = resolveUser();
         if (user.getRefreshToken().equals(refreshToken)) {
             user.setRefreshToken(null);
             authRepository.save(user);

@@ -21,10 +21,10 @@ public class RequestAuth {
         @NotEmpty(message = "닉네임이 비었습니다")
         private String nickname;
 
-        public static Auth toEntity(RegisterUserDto registerUserDto){
+        public Auth toEntity(){
             return Auth.builder()
-                    .socialInfo(CommonAuth.SocialInfoDto.toEntity(registerUserDto.getSocialInfoDto()))
-                    .nickname(registerUserDto.getNickname())
+                    .socialInfo(this.socialInfoDto.toEntity())
+                    .nickname(this.nickname)
                     .build();
         }
     }

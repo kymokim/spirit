@@ -1,7 +1,9 @@
 package com.kymokim.spirit.store.entity;
 
+import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.review.entity.Review;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -10,7 +12,6 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -23,69 +24,63 @@ import java.util.Set;
 public class Store {
 
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long storeId;
+    private Long id;
 
-    @Column(name = "writerId")
-    private Long writerId;
-
-    @Column(name = "ownerId")
-    private Long ownerId;
-
-    @Column(name = "storeName")
-    private String storeName;
-
-    @ElementCollection(targetClass = Category.class)
-    @CollectionTable(name = "store_categories", joinColumns = @JoinColumn(name = "store_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "categories")
-    private Set<Category> categories;
-
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "addressDetail")
-    private String addressDetail;
-
-    @Column(name = "storeNumber")
-    private String storeNumber;
-
-    @Column(name = "storeContent")
-    private String storeContent;
-
-    @Column(name = "mainImgUrl")
+    @Column(name = "main_img_url")
     private String mainImgUrl;
 
-    @Column(name = "longitude")
-    private double longitude;
+    @Column(name = "owner_id")
+    private Long ownerId;
 
-    @Column(name = "latitude")
-    private double latitude;
+    @Column(name = "name", nullable = false)
+    private String name;
 
-    @Column(name = "openHour")
-    private LocalTime openHour;
+    @Column(name = "contact")
+    private String contact;
 
-    @Column(name = "closeHour")
-    private LocalTime closeHour;
+    @Column(name = "description")
+    private String description;
 
-    @ElementCollection(targetClass = DayOfWeek.class)
-    @CollectionTable(name = "store_closed_days", joinColumns = @JoinColumn(name = "store_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name = "closedDays")
-    private Set<DayOfWeek> closedDays;
-
-    @Column(name = "hasScreen")
+    @Column(name = "has_screen", nullable = false)
     private Boolean hasScreen;
 
-    @Column(name = "isGroupAvailable")
+    @Column(name = "is_group_available", nullable = false)
     private Boolean isGroupAvailable;
 
-    @Column(name = "totalRate")
+    @Embedded
+    private HistoryInfo historyInfo;
+
+    @Embedded
+    private Location location;
+
+    @Embedded
+    private BusinessHours businessHours;
+
+    @CollectionTable(name = "categories", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = Category.class)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "categories", nullable = false)
+    private Set<Category> categories;
+
+    @CollectionTable(name = "main_drinks", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = MainDrink.class)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "main_drinks")
+    private Set<MainDrink> mainDrinks;
+
+    @CollectionTable(name = "closed_days", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = DayOfWeek.class)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "closed_days")
+    private Set<DayOfWeek> closedDays;
+
+    @Column(name = "total_rate")
     private Double totalRate = 0D;
 
-    @Column(name = "reviewCount")
+    @Column(name = "review_count")
     private Long reviewCount = 0L;
 
-    @Column(name = "storeLikeCount")
+    @Column(name = "store_like_count")
     private Long storeLikeCount = 0L;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
@@ -98,45 +93,54 @@ public class Store {
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder
-    public Store(Long writerId, String storeName, Set<Category> categories,
-                 String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
-                 LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
-        this.writerId = writerId;
-        this.storeName = storeName;
-        this.categories = categories;
-        this.address = address;
-        this.addressDetail = addressDetail;
-        this.storeNumber = storeNumber;
-        this.storeContent = storeContent;
-        this.longitude = longitude;
-        this.latitude = latitude;
-        this.openHour = openHour;
-        this.closeHour = closeHour;
+    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable, Long creatorId,
+                 Location location, BusinessHours businessHours, Set<Category> categories, Set<MainDrink> mainDrinks, Set<DayOfWeek> closedDays) {
+        setName(name);
+        this.contact = contact;
+        this.description = description;
+        setHasScreen(hasScreen);
+        setIsGroupAvailable(isGroupAvailable);
+        this.historyInfo = new HistoryInfo(creatorId);
+        this.location = location;
+        this.businessHours = businessHours;
+        setCategories(categories);
+        this.mainDrinks = mainDrinks;
         this.closedDays = closedDays;
+    }
+
+    public void setName(String name){
+        if (name == null || name.isEmpty()){
+            throw new CustomException(StoreErrorCode.STORE_NAME_EMPTY);
+        }
+        this.name = name;
+    }
+
+    public void setHasScreen(Boolean hasScreen){
+        if (hasScreen == null ){
+            throw new CustomException(StoreErrorCode.HAS_SCREEN_EMPTY);
+        }
         this.hasScreen = hasScreen;
+    }
+
+    public void setIsGroupAvailable(Boolean isGroupAvailable){
+        if (isGroupAvailable == null ){
+            throw new CustomException(StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
+        }
         this.isGroupAvailable = isGroupAvailable;
     }
 
-    public void update(String storeName, Set<Category> categories,
-                       String address, String addressDetail, String storeNumber, String storeContent, double longitude, double latitude,
-                       LocalTime openHour, LocalTime closeHour, Set<DayOfWeek> closedDays, Boolean hasScreen, Boolean isGroupAvailable) {
-        this.storeName = storeName;
+    public void setCategories(Set<Category> categories){
+        if (categories == null || categories.isEmpty()){
+            throw new CustomException(StoreErrorCode.STORE_CATEGORIES_EMPTY);
+        }
         this.categories = categories;
-        this.address = address;
-        this.addressDetail = addressDetail;
-        this.storeNumber = storeNumber;
-        this.storeContent = storeContent;
-        this.longitude = longitude;
-        this.latitude = latitude;
-        this.openHour = openHour;
-        this.closeHour = closeHour;
-        this.closedDays = closedDays;
-        this.hasScreen = hasScreen;
-        this.isGroupAvailable = isGroupAvailable;
     }
 
     public void addMenu(Menu menu) {
         this.menuList.add(menu);
+    }
+    public void addReview(Review review){
+        this.reviewList.add(review);
     }
     public void addImgUrlList(StoreImage storeImage){
         this.imgUrlList.add(storeImage);
@@ -147,6 +151,6 @@ public class Store {
     public void decreaseReviewCount() {
         this.reviewCount--;
     }
-    public void increaseStoreLikeCount(){ this. storeLikeCount++; }
-    public void decreaseStoreLikeCount(){ this. storeLikeCount--; }
+    public void increaseStoreLikeCount(){ this.storeLikeCount++; }
+    public void decreaseStoreLikeCount(){ this.storeLikeCount--; }
 }

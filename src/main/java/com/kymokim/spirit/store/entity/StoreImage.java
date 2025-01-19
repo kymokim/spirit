@@ -17,7 +17,7 @@ public class StoreImage {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "url")
+    @Column(name = "url", nullable = false)
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)

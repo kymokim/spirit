@@ -25,7 +25,7 @@ public class ResponseMenu {
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
                     .menuLikeCount(menu.getMenuLikeCount())
-                    .storeId(menu.getStore().getStoreId())
+                    .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
                     .build();
@@ -75,7 +75,7 @@ public class ResponseMenu {
                     .menuContent(menu.getMenuContent())
                     .price(menu.getPrice())
                     .menuLikeCount(menu.getMenuLikeCount())
-                    .storeId(menu.getStore().getStoreId())
+                    .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
                     .build();

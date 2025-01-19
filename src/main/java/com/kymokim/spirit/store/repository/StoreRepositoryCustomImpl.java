@@ -4,71 +4,66 @@ import com.kymokim.spirit.store.dto.StoreSearchCriteria;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.QStore;
 import com.kymokim.spirit.store.entity.Store;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext
     private EntityManager entityManager;
 
-    NumberExpression<Double> distance;
+    private NumberExpression<Double> distance;
+    private QStore store;
 
+    // Haversine 거리 계산
     public NumberExpression<Double> calculateHaversine(StoreSearchCriteria criteria, QStore store) {
-
         return Expressions.numberTemplate(Double.class,
                 "6371 * acos(cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + sin(radians({4})) * sin(radians({5})))",
-                criteria.getLatitude(), store.latitude, store.longitude, criteria.getLongitude(), criteria.getLatitude(), store.latitude);
+                criteria.getLatitude(), store.location.latitude, store.location.longitude, criteria.getLongitude(), criteria.getLatitude(), store.location.latitude);
     }
 
-    public List<Store> findNearByStores(StoreSearchCriteria criteria){
+    // 반경 내 가게 조회 쿼리
+    public JPQLQuery<Store> filterByRadius(StoreSearchCriteria criteria){
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        QStore store = QStore.store;
+        store = QStore.store;
         distance = calculateHaversine(criteria, store);
-
-        return queryFactory.selectFrom(store).where(distance.loe(criteria.getRadius())).fetch();
+        return queryFactory.selectFrom(store).where(distance.loe(criteria.getRadius()));
     }
 
+    // 가까운 순 가게 리스트 반환
+    @Override
+    public List<Store> findStoresOrderByDistance(StoreSearchCriteria criteria){
+        JPQLQuery<Store> storeJPQLQuery = filterByRadius(criteria);
+        return storeJPQLQuery.orderBy(distance.asc()).fetch();
+    }
+
+    // 카테고리 해당하는 가게 리스트 반환
     @Override
     public List<Store> findStoresByCategory(StoreSearchCriteria criteria, String category) {
-        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        QStore store = QStore.store;
-        distance = calculateHaversine(criteria, store);
-
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .where(distance.loe(criteria.getRadius()));
-
-        if (category != null) {
-            query.where(store.categories.contains(Category.valueOf(category)));
-        }
-
-        return query.fetch();
+        JPQLQuery<Store> storeJPQLQuery = filterByRadius(criteria);
+        return storeJPQLQuery.where(store.categories.contains(Category.valueOf(category))).fetch();
     }
 
     @Override
-    public List<AbstractMap.SimpleEntry<Store,Double>> findStoresByDistance(StoreSearchCriteria criteria){
-        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        QStore store = QStore.store;
-        distance = calculateHaversine(criteria, store);
+    public List<Store> findStoresByName(StoreSearchCriteria criteria, String searchKeyword) {
+        JPQLQuery<Store> query = filterByRadius(criteria);
+        // 입력값에서 공백 제거
+        String formattedSearchKeyword = searchKeyword.replaceAll("\\s+", "");
+        // 데이터베이스 값 공백 제거 후 검색
+        return query.where(Expressions.stringTemplate(
+                        "REPLACE({0}, ' ', '')", store.name
+                ).containsIgnoreCase(formattedSearchKeyword)
+        ).fetch();
+    }
 
-        JPQLQuery<Tuple> query = queryFactory.select(store, distance)
-                .from(store)
-                .where(distance.loe(criteria.getRadius()));
-
-        return query.orderBy(distance.asc())
-                .fetch()
-                .stream()
-                .map(tuple -> new AbstractMap.SimpleEntry<>(
-                        (Store) tuple.get(0, Store.class),
-                        (Double) tuple.get(1, Double.class)))
-                .collect(Collectors.toList());
+    // 근처 가게 리스트 반환
+    @Override
+    public List<Store> findNearByStores(StoreSearchCriteria criteria){
+        return filterByRadius(criteria).fetch();
     }
 }

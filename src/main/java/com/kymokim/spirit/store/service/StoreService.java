@@ -1,15 +1,14 @@
 package com.kymokim.spirit.store.service;
 
-import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
-import com.kymokim.spirit.review.entity.Review;
-import com.kymokim.spirit.review.repository.ReviewRepository;
+import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
-import com.kymokim.spirit.store.dto.ResponseStore;
-import com.kymokim.spirit.store.dto.StoreSearchCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
+import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreImage;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
 import com.kymokim.spirit.store.repository.StoreImageRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -18,32 +17,44 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+/**
+ * - have-todo
+ * ResponseStore dto 정리.. dto 각 api, 서비스 코드마다 어떻게 사용할 것인지 정하고 정리해야 함
+ * 모듈화하기(거리 or 영업중 계산)
+ * 기존 api, 서비스 코드 변경사항 적용
+ * 신규 검색 기능 개발
+ * 컨트롤러 정리하고 설명 적기
+ */
 
 @Service
 @RequiredArgsConstructor
-
 public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final S3Service s3Service;
-    private final ReviewRepository reviewRepository;
 
-    public Long createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto) {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+    private Long resolveUserId(){
+        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
 
-        Store store = RequestStore.CreateStoreDto.toEntity(createStoreDto, userId);
+    private Store resolveStore(Long storeId){
+        return storeRepository.findById(storeId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
+    }
+
+    public void createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto) {
+        Store store = createStoreDto.toEntity(resolveUserId());
         storeRepository.save(store);
 
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
-            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getStoreId()));
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
+            store.setMainImgUrl(imageUrls.getFirst());
             for (String url : imageUrls){
                 StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
                 storeImageRepository.save(storeImage);
@@ -51,212 +62,75 @@ public class StoreService {
             }
             storeRepository.save(store);
         }
-
-        return store.getStoreId();
     }
+
+    public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
+        Store store = resolveStore(storeId);
+
+        updateIfNotNullOrEmpty(updateStoreDto.getMainImgUrl(), store::setMainImgUrl);
+        updateIfNotNullOrEmpty(updateStoreDto.getName(), store::setName);
+        updateIfNotNullOrEmpty(updateStoreDto.getContact(), store::setContact);
+        updateIfNotNullOrEmpty(updateStoreDto.getDescription(), store::setDescription);
+        updateIfNotNullOrEmpty(updateStoreDto.getHasScreen(), store::setHasScreen);
+        updateIfNotNullOrEmpty(updateStoreDto.getIsGroupAvailable(), store::setIsGroupAvailable);
+        updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
+        updateIfNotNullOrEmpty(updateStoreDto.getBusinessHoursDto(), businessHoursDto -> store.setBusinessHours(businessHoursDto.toEntity()));
+        updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
+        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkDtos(), mainDrinkDtos -> {
+            Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
+            store.setMainDrinks(mainDrinks);
+        });
+        updateIfNotNullOrEmpty(updateStoreDto.getClosedDays(), store::setClosedDays);
+
+        store.getHistoryInfo().update(resolveUserId());
+        storeRepository.save(store);
+    }
+
+    private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {
+        if (value != null) {
+            if (value instanceof String && ((String) value).isEmpty()) return;
+//            if (value instanceof Collection && ((Collection<?>) value).isEmpty()) return;
+            updater.accept(value);
+        }
+    }
+
 
     public void uploadStoreImg(MultipartFile[] files, long storeId) {
-        Store store = storeRepository.findById(storeId).get();
+        Store store = resolveStore(storeId);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
-            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getStoreId()));
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
             for (String url : imageUrls){
                 StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
                 storeImageRepository.save(storeImage);
                 store.addImgUrlList(storeImage);
             }
+            store.getHistoryInfo().update(resolveUserId());
             storeRepository.save(store);
+        } else {
+            throw new CustomException(StoreErrorCode.STORE_IMG_FILE_EMPTY);
         }
-    }
-
-    public void setMainImg(String url, long storeId){
-        Store store = storeRepository.findById(storeId).get();
-        store.setMainImgUrl(url);
-        storeRepository.save(store);
     }
 
     public void likeStore(Long storeId){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        LikedStore likedStore = LikedStore.builder()
-                .storeId(storeId)
-                .userId(userId)
-                .build();
+        Store store = resolveStore(storeId);
+        LikedStore likedStore = LikedStore.builder().storeId(store.getId()).userId(resolveUserId()).build();
         likedStoreRepository.save(likedStore);
-        Store store = storeRepository.findById(storeId).get();
         store.increaseStoreLikeCount();
         storeRepository.save(store);
     }
 
     public void unlikeStore(Long storeId){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
+        Store store = resolveStore(storeId);
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(resolveUserId(), store.getId());
         likedStoreRepository.delete(likedStore);
-        Store store = storeRepository.findById(storeId).get();
         store.decreaseStoreLikeCount();
         storeRepository.save(store);
     }
 
-    @Deprecated
-    public List<ResponseStore.GetAllStoreDto> recommendStore(StoreSearchCriteria criteria, RequestStore.recommendStoreDto recommendStoreDto){
-        Long temperature = recommendStoreDto.getTemperature();
-        Long rainProbability = recommendStoreDto.getRainProbability();
-        String condition = recommendStoreDto.getCondition();
-        List<Store> storeList = null;
-        if (condition.equals("clear") && temperature <= 26 && rainProbability <= 40) {
-            storeList = storeRepository.findStoresByCategory(criteria, "OUTDOOR");
-        } else if (condition.equals("raining") && rainProbability >= 60) {
-            storeList = storeRepository.findStoresByCategory(criteria, "JEONMAK");
-        }
-        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        storeList.stream().forEach(store -> {
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-    }
-
-    public List<ResponseStore.GetAllStoreDto> getAllStore() {
-        List<Store> entityList = storeRepository.findAll();
-        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(store -> {
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-    }
-
-    public List<ResponseStore.GetLikedStoreDto> getLikedStore(){
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<LikedStore> entityList = likedStoreRepository.findAllByUserId(userId);
-        List<ResponseStore.GetLikedStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(likedStore -> {
-            Store store = storeRepository.findById(likedStore.getStoreId()).get();
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetLikedStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-    }
-
-    public ResponseStore.GetStoreDto getStore(Long storeId, StoreSearchCriteria criteria) {
-        Store store = storeRepository.findById(storeId).get();
-        double rateAvg = calculateRate(store);
-
-        double distance = calculateDistance(criteria.getLatitude(), criteria.getLongitude(), store.getLatitude(), store.getLongitude()) * 1000.0;
-
-        boolean isStoreLiked = false;
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, storeId);
-        if (likedStore != null)
-            isStoreLiked = true;
-        return ResponseStore.GetStoreDto.toDto(store, rateAvg, isStoreLiked, isStoreOpen(store), distance);
-    }
-
-    public double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371;
-
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return R * c;
-    }
-
-    public List<ResponseStore.GetAllStoreDto> getStoreByCategory(StoreSearchCriteria criteria, String category) {
-        //List<Store> entityList = storeRepository.findAllByCategory(category);
-        List<Store> entityList = storeRepository.findStoresByCategory(criteria, category);
-        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(store -> {
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-    }
-
-    public List<ResponseStore.GetByDistanceDto> getStoreByDistance(StoreSearchCriteria criteria){
-        List<AbstractMap.SimpleEntry<Store,Double>> entityList = storeRepository.findStoresByDistance(criteria);
-        List<ResponseStore.GetByDistanceDto> dtoList = new ArrayList<>();
-        entityList.forEach(entry -> {
-            Store store = entry.getKey();
-            double distance = entry.getValue() * 1000.0;
-            if (isStoreOpen(store)) {
-                double rateAvg = calculateRate(store);
-                dtoList.add(ResponseStore.GetByDistanceDto.toDto(store, rateAvg, distance));
-            }
-        });
-        return dtoList;
-    }
-
-    public List<ResponseStore.GetAllStoreDto> getByWriterStore() {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<Store> entityList = storeRepository.findAllByWriterId(userId);
-        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(store -> {
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-    }
-
-    public List<ResponseStore.GetAllStoreDto> getByRecentVisitStore() {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        List<Review> reviewList = reviewRepository.findAllByWriterId(userId);
-        List<Store> entityList = reviewList.stream()
-                .map(Review::getStore)
-                .collect(Collectors.toList());
-        List<ResponseStore.GetAllStoreDto> dtoList = new ArrayList<>();
-        entityList.stream().forEach(store -> {
-            double rateAvg = calculateRate(store);
-            dtoList.add(ResponseStore.GetAllStoreDto.toDto(store, rateAvg));
-        });
-        return dtoList;
-
-    }
-
-    public boolean isStoreOpen(Store store) {
-        LocalDateTime now = LocalDateTime.now();
-        DayOfWeek today = now.getDayOfWeek();
-        LocalTime currentTime = now.toLocalTime();
-
-        // 휴무일에 포함되어 있는지 확인
-        if (store.getClosedDays().contains(today)) {
-            return false;
-        }
-
-        // 영업 시간 확인
-        LocalTime openHour = store.getOpenHour();
-        LocalTime closeHour = store.getCloseHour();
-
-        // 영업 시간 내인지 확인
-        if (openHour.isBefore(closeHour)) { // 정상적인 하루 내 영업 시간
-            if (currentTime.isAfter(openHour) && currentTime.isBefore(closeHour)) {
-                return true;
-            }
-        } else { // 자정을 넘어가는 영업 시간
-            if (currentTime.isAfter(openHour) || currentTime.isBefore(closeHour)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public double calculateRate(Store store){
-        double rateAvg = store.getTotalRate() / store.getReviewCount();
-        return Math.round(rateAvg * 100.0) / 100.0;
-    }
-
-
-    public void updateStore(RequestStore.UpdateStoreDto updateStoreDto) {
-        Store originalStore = storeRepository.findById(updateStoreDto.getStoreId()).get();
-        Store updatedStore = RequestStore.UpdateStoreDto.toEntity(originalStore, updateStoreDto);
-        storeRepository.save(updatedStore);
-    }
-
     //Delete permission exception handling required.
     public void deleteStore(Long storeId) {
-        Store store = storeRepository.findById(storeId).get();
+        Store store = resolveStore(storeId);
         storeRepository.delete(store);
     }
 }

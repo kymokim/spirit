@@ -1,5 +1,7 @@
 package com.kymokim.spirit.auth.entity;
 
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.common.exception.CustomException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
@@ -8,7 +10,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 @Embeddable
 public class SocialInfo {
     @Enumerated(value = EnumType.STRING)
@@ -21,8 +22,23 @@ public class SocialInfo {
     protected SocialInfo(){
     }
 
+    @Builder
     public SocialInfo(SocialType type, String id) {
+        setType(type);
+        setId(id);
+    }
+
+    private void setType(SocialType type){
+        if (type == null){
+            throw new CustomException(AuthErrorCode.USER_SOCIAL_TYPE_EMPTY);
+        }
         this.type = type;
+    }
+
+    private void setId(String id){
+        if (id == null || id.isEmpty()){
+            throw new CustomException(AuthErrorCode.USER_SOCIAL_ID_EMPTY);
+        }
         this.id = id;
     }
 }

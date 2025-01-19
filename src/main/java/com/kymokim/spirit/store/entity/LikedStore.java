@@ -18,10 +18,10 @@ public class LikedStore {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long likedStoreId;
 
-    @Column(name = "storeId")
+    @Column(name = "storeId", nullable = false)
     private Long storeId;
 
-    @Column(name = "userId")
+    @Column(name = "userId", nullable = false)
     private Long userId;
 
     @Builder

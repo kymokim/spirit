@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +23,17 @@ public class ResponseStore {
             return GetAllStoreDto.builder()
                     .storeId(store.getId())
                     .name(store.getName())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CreateStoreRsDto{
+        private Long storeId;
+        public static CreateStoreRsDto toDto(Store store){
+            return CreateStoreRsDto.builder()
+                    .storeId(store.getId())
                     .build();
         }
     }

@@ -18,7 +18,7 @@ public class RequestStore {
 
     @Data
     @Builder
-    public static class CreateStoreDto {
+    public static class CreateStoreRqDto {
         @Schema(description = "이름")
         @NotEmpty(message = "이름이 비었습니다.")
         private String name;

@@ -36,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (CustomException e) {
             request.setAttribute("javax.servlet.error.exception", e); // 예외를 Request에 저장
-            throw new org.springframework.security.core.AuthenticationException(e.getMessage(), e) {};
         }
         filterChain.doFilter(request, response);
     }

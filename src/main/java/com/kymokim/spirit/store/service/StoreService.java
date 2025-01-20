@@ -4,6 +4,7 @@ import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.store.entity.Store;
@@ -47,8 +48,8 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
     }
 
-    public void createStore(MultipartFile[] files, RequestStore.CreateStoreDto createStoreDto) {
-        Store store = createStoreDto.toEntity(resolveUserId());
+    public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
+        Store store = createStoreRqDto.toEntity(resolveUserId());
         storeRepository.save(store);
 
         if (files != null) {
@@ -62,6 +63,7 @@ public class StoreService {
             }
             storeRepository.save(store);
         }
+        return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
@@ -89,7 +91,6 @@ public class StoreService {
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {
         if (value != null) {
             if (value instanceof String && ((String) value).isEmpty()) return;
-//            if (value instanceof Collection && ((Collection<?>) value).isEmpty()) return;
             updater.accept(value);
         }
     }
@@ -114,17 +115,16 @@ public class StoreService {
 
     public void likeStore(Long storeId){
         Store store = resolveStore(storeId);
-        LikedStore likedStore = LikedStore.builder().storeId(store.getId()).userId(resolveUserId()).build();
-        likedStoreRepository.save(likedStore);
-        store.increaseStoreLikeCount();
-        storeRepository.save(store);
-    }
-
-    public void unlikeStore(Long storeId){
-        Store store = resolveStore(storeId);
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(resolveUserId(), store.getId());
-        likedStoreRepository.delete(likedStore);
-        store.decreaseStoreLikeCount();
+        Long userId = resolveUserId();
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, store.getId());
+        if (likedStore == null) {
+            likedStore = LikedStore.builder().storeId(store.getId()).userId(userId).build();
+            likedStoreRepository.save(likedStore);
+            store.increaseStoreLikeCount();
+        } else {
+            likedStoreRepository.delete(likedStore);
+            store.decreaseStoreLikeCount();
+        }
         storeRepository.save(store);
     }
 

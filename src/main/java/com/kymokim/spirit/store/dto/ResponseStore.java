@@ -16,12 +16,12 @@ public class ResponseStore {
     @Getter
     @Builder
     public static class GetAllStoreDto {
-        private Long storeId;
+        private Long id;
         private String name;
 
         public static GetAllStoreDto toDto(Store store){
             return GetAllStoreDto.builder()
-                    .storeId(store.getId())
+                    .id(store.getId())
                     .name(store.getName())
                     .build();
         }
@@ -30,10 +30,10 @@ public class ResponseStore {
     @Getter
     @Builder
     public static class CreateStoreRsDto{
-        private Long storeId;
+        private Long id;
         public static CreateStoreRsDto toDto(Store store){
             return CreateStoreRsDto.builder()
-                    .storeId(store.getId())
+                    .id(store.getId())
                     .build();
         }
     }
@@ -91,6 +91,36 @@ public class ResponseStore {
                     .isStoreLiked(isStoreLiked)
                     .isStoreOpen(isStoreOpen)
                     .imgUrlList(imgUrlList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class SearchStoreDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private String contact;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Double storeRate;
+        private Long reviewCount;
+        private Boolean isStoreOpen;
+
+        private SearchStoreDto toDto(Store store, Double storeRate, Boolean isStoreOpen){
+            return SearchStoreDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .contact(store.getContact())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .isStoreOpen(isStoreOpen)
                     .build();
         }
     }

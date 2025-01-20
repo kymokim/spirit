@@ -2,6 +2,7 @@ package com.kymokim.spirit.store.controller;
 
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.RequestStore;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.service.StoreService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,11 @@ public class StoreController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreDto createStoreDto) throws IOException {
-        storeService.createStore(files, createStoreDto);
+                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) throws IOException {
+        ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
+                .data(createStoreRsDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -57,16 +59,7 @@ public class StoreController {
     public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId){
         storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Store liked successfully.")
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @PostMapping("/unlike/{storeId}")
-    public ResponseEntity<ResponseDto> unlikeStore(@PathVariable("storeId") Long storeId){
-        storeService.unlikeStore(storeId);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store unliked successfully.")
+                .message("Store like processed successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

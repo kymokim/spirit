@@ -73,14 +73,6 @@ jobs:
           name: test-results
           path: build/test-results/test
 
-      # 6. 빌드 결과 출력 (예: JAR 파일 위치)
-      - name: Upload Build Artifacts
-        if: success()  # 성공한 경우에만 업로드
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: build/libs
-
   notify-discord:
     runs-on: ubuntu-latest
     needs: build

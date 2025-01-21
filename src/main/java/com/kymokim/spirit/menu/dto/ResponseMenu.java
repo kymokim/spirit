@@ -9,22 +9,22 @@ public class ResponseMenu {
     @Builder
     @Getter
     public static class GetMenuDto {
-        private Long menuId;
-        private String menuName;
-        private String menuContent;
+        private Long id;
+        private String name;
+        private String description;
         private Long price;
-        private Long menuLikeCount;
+        private Long likeCount;
         private Long storeId;
         private String imgUrl;
         private boolean isMain;
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
-                    .menuId(menu.getMenuId())
-                    .menuName(menu.getMenuName())
-                    .menuContent(menu.getMenuContent())
+                    .id(menu.getId())
+                    .name(menu.getName())
+                    .description(menu.getDescription())
                     .price(menu.getPrice())
-                    .menuLikeCount(menu.getMenuLikeCount())
+                    .likeCount(menu.getLikeCount())
                     .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
@@ -35,21 +35,21 @@ public class ResponseMenu {
     @Getter
     @Builder
     public static class MenuListDto {
-        private Long menuId;
-        private String menuName;
-        private String menuContent;
+        private Long id;
+        private String name;
+        private String description;
         private Long price;
-        private Long menuLikeCount;
+        private Long likeCount;
         private String imgUrl;
         private Boolean isMain;
 
         public static MenuListDto toDto(Menu menu) {
             return MenuListDto.builder()
-                    .menuId(menu.getMenuId())
-                    .menuName(menu.getMenuName())
-                    .menuContent(menu.getMenuContent())
+                    .id(menu.getId())
+                    .name(menu.getName())
+                    .description(menu.getDescription())
                     .price(menu.getPrice())
-                    .menuLikeCount(menu.getMenuLikeCount())
+                    .likeCount(menu.getLikeCount())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
                     .build();
@@ -59,22 +59,22 @@ public class ResponseMenu {
     @Builder
     @Getter
     public static class GetAllMenuDto {
-        private Long menuId;
-        private String menuName;
-        private String menuContent;
+        private Long id;
+        private String name;
+        private String description;
         private Long price;
-        private Long menuLikeCount;
+        private Long likeCount;
         private Long storeId;
         private String imgUrl;
         private boolean isMain;
 
         public static GetAllMenuDto toDto(Menu menu) {
             return GetAllMenuDto.builder()
-                    .menuId(menu.getMenuId())
-                    .menuName(menu.getMenuName())
-                    .menuContent(menu.getMenuContent())
+                    .id(menu.getId())
+                    .name(menu.getName())
+                    .description(menu.getDescription())
                     .price(menu.getPrice())
-                    .menuLikeCount(menu.getMenuLikeCount())
+                    .likeCount(menu.getLikeCount())
                     .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())

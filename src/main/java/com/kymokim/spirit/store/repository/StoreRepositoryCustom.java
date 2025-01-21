@@ -1,20 +1,23 @@
 package com.kymokim.spirit.store.repository;
 
-import com.kymokim.spirit.store.dto.StoreSearchCriteria;
+import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.Store;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.AbstractMap;
 import java.util.List;
 
 
 
 public interface StoreRepositoryCustom {
 
-    List<Store> findStoresOrderByDistance(StoreSearchCriteria criteria);
+    Page<Store> findByNameAndMenu(LocationCriteria criteria, String searchKeyword, Pageable pageable);
 
-    List<Store> findStoresByCategory(StoreSearchCriteria criteria, String category);
+    Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable);
 
-    List<Store> findStoresByName(StoreSearchCriteria criteria, String searchKeyword);
+    Page<Store> findByCategory(LocationCriteria criteria, String category, Pageable pageable);
 
-    List<Store> findNearByStores(StoreSearchCriteria criteria);
+    Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable);
+
+    List<Store> findByRadius(LocationCriteria criteria);
 }

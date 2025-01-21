@@ -11,15 +11,15 @@ public class RequestReview {
     @Data
     @Builder
     public static class CreateReviewDto {
-        private String reviewContent;
+        private String content;
         private Double rate;
         private Long storeId;
 
-        public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long writerId, String writerNickName) {
+        public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long writerId, String writerNickname) {
             return Review.builder()
                     .writerId(writerId)
-                    .writerNickName(writerNickName)
-                    .reviewContent(createReviewDto.getReviewContent())
+                    .writerNickname(writerNickname)
+                    .content(createReviewDto.getContent())
                     .rate(createReviewDto.getRate())
                     .store(store)
                     .build();
@@ -33,11 +33,11 @@ public class RequestReview {
     @Builder
     public static class UpdateReviewDto {
         private Long reviewId;
-        private String reviewContent;
+        private String content;
         private Double rate;
 
         public static Review toEntity(Review review, UpdateReviewDto updateReviewDto) {
-            review.update(updateReviewDto.getReviewContent(), updateReviewDto.getRate());
+            review.update(updateReviewDto.getContent(), updateReviewDto.getRate());
             return review;
         }
     }

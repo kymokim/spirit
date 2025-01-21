@@ -16,7 +16,7 @@ public class LikedStore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long likedStoreId;
+    private Long id;
 
     @Column(name = "storeId", nullable = false)
     private Long storeId;

@@ -96,7 +96,7 @@ public class AuthService{
     public void deleteImg(){
         Auth user = resolveUser();
         String originUrl;
-        if (!user.getImgUrl().isEmpty()){
+        if ( !(user.getImgUrl() == null) && !user.getImgUrl().isEmpty()){
             originUrl = user.getImgUrl();
         } else {
             throw new CustomException(AuthErrorCode.USER_ORIGIN_IMG_URL_EMPTY);
@@ -122,8 +122,9 @@ public class AuthService{
     public void updateNickname(String nickname) {
 
         Auth user = resolveUser();
-        if (!isNicknameUsable(nickname))
+        if (!isNicknameUsable(nickname)) {
             throw new CustomException(AuthErrorCode.USER_NICKNAME_EXISTS);
+        }
 
         user.setNickname(nickname);
         authRepository.save(user);

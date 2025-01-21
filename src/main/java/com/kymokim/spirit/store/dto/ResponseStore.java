@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
@@ -12,20 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 public class ResponseStore {
-
-    @Getter
-    @Builder
-    public static class GetAllStoreDto {
-        private Long id;
-        private String name;
-
-        public static GetAllStoreDto toDto(Store store){
-            return GetAllStoreDto.builder()
-                    .id(store.getId())
-                    .name(store.getName())
-                    .build();
-        }
-    }
 
     @Getter
     @Builder
@@ -55,12 +42,11 @@ public class ResponseStore {
         private Set<DayOfWeek> closedDays;
         private Double storeRate;
         private Long reviewCount;
-        private Long storeLikeCount;
+        private Long likeCount;
         private Boolean isStoreLiked;
-        private Boolean isStoreOpen;
         private List<String> imgUrlList;
 
-        public static GetStoreDto toDto(Store store, Double storeRate, Boolean isStoreLiked, Boolean isStoreOpen) {
+        public static GetStoreDto toDto(Store store, Double storeRate, Boolean isStoreLiked) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
             if (!store.getMainDrinks().isEmpty()){
@@ -87,9 +73,8 @@ public class ResponseStore {
                     .closedDays(store.getClosedDays())
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
-                    .storeLikeCount(store.getStoreLikeCount())
+                    .likeCount(store.getLikeCount())
                     .isStoreLiked(isStoreLiked)
-                    .isStoreOpen(isStoreOpen)
                     .imgUrlList(imgUrlList)
                     .build();
         }
@@ -105,11 +90,11 @@ public class ResponseStore {
         private CommonStore.LocationDto locationDto;
         private CommonStore.BusinessHoursDto businessHoursDto;
         private Set<Category> categories;
+        private Set<DayOfWeek> closedDays;
         private Double storeRate;
         private Long reviewCount;
-        private Boolean isStoreOpen;
 
-        private SearchStoreDto toDto(Store store, Double storeRate, Boolean isStoreOpen){
+        public static SearchStoreDto toDto(Store store, Double storeRate){
             return SearchStoreDto.builder()
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
@@ -118,134 +103,247 @@ public class ResponseStore {
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
                     .categories(store.getCategories())
+                    .closedDays(store.getClosedDays())
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
-                    .isStoreOpen(isStoreOpen)
                     .build();
         }
     }
 
-//    @Getter
-//    @Builder
-//    public static class GetAllStoreDto {
-//        private Long storeId;
-//        private String storeName;
-//        private Set<Category> categories;
-//        private String address;
-//        private String addressDetail;
-//        private String mainImgUrl;
-//        private LocalTime openHour;
-//        private LocalTime closeHour;
-//        private Set<DayOfWeek> closedDays;
-//        private Boolean hasScreen;
-//        private Boolean isGroupAvailable;
-//        private double longitude;
-//        private double latitude;
-//        private Double storeRate;
-//        private Long reviewCount;
-//        private Long storeLikeCount;
-//
-//        public static GetAllStoreDto toDto(Store store, Double rateAvg) {
-//            return GetAllStoreDto.builder()
-//                    .storeId(store.getStoreId())
-//                    .storeName(store.getStoreName())
-//                    .categories(store.getCategories())
-//                    .address(store.getAddress())
-//                    .addressDetail(store.getAddressDetail())
-//                    .mainImgUrl(store.getMainImgUrl())
-//                    .openHour(store.getOpenHour())
-//                    .closeHour(store.getCloseHour())
-//                    .closedDays(store.getClosedDays())
-//                    .hasScreen(store.getHasScreen())
-//                    .isGroupAvailable(store.getIsGroupAvailable())
-//                    .longitude(store.getLongitude())
-//                    .latitude(store.getLatitude())
-//                    .storeRate(rateAvg)
-//                    .reviewCount(store.getReviewCount())
-//                    .storeLikeCount(store.getStoreLikeCount())
-//                    .build();
-//        }
-//    }
-//
-//    @Getter
-//    @Builder
-//    public static class GetByDistanceDto {
-//        private Long storeId;
-//        private String storeName;
-//        private Set<Category> categories;
-//        private String address;
-//        private String addressDetail;
-//        private String mainImgUrl;
-//        private LocalTime openHour;
-//        private LocalTime closeHour;
-//        private Set<DayOfWeek> closedDays;
-//        private Boolean hasScreen;
-//        private Boolean isGroupAvailable;
-//        private double longitude;
-//        private double latitude;
-//        private Double storeRate;
-//        private Long reviewCount;
-//        private Long storeLikeCount;
-//        private Double distance;
-//
-//        public static GetByDistanceDto toDto(Store store, Double rateAvg, Double distance) {
-//            return GetByDistanceDto.builder()
-//                    .storeId(store.getStoreId())
-//                    .storeName(store.getStoreName())
-//                    .categories(store.getCategories())
-//                    .address(store.getAddress())
-//                    .addressDetail(store.getAddressDetail())
-//                    .mainImgUrl(store.getMainImgUrl())
-//                    .openHour(store.getOpenHour())
-//                    .closeHour(store.getCloseHour())
-//                    .closedDays(store.getClosedDays())
-//                    .hasScreen(store.getHasScreen())
-//                    .isGroupAvailable(store.getIsGroupAvailable())
-//                    .longitude(store.getLongitude())
-//                    .latitude(store.getLatitude())
-//                    .storeRate(rateAvg)
-//                    .reviewCount(store.getReviewCount())
-//                    .storeLikeCount(store.getStoreLikeCount())
-//                    .distance(distance)
-//                    .build();
-//        }
-//    }
-//
-//    @Getter
-//    @Builder
-//    public static class GetLikedStoreDto {
-//        private Long storeId;
-//        private String storeName;
-//        private Set<Category> categories;
-//        private String address;
-//        private String addressDetail;
-//        private String mainImgUrl;
-//        private LocalTime openHour;
-//        private LocalTime closeHour;
-//        private Set<DayOfWeek> closedDays;
-//        private double longitude;
-//        private double latitude;
-//        private Double storeRate;
-//        private Long reviewCount;
-//        private Long storeLikeCount;
-//
-//        public static GetLikedStoreDto toDto(Store store, Double rateAvg) {
-//            return GetLikedStoreDto.builder()
-//                    .storeId(store.getStoreId())
-//                    .storeName(store.getStoreName())
-//                    .categories(store.getCategories())
-//                    .address(store.getAddress())
-//                    .addressDetail(store.getAddressDetail())
-//                    .mainImgUrl(store.getMainImgUrl())
-//                    .openHour(store.getOpenHour())
-//                    .closeHour(store.getCloseHour())
-//                    .closedDays(store.getClosedDays())
-//                    .longitude(store.getLongitude())
-//                    .latitude(store.getLatitude())
-//                    .storeRate(rateAvg)
-//                    .reviewCount(store.getReviewCount())
-//                    .storeLikeCount(store.getStoreLikeCount())
-//                    .build();
-//        }
-//    }
+    @Getter
+    @Builder
+    public static class GetByDistanceDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<DayOfWeek> closedDays;
+        private Double storeRate;
+        private Long reviewCount;
+
+        public static GetByDistanceDto toDto(Store store, Double storeRate){
+            return GetByDistanceDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .closedDays(store.getClosedDays())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetByCategoryDto {
+        private Long id;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DayOfWeek> closedDays;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long storeLikeCount;
+        private List<MenuListDto> menuList;
+
+        public static GetByCategoryDto toDto(Store store, Double storeRate){
+
+            List<MenuListDto> menuList = new ArrayList<>();
+            if (!store.getMenuList().isEmpty()){
+                store.getMenuList().forEach(menu -> {
+                    if (menu.getIsMain()) {
+                        menuList.add(MenuListDto.toDto(menu));
+                    }
+                });
+            }
+
+            return GetByCategoryDto.builder()
+                    .id(store.getId())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .closedDays(store.getClosedDays())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .storeLikeCount(store.getLikeCount())
+                    .menuList(menuList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    private static class MenuListDto{
+        private String name;
+        private Long price;
+        private String imgUrl;
+
+        private static MenuListDto toDto(Menu menu){
+            return MenuListDto.builder()
+                    .name(menu.getName())
+                    .price(menu.getPrice())
+                    .imgUrl(menu.getImgUrl())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetByBusinessHoursDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DayOfWeek> closedDays;
+
+        public static GetByBusinessHoursDto toDto(Store store){
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()){
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
+            return GetByBusinessHoursDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .closedDays(store.getClosedDays())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetByRadiusDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DayOfWeek> closedDays;
+        private Double storeRate;
+        private Long reviewCount;
+        private List<MenuListDto> menuList;
+
+        public static GetByRadiusDto toDto(Store store, Double storeRate){
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()){
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
+            List<MenuListDto> menuList = new ArrayList<>();
+            if (!store.getMenuList().isEmpty()){
+                store.getMenuList().forEach(menu -> {
+                    if (menu.getIsMain()) {
+                        menuList.add(MenuListDto.toDto(menu));
+                    }
+                });
+            }
+
+            return GetByRadiusDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .categories(store.getCategories())
+                    .closedDays(store.getClosedDays())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .menuList(menuList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetLikedStoreDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DayOfWeek> closedDays;
+        private Double storeRate;
+        private Long reviewCount;
+        private List<MenuListDto> menuList;
+
+        public static GetLikedStoreDto toDto(Store store, Double storeRate) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()) {
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
+            List<MenuListDto> menuList = new ArrayList<>();
+            if (!store.getMenuList().isEmpty()) {
+                store.getMenuList().forEach(menu -> {
+                    if (menu.getIsMain()) {
+                        menuList.add(MenuListDto.toDto(menu));
+                    }
+                });
+            }
+
+            return GetLikedStoreDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .closedDays(store.getClosedDays())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .menuList(menuList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetRecentStoreDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<DayOfWeek> closedDays;
+        private Double storeRate;
+        private Long reviewCount;
+
+        public static GetRecentStoreDto toDto(Store store, Double storeRate){
+            return GetRecentStoreDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .closedDays(store.getClosedDays())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .build();
+        }
+    }
 }

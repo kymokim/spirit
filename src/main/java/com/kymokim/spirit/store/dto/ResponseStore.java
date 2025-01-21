@@ -4,6 +4,7 @@ import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 
 import java.time.DayOfWeek;
@@ -13,6 +14,21 @@ import java.util.List;
 import java.util.Set;
 
 public class ResponseStore {
+
+    @Deprecated
+    @Getter
+    @Builder
+    public static class GetAllStoreDto {
+        private Long id;
+        private String name;
+
+        public static GetAllStoreDto toDto(Store store){
+            return GetAllStoreDto.builder()
+                    .id(store.getId())
+                    .name(store.getName())
+                    .build();
+        }
+    }
 
     @Getter
     @Builder

@@ -17,16 +17,16 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long reviewId;
+    private Long id;
 
-    @Column(name = "writerId")
+    @Column(name = "writer_id")
     private Long writerId;
 
-    @Column(name = "writerNickName")
-    private String writerNickName;
+    @Column(name = "writer_nickname")
+    private String writerNickname;
 
-    @Column(name = "reviewContent")
-    private String reviewContent;
+    @Column(name = "content")
+    private String content;
 
     @Column(name = "rate")
     private Double rate;
@@ -36,16 +36,16 @@ public class Review {
     private Store store;
 
     @Builder
-    public Review(Long writerId,String writerNickName, String reviewContent, Double rate, Store store) {
-        this.writerNickName = writerNickName;
+    public Review(Long writerId,String writerNickname, String content, Double rate, Store store) {
+        this.writerNickname = writerNickname;
         this.writerId = writerId;
-        this.reviewContent = reviewContent;
+        this.content = content;
         this.rate = rate;
         this.store = store;
     }
 
-    public void update(String reviewContent, Double rate) {
-        this.reviewContent = reviewContent;
+    public void update(String content, Double rate) {
+        this.content = content;
         this.rate = rate;
     }
 }

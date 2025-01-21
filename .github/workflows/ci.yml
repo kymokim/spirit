@@ -72,6 +72,7 @@ jobs:
         with:
           name: test-results
           path: build/test-results/test
+          retention-days: 7  # 7일 동안 저장 후 만료
 
   notify-discord:
     runs-on: ubuntu-latest

@@ -10,15 +10,15 @@ public class ResponseReview {
     @Getter
     public static class GetReviewDto {
         private Long reviewId;
-        private String writerNickName;
-        private String reviewContent;
+        private String writerNickname;
+        private String content;
         private Double rate;
 
         public static GetReviewDto toDto(Review review) {
             return GetReviewDto.builder()
-                    .reviewId(review.getReviewId())
-                    .writerNickName(review.getWriterNickName())
-                    .reviewContent(review.getReviewContent())
+                    .reviewId(review.getId())
+                    .writerNickname(review.getWriterNickname())
+                    .content(review.getContent())
                     .rate(review.getRate())
                     .build();
         }

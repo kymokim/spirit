@@ -120,10 +120,10 @@ public class StoreService {
         if (likedStore == null) {
             likedStore = LikedStore.builder().storeId(store.getId()).userId(userId).build();
             likedStoreRepository.save(likedStore);
-            store.increaseStoreLikeCount();
+            store.increaseLikeCount();
         } else {
             likedStoreRepository.delete(likedStore);
-            store.decreaseStoreLikeCount();
+            store.decreaseLikeCount();
         }
         storeRepository.save(store);
     }

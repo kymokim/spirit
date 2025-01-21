@@ -32,7 +32,7 @@ public class MenuService {
         Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto, store);
         menuRepository.save(menu);
         store.addMenu(menu);
-        return menu.getMenuId();
+        return menu.getId();
     }
 
     public String uploadImg(MultipartFile file, long menuId){
@@ -69,8 +69,8 @@ public class MenuService {
         return ResponseMenu.GetMenuDto.toDto(menu);
     }
 
-    public void updateMenu(RequestMenu.UpdateMenuDto updateMenuDto) {
-        Menu originalMenu = menuRepository.findById(updateMenuDto.getMenuId()).get();
+    public void updateMenu(Long menuId, RequestMenu.UpdateMenuDto updateMenuDto) {
+        Menu originalMenu = menuRepository.findById(menuId).get();
         Menu updatedMenu = RequestMenu.UpdateMenuDto.toEntity(originalMenu, updateMenuDto);
         menuRepository.save(updatedMenu);
     }

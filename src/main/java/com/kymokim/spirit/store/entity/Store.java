@@ -80,8 +80,8 @@ public class Store {
     @Column(name = "review_count")
     private Long reviewCount = 0L;
 
-    @Column(name = "store_like_count")
-    private Long storeLikeCount = 0L;
+    @Column(name = "like_count")
+    private Long likeCount = 0L;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Menu> menuList = new ArrayList<>();
@@ -151,6 +151,6 @@ public class Store {
     public void decreaseReviewCount() {
         this.reviewCount--;
     }
-    public void increaseStoreLikeCount(){ this.storeLikeCount++; }
-    public void decreaseStoreLikeCount(){ this.storeLikeCount--; }
+    public void increaseLikeCount(){ this.likeCount++; }
+    public void decreaseLikeCount(){ this.likeCount--; }
 }

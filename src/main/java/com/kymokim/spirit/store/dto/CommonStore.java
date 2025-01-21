@@ -18,9 +18,9 @@ public class CommonStore {
         private String address;
         @Schema(description = "상세 주소")
         private String addressDetail;
-        @Schema(description = "위도", example = "37.27")
+        @Schema(description = "위도", example = "12.34")
         private double latitude;
-        @Schema(description = "경도", example = "127.12")
+        @Schema(description = "경도", example = "12.34")
         private double longitude;
 
         public static LocationDto toDto(Location location){

@@ -79,9 +79,9 @@ public class MenuController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateMenu(@RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
+    public ResponseEntity<ResponseDto> updateMenu(@PathVariable("id") Long id, @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
 
-        menuService.updateMenu(updateMenuDto);
+        menuService.updateMenu(id, updateMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu updated successfully.")
                 .build();

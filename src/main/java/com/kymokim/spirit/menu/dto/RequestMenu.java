@@ -10,16 +10,16 @@ public class RequestMenu {
     @Data
     @Builder
     public static class CreateMenuDto {
-        private String menuName;
-        private String menuContent;
+        private String name;
+        private String description;
         private Long price;
         private Long storeId;
         private boolean isMain;
 
         public static Menu toEntity(CreateMenuDto createMenuDto, Store store) {
             return Menu.builder()
-                    .menuName(createMenuDto.getMenuName())
-                    .menuContent(createMenuDto.getMenuContent())
+                    .name(createMenuDto.getName())
+                    .description(createMenuDto.getDescription())
                     .price(createMenuDto.getPrice())
                     .isMain(createMenuDto.isMain())
                     .store(store)
@@ -30,14 +30,13 @@ public class RequestMenu {
     @Data
     @Builder
     public static class UpdateMenuDto {
-        private Long menuId;
-        private String menuName;
-        private String menuContent;
+        private String name;
+        private String description;
         private Long price;
         private boolean isMain;
 
         public static Menu toEntity(Menu menu, UpdateMenuDto updateMenuDto) {
-            menu.update(updateMenuDto.getMenuName(), updateMenuDto.getMenuContent(), updateMenuDto.getPrice(), updateMenuDto.isMain());
+            menu.update(updateMenuDto.getName(), updateMenuDto.getDescription(), updateMenuDto.getPrice(), updateMenuDto.isMain());
             return menu;
         }
     }

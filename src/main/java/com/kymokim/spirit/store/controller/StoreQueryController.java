@@ -35,6 +35,17 @@ public class StoreQueryController {
         return criteria;
     }
 
+    @Deprecated
+    @GetMapping("/all")
+    public ResponseEntity<ResponseDto> getAllStore(){
+        List<ResponseStore.GetAllStoreDto> getAllStoreDtoList = storeQueryService.getAllStore();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(getAllStoreDtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "가게 상세 조회")
     @GetMapping("/{storeId}")
     public ResponseEntity<ResponseDto> getStore(@PathVariable("storeId") Long storeId) {

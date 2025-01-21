@@ -39,8 +39,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     private BooleanExpression openCondition(){
         // 현재 시간 필드
         LocalDateTime now = LocalDateTime.now();
+        System.out.printf("now : " + now);
         LocalTime currentTime = now.toLocalTime();
+        System.out.println("currentTime : " + currentTime);
         DayOfWeek today = now.getDayOfWeek();
+        System.out.println("today");
         // 영업 시간 필드
         TimePath<LocalTime> openTime = store.businessHours.openTime;
         TimePath<LocalTime> closeTime = store.businessHours.closeTime;

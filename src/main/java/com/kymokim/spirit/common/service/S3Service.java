@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,18 +100,28 @@ public class S3Service {
         }
     }
 
-    //DOESN'T WORK NEEDS TO BE FIXED
-    public void deleteFile(String url) {
-        // 파일 URL에서 파일 이름 추출
-        String[] fileNameParts = url.split("/");
-        String fileName = fileNameParts[fileNameParts.length - 2] + "/" + fileNameParts[fileNameParts.length - 1];
+    public void deleteFile(String fileUrl) {
 
-        // DeleteObjectRequest를 생성하여 파일 삭제
-        DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+        try {
+            URL url = new URL(fileUrl);
+            String filePath = url.getPath(); // URL의 경로 부분을 가져옴
+            String decodedFilePath = URLDecoder.decode(filePath, "UTF-8"); // 디코딩하여 원본 경로 추출
+
+            String objectKey = decodedFilePath;
+            if (decodedFilePath.startsWith("/")) {
+                objectKey = decodedFilePath.substring(1);
+            }
+
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
                 .bucket(bucket)
-                .key(fileName)
+                .key(objectKey)
                 .build();
 
-        s3Client.deleteObject(deleteObjectRequest);
+            s3Client.deleteObject(deleteObjectRequest);
+            System.out.println("파일이 삭제되었습니다: " + objectKey);
+
+        } catch (Exception e) {
+            System.out.println("Error while decoding or deleting the file: " + e.getMessage());
+        }
     }
 }

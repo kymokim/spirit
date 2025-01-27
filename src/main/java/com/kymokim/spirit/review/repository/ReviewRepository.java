@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    List<Review> findAllByStore(Store store);
+    List<Review> findAllByStoreId(Long storeId);
     Page<Review> findAllByWriterIdOrderByIdDesc(Long writerId, Pageable pageable);
 }

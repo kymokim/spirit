@@ -4,9 +4,11 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.menu.service.MenuService;
 import com.kymokim.spirit.menu.dto.RequestMenu;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Tag(name = "Menu API")
 @Controller
 @RestController
 @RequiredArgsConstructor
@@ -22,44 +25,29 @@ public class MenuController {
     @Autowired
     private final MenuService menuService;
 
-    @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createMenu(@RequestBody RequestMenu.CreateMenuDto createMenuDto) {
-
-        Long menuId = menuService.createMenu(createMenuDto);
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createMenu(@RequestPart(value = "file", required = false) MultipartFile file,
+                                                  @RequestPart(value = "createMenuDto") RequestMenu.CreateMenuDto createMenuDto) {
+        menuService.createMenu(file, createMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu created successfully.")
-                .data(menuId)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping("/uploadImg/{menuId}")
-    public ResponseEntity<ResponseDto> uploadMenuImg(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                      @PathVariable("menuId") Long menuId){
-        String url = menuService.uploadImg(file, menuId);
-
+    @PostMapping(value = "/update-image/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> updateMenuImg(@RequestPart(value = "file", required = true) MultipartFile file,
+                                                     @PathVariable("menuId") Long menuId){
+        menuService.updateImg(file, menuId);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Image uploaded successfully.")
-                .data(url)
+                .message("Image updated successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @GetMapping("/get")
-    public ResponseEntity<ResponseDto> getAllMenu() {
-
-        List<ResponseMenu.GetAllMenuDto> response = menuService.getAllMenu();
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Menu list retrieved successfully.")
-                .data(response)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @GetMapping("/getByStoreId/{storeId}")
-    public ResponseEntity<ResponseDto> getByStoreId(@PathVariable("storeId") Long storeId) {
-
-        List<ResponseMenu.MenuListDto> response = menuService.getByStoreId(storeId);
+    @GetMapping("/get-by/store/{storeId}")
+    public ResponseEntity<ResponseDto> getByStore(@PathVariable("storeId") Long storeId) {
+        List<ResponseMenu.MenuListDto> response = menuService.getByStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu retrieved successfully.")
                 .data(response)
@@ -67,10 +55,10 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<ResponseDto> getMenu(@PathVariable("id") Long id) {
+    @GetMapping("/get-by/{menuId}")
+    public ResponseEntity<ResponseDto> getMenu(@PathVariable("menuId") Long menuId) {
 
-        ResponseMenu.GetMenuDto response = menuService.getMenu(id);
+        ResponseMenu.GetMenuDto response = menuService.getMenu(menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu retrieved successfully.")
                 .data(response)
@@ -78,10 +66,10 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<ResponseDto> updateMenu(@PathVariable("id") Long id, @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
+    @PutMapping("/update/{menuId}")
+    public ResponseEntity<ResponseDto> updateMenu(@PathVariable("menuId") Long menuId, @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
 
-        menuService.updateMenu(id, updateMenuDto);
+        menuService.updateMenu(menuId, updateMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu updated successfully.")
                 .build();
@@ -90,9 +78,7 @@ public class MenuController {
 
     @DeleteMapping("/delete/{menuId}")
     public ResponseEntity<ResponseDto> deleteMenu(@PathVariable("menuId") Long menuId) {
-
         menuService.deleteMenu(menuId);
-
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu deleted successfully.")
                 .build();

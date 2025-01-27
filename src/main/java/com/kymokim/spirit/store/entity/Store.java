@@ -136,14 +136,17 @@ public class Store {
         this.categories = categories;
     }
 
-    public void addMenu(Menu menu) {
+    public void addMenuList(Menu menu) {
         this.menuList.add(menu);
     }
-    public void addReview(Review review){
+    public void addReviewList(Review review){
         this.reviewList.add(review);
     }
     public void addImgUrlList(StoreImage storeImage){
         this.imgUrlList.add(storeImage);
+    }
+    public void removeImgUrlList(StoreImage storeImage){
+        this.imgUrlList.remove(storeImage);
     }
     public void increaseReviewCount() {
         this.reviewCount++;

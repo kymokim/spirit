@@ -9,7 +9,6 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import java.time.DayOfWeek;
-import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 

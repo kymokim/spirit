@@ -22,15 +22,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-/**
- * - have-todo
- * ResponseStore dto 정리.. dto 각 api, 서비스 코드마다 어떻게 사용할 것인지 정하고 정리해야 함
- * 모듈화하기(거리 or 영업중 계산)
- * 기존 api, 서비스 코드 변경사항 적용
- * 신규 검색 기능 개발
- * 컨트롤러 정리하고 설명 적기
- */
-
 @Service
 @RequiredArgsConstructor
 public class StoreService {
@@ -51,7 +42,6 @@ public class StoreService {
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
         Store store = createStoreRqDto.toEntity(resolveUserId());
         storeRepository.save(store);
-
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
@@ -95,8 +85,7 @@ public class StoreService {
         }
     }
 
-
-    public void uploadStoreImg(MultipartFile[] files, long storeId) {
+    public void uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -107,10 +96,10 @@ public class StoreService {
                 store.addImgUrlList(storeImage);
             }
             store.getHistoryInfo().update(resolveUserId());
-            storeRepository.save(store);
         } else {
             throw new CustomException(StoreErrorCode.STORE_IMG_FILE_EMPTY);
         }
+        storeRepository.save(store);
     }
 
     public void likeStore(Long storeId){
@@ -126,6 +115,27 @@ public class StoreService {
             store.decreaseLikeCount();
         }
         storeRepository.save(store);
+    }
+
+    public void deleteImage(String imageUrl, Long storeId){
+        Store store = resolveStore(storeId);
+        System.out.println("service approached");
+//        for (String imageUrl : imgUrlList) {
+            StoreImage storeImage = storeImageRepository.findByUrlAndStoreId(imageUrl, store.getId())
+                            .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_ORIGIN_IMG_URL_EMPTY));
+            System.out.println("storeImage found : "+ storeImage);
+            if (store.getMainImgUrl().equals(imageUrl)) {
+                store.setMainImgUrl(null);
+            }
+            s3Service.deleteFile(imageUrl);
+            System.out.println("deleted from s3");
+            storeImageRepository.delete(storeImage);
+            System.out.println("deleted from si repo");
+            store.removeImgUrlList(storeImage);
+            System.out.println("deleted from s repo");
+//        }
+        storeRepository.save(store);
+        System.out.println("end");
     }
 
     //Delete permission exception handling required.

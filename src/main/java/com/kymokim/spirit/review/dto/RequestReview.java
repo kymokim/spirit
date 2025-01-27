@@ -5,14 +5,19 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
+
 
 public class RequestReview {
 
     @Data
     @Builder
     public static class CreateReviewDto {
+        @NotEmpty
         private String content;
+        @NotEmpty
         private Double rate;
+        @NotEmpty
         private Long storeId;
 
         public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long writerId, String writerNickname) {
@@ -32,8 +37,9 @@ public class RequestReview {
     @Data
     @Builder
     public static class UpdateReviewDto {
-        private Long reviewId;
+        @NotEmpty
         private String content;
+        @NotEmpty
         private Double rate;
 
         public static Review toEntity(Review review, UpdateReviewDto updateReviewDto) {

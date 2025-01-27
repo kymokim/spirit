@@ -16,7 +16,7 @@ public class ResponseMenu {
         private Long likeCount;
         private Long storeId;
         private String imgUrl;
-        private boolean isMain;
+        private Boolean isMain;
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
@@ -50,32 +50,6 @@ public class ResponseMenu {
                     .description(menu.getDescription())
                     .price(menu.getPrice())
                     .likeCount(menu.getLikeCount())
-                    .imgUrl(menu.getImgUrl())
-                    .isMain(menu.getIsMain())
-                    .build();
-        }
-    }
-
-    @Builder
-    @Getter
-    public static class GetAllMenuDto {
-        private Long id;
-        private String name;
-        private String description;
-        private Long price;
-        private Long likeCount;
-        private Long storeId;
-        private String imgUrl;
-        private boolean isMain;
-
-        public static GetAllMenuDto toDto(Menu menu) {
-            return GetAllMenuDto.builder()
-                    .id(menu.getId())
-                    .name(menu.getName())
-                    .description(menu.getDescription())
-                    .price(menu.getPrice())
-                    .likeCount(menu.getLikeCount())
-                    .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
                     .build();

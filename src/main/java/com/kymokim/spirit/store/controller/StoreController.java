@@ -4,7 +4,11 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.service.StoreService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Tag(name = "Store API")
 @Controller
@@ -45,10 +51,10 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping(value = "/uploadImg/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> uploadStoreImg(@RequestPart(value = "files", required = true) MultipartFile[] files,
-                                                      @PathVariable("storeId") Long storeId) {
-        storeService.uploadStoreImg(files, storeId);
+    @PostMapping(value = "/upload-image/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
+                                                   @PathVariable("storeId") Long storeId) {
+        storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
                 .build();
@@ -60,6 +66,17 @@ public class StoreController {
         storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store like processed successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("/delete-image/{storeId}")
+    public ResponseEntity<ResponseDto> deleteImage(@RequestParam String imageUrl,
+                                                   @PathVariable("storeId") Long storeId){
+        System.out.println("controller approached :"+ imageUrl);
+        storeService.deleteImage(imageUrl, storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image deleted successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

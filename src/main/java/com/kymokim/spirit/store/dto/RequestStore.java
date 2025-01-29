@@ -10,6 +10,7 @@ import lombok.Data;
 import javax.validation.constraints.NotEmpty;
 import java.time.DayOfWeek;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -92,5 +93,12 @@ public class RequestStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         @Schema(description = "휴무일")
         private Set<DayOfWeek> closedDays;
+    }
+
+    @Data
+    @Builder
+    public static class DeleteImageDto {
+        @NotEmpty
+        private List<String> imgUrlList;
     }
 }

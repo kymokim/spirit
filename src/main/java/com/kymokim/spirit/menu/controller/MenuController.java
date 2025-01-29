@@ -36,11 +36,20 @@ public class MenuController {
     }
 
     @PostMapping(value = "/update-image/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> updateMenuImg(@RequestPart(value = "file", required = true) MultipartFile file,
-                                                     @PathVariable("menuId") Long menuId){
-        menuService.updateImg(file, menuId);
+    public ResponseEntity<ResponseDto> updateMenuImage(@RequestPart(value = "file", required = true) MultipartFile file,
+                                                       @PathVariable("menuId") Long menuId){
+        menuService.updateImage(file, menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("delete-image/{menuId}")
+    public ResponseEntity<ResponseDto> deleteImage(@PathVariable("menuId") Long menuId){
+        menuService.deleteImage(menuId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image deleted successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

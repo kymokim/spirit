@@ -12,6 +12,7 @@ import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class MenuService {
                 .orElseThrow(() -> new CustomException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
+    @Transactional
     public void createMenu(MultipartFile file, RequestMenu.CreateMenuDto createMenuDto) {
         Store store = resolveStore(createMenuDto.getStoreId());
         Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto, store);
@@ -47,7 +49,8 @@ public class MenuService {
         storeRepository.save(store);
     }
 
-    public void updateImg(MultipartFile file, Long menuId){
+    @Transactional
+    public void updateImage(MultipartFile file, Long menuId){
         Menu menu = resolveMenu(menuId);
         String imageUrl;
         if (file != null){
@@ -58,12 +61,27 @@ public class MenuService {
                 imageUrl = s3Service.update(file, "menu/" + String.valueOf(menu.getId()), menu.getImgUrl());
             }
         } else {
-            throw new CustomException(MenuErrorCode.MENU_ORIGIN_IMG_URL_EMPTY);
+            throw new CustomException(MenuErrorCode.MENU_IMG_FILE_EMPTY);
         }
         menu.setImgUrl(imageUrl);
         menuRepository.save(menu);
     }
 
+    @Transactional
+    public void deleteImage(Long menuId){
+        Menu menu = resolveMenu(menuId);
+        String originUrl;
+        if (!(menu.getImgUrl() == null) && !menu.getImgUrl().isEmpty()){
+            originUrl = menu.getImgUrl();
+        } else {
+            throw new CustomException(MenuErrorCode.MENU_ORIGIN_IMG_URL_EMPTY);
+        }
+        s3Service.deleteFile(originUrl);
+        menu.setImgUrl(null);
+        menuRepository.save(menu);
+    }
+
+    @Transactional
     public List<ResponseMenu.MenuListDto> getByStore(Long storeId){
         Store store = resolveStore(storeId);
         List<ResponseMenu.MenuListDto> menuList = new ArrayList<>();
@@ -72,17 +90,20 @@ public class MenuService {
         return menuList;
     }
 
+    @Transactional
     public ResponseMenu.GetMenuDto getMenu(Long menuId) {
         Menu menu = resolveMenu(menuId);
         return ResponseMenu.GetMenuDto.toDto(menu);
     }
 
+    @Transactional
     public void updateMenu(Long menuId, RequestMenu.UpdateMenuDto updateMenuDto) {
         Menu originalMenu = resolveMenu(menuId);
         Menu updatedMenu = RequestMenu.UpdateMenuDto.toEntity(originalMenu, updateMenuDto);
         menuRepository.save(updatedMenu);
     }
 
+    @Transactional
     public void deleteMenu(Long menuId) {
         Menu menu = resolveMenu(menuId);
         menuRepository.delete(menu);

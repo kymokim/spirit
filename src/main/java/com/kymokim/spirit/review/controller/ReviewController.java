@@ -38,6 +38,26 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping(value = "/upload-image/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> uploadReviewImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
+                                                         @PathVariable("reviewId") Long reviewId) {
+        reviewService.uploadImage(files, reviewId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image uploaded successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("/delete-image/{reviewId}")
+    public ResponseEntity<ResponseDto> deleteReviewImage(@RequestBody RequestReview.DeleteImageDto deleteImageDto,
+                                                         @PathVariable("reviewId") Long reviewId) {
+        reviewService.deleteImage(deleteImageDto, reviewId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Image deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping("/get-by/{reviewId}")
     public ResponseEntity<ResponseDto> getReview(@PathVariable("reviewId") Long reviewId) {
         ResponseReview.GetReviewDto response = reviewService.getReview(reviewId);

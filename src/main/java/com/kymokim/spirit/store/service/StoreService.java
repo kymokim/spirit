@@ -16,6 +16,7 @@ import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -39,6 +40,7 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
     }
 
+    @Transactional
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
         Store store = createStoreRqDto.toEntity(resolveUserId());
         storeRepository.save(store);
@@ -56,6 +58,7 @@ public class StoreService {
         return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
+    @Transactional
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
         Store store = resolveStore(storeId);
 
@@ -85,6 +88,7 @@ public class StoreService {
         }
     }
 
+    @Transactional
     public void uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
         if (files != null) {
@@ -102,6 +106,7 @@ public class StoreService {
         storeRepository.save(store);
     }
 
+    @Transactional
     public void likeStore(Long storeId){
         Store store = resolveStore(storeId);
         Long userId = resolveUserId();
@@ -117,28 +122,24 @@ public class StoreService {
         storeRepository.save(store);
     }
 
-    public void deleteImage(String imageUrl, Long storeId){
+    @Transactional
+    public void deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId){
         Store store = resolveStore(storeId);
-        System.out.println("service approached");
-//        for (String imageUrl : imgUrlList) {
-            StoreImage storeImage = storeImageRepository.findByUrlAndStoreId(imageUrl, store.getId())
+        for (String imgUrl : deleteImageDto.getImgUrlList()) {
+            StoreImage storeImage = storeImageRepository.findByUrl(imgUrl)
                             .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_ORIGIN_IMG_URL_EMPTY));
-            System.out.println("storeImage found : "+ storeImage);
-            if (store.getMainImgUrl().equals(imageUrl)) {
+            if (Objects.equals(store.getMainImgUrl(), imgUrl)) {
                 store.setMainImgUrl(null);
             }
-            s3Service.deleteFile(imageUrl);
-            System.out.println("deleted from s3");
+            s3Service.deleteFile(imgUrl);
             storeImageRepository.delete(storeImage);
-            System.out.println("deleted from si repo");
             store.removeImgUrlList(storeImage);
-            System.out.println("deleted from s repo");
-//        }
+        }
         storeRepository.save(store);
-        System.out.println("end");
     }
 
     //Delete permission exception handling required.
+    @Transactional
     public void deleteStore(Long storeId) {
         Store store = resolveStore(storeId);
         storeRepository.delete(store);

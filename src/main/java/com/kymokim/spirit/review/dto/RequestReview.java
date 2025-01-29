@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 
 public class RequestReview {
@@ -31,9 +32,6 @@ public class RequestReview {
         }
     }
 
-
-
-
     @Data
     @Builder
     public static class UpdateReviewDto {
@@ -46,5 +44,12 @@ public class RequestReview {
             review.update(updateReviewDto.getContent(), updateReviewDto.getRate());
             return review;
         }
+    }
+
+    @Data
+    @Builder
+    public static class DeleteImageDto {
+        @NotEmpty
+        private List<String> imgUrlList;
     }
 }

@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ public class ReviewService {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
+    @Transactional
     public void createReview(MultipartFile[] files, RequestReview.CreateReviewDto createReviewDto) {
         Long userId = resolveUserId();
         Auth writer = authRepository.findById(userId)
@@ -75,11 +77,43 @@ public class ReviewService {
         storeRepository.save(store);
     }
 
+    @Transactional
+    public void uploadImage(MultipartFile[] files, Long reviewId){
+        Review review = resolveReview(reviewId);
+        if (files != null) {
+            List<MultipartFile> fileList = Arrays.asList(files);
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "review/" + String.valueOf(review.getId()));
+            for (String url : imageUrls){
+                ReviewImage reviewImage = ReviewImage.builder().url(url).review(review).build();
+                reviewImageRepository.save(reviewImage);
+                review.addImgUrlList(reviewImage);
+            }
+        } else {
+            throw new CustomException(ReviewErrorCode.REVIEW_IMG_FILE_EMPTY);
+        }
+        reviewRepository.save(review);
+    }
+
+    @Transactional
+    public void deleteImage(RequestReview.DeleteImageDto deleteImageDto, Long reviewId){
+        Review review = resolveReview(reviewId);
+        for ( String imgUrl : deleteImageDto.getImgUrlList() ){
+            ReviewImage reviewImage = reviewImageRepository.findByUrl(imgUrl)
+                    .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_ORIGIN_IMG_URL_EMPTY));
+            s3Service.deleteFile(imgUrl);
+            reviewImageRepository.delete(reviewImage);
+            review.removeImgUrlList(reviewImage);
+        }
+        reviewRepository.save(review);
+    }
+
+    @Transactional
     public ResponseReview.GetReviewDto getReview(Long reviewId){
         Review review = resolveReview(reviewId);
         return ResponseReview.GetReviewDto.toDto(review);
     }
 
+    @Transactional
     public List<ResponseReview.ReviewListDto> getReviewByStore(Long storeId) {
         List<Review> entityList = reviewRepository.findAllByStoreId(storeId);
         List<ResponseReview.ReviewListDto> dtoList = new ArrayList<>();
@@ -87,12 +121,14 @@ public class ReviewService {
         return dtoList;
     }
 
+    @Transactional
     public void updateReview(Long reviewId, RequestReview.UpdateReviewDto updateReviewDto) {
         Review originalReview = resolveReview(reviewId);
         Review updatedReview = RequestReview.UpdateReviewDto.toEntity(originalReview, updateReviewDto);
         reviewRepository.save(updatedReview);
     }
 
+    @Transactional
     public void deleteReview(Long reviewId) {
         Long userId = resolveUserId();
         Review review = resolveReview(reviewId);

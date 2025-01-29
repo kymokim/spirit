@@ -71,10 +71,9 @@ public class StoreController {
     }
 
     @DeleteMapping("/delete-image/{storeId}")
-    public ResponseEntity<ResponseDto> deleteImage(@RequestParam String imageUrl,
+    public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                    @PathVariable("storeId") Long storeId){
-        System.out.println("controller approached :"+ imageUrl);
-        storeService.deleteImage(imageUrl, storeId);
+        storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
                 .build();

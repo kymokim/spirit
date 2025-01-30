@@ -28,6 +28,7 @@ public class MenuController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createMenu(@RequestPart(value = "file", required = false) MultipartFile file,
                                                   @RequestPart(value = "createMenuDto") RequestMenu.CreateMenuDto createMenuDto) {
+        System.out.println("Menu/createMenu API called.");
         menuService.createMenu(file, createMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu created successfully.")
@@ -38,6 +39,7 @@ public class MenuController {
     @PostMapping(value = "/update-image/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> updateMenuImage(@RequestPart(value = "file", required = true) MultipartFile file,
                                                        @PathVariable("menuId") Long menuId){
+        System.out.println("Menu/updateMenuImage API called.");
         menuService.updateImage(file, menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image updated successfully.")
@@ -47,6 +49,7 @@ public class MenuController {
 
     @DeleteMapping("delete-image/{menuId}")
     public ResponseEntity<ResponseDto> deleteImage(@PathVariable("menuId") Long menuId){
+        System.out.println("Menu/deleteImage API called.");
         menuService.deleteImage(menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -56,6 +59,7 @@ public class MenuController {
 
     @GetMapping("/get-by/store/{storeId}")
     public ResponseEntity<ResponseDto> getByStore(@PathVariable("storeId") Long storeId) {
+        System.out.println("Menu/getByStore API called.");
         List<ResponseMenu.MenuListDto> response = menuService.getByStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu retrieved successfully.")
@@ -66,7 +70,7 @@ public class MenuController {
 
     @GetMapping("/get-by/{menuId}")
     public ResponseEntity<ResponseDto> getMenu(@PathVariable("menuId") Long menuId) {
-
+        System.out.println("Menu/getMenu API called.");
         ResponseMenu.GetMenuDto response = menuService.getMenu(menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu retrieved successfully.")
@@ -77,7 +81,7 @@ public class MenuController {
 
     @PutMapping("/update/{menuId}")
     public ResponseEntity<ResponseDto> updateMenu(@PathVariable("menuId") Long menuId, @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
-
+        System.out.println("Menu/updateMenu API called.");
         menuService.updateMenu(menuId, updateMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu updated successfully.")
@@ -87,6 +91,7 @@ public class MenuController {
 
     @DeleteMapping("/delete/{menuId}")
     public ResponseEntity<ResponseDto> deleteMenu(@PathVariable("menuId") Long menuId) {
+        System.out.println("Menu/deleteMenu API called.");
         menuService.deleteMenu(menuId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu deleted successfully.")

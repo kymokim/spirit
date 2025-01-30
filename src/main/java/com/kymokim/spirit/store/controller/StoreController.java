@@ -34,6 +34,7 @@ public class StoreController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                    @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) throws IOException {
+        System.out.println("Store/createStore API called.");
         ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
@@ -44,6 +45,7 @@ public class StoreController {
 
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
+        System.out.println("Store/updateStore API called.");
         storeService.updateStore(storeId, updateStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store updated successfully.")
@@ -54,6 +56,7 @@ public class StoreController {
     @PostMapping(value = "/upload-image/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
                                                    @PathVariable("storeId") Long storeId) {
+        System.out.println("Store/uploadImage API called.");
         storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
@@ -63,6 +66,7 @@ public class StoreController {
 
     @PostMapping("/like/{storeId}")
     public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId){
+        System.out.println("Store/likeStore API called.");
         storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store like processed successfully.")
@@ -73,6 +77,7 @@ public class StoreController {
     @DeleteMapping("/delete-image/{storeId}")
     public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                    @PathVariable("storeId") Long storeId){
+        System.out.println("Store/deleteImage API called.");
         storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -83,6 +88,7 @@ public class StoreController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{storeId}")
     public ResponseEntity<ResponseDto> deleteStore(@PathVariable("storeId") Long storeId){
+        System.out.println("Store/deleteStore API called.");
         storeService.deleteStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store deleted successfully.")

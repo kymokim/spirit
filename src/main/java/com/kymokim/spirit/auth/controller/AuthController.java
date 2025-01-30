@@ -39,6 +39,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<ResponseDto> registerUser(@Valid @RequestBody RequestAuth.RegisterUserDto registerUserDto) {
+        System.out.println("Auth/registerUser API called.");
         authService.registerUser(registerUserDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User registered successfully.")
@@ -57,6 +58,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<ResponseDto> loginUser(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
+        System.out.println("Auth/loginUser API called.");
         ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginUser(loginUserRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User logged in successfully.")
@@ -76,6 +78,7 @@ public class AuthController {
     })
     @GetMapping("/reissue-token")
     public ResponseEntity<ResponseDto> reissueToken(HttpServletRequest request){
+        System.out.println("Auth/reissueToken API called.");
         String refreshToken = jwtTokenProvider.resolveToken(request);
         ResponseAuth.ReissueTokenDto reissueTokenDto = authService.reissueToken(refreshToken);
         ResponseDto responseDto = ResponseDto.builder()
@@ -97,6 +100,7 @@ public class AuthController {
     })
     @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> uploadImg(@Valid @RequestPart(value = "file") MultipartFile file) {
+        System.out.println("Auth/uploadImg API called.");
         authService.uploadImg(file);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User image uploaded successfully.")
@@ -116,6 +120,7 @@ public class AuthController {
     })
     @DeleteMapping("/delete-image")
     public ResponseEntity<ResponseDto> deleteImg(){
+        System.out.println("Auth/deleteImg API called.");
         authService.deleteImg();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User image deleted successfully.")
@@ -129,6 +134,7 @@ public class AuthController {
     })
     @PostMapping("/check-nickname")
     public ResponseEntity<ResponseDto> checkNickname(@Valid @RequestParam String nickname) {
+        System.out.println("Auth/checkNickname API called.");
         ResponseAuth.CheckNicknameDto checkNicknameDto = authService.checkNickname(nickname);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User nickname check result retrieved.")
@@ -149,6 +155,7 @@ public class AuthController {
     })
     @PutMapping("/update-nickname")
     public ResponseEntity<ResponseDto> updateNickname(@Valid @RequestParam String nickname) {
+        System.out.println("Auth/updateNickname API called.");
         authService.updateNickname(nickname);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User nickname updated successfully.")
@@ -166,6 +173,7 @@ public class AuthController {
     })
     @GetMapping("/get")
     public ResponseEntity<ResponseDto> getUser() {
+        System.out.println("Auth/getUser API called.");
         ResponseAuth.GetUserDto response = authService.getUser();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User information retrieved successfully.")
@@ -184,6 +192,7 @@ public class AuthController {
     })
     @PostMapping("/logout")
     public ResponseEntity<ResponseDto> logoutUser(HttpServletRequest request){
+        System.out.println("Auth/logoutUser API called.");
         String refreshToken = jwtTokenProvider.resolveToken(request);
         authService.logoutUser(refreshToken);
         ResponseDto responseDto = ResponseDto.builder()

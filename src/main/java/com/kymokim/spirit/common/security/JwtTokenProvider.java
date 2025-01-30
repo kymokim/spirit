@@ -42,13 +42,10 @@ public class JwtTokenProvider {
 
     @PostConstruct
     protected void init() {
-        LOGGER.info("[init] JwtTokenProvider 내 secretKey 초기화 시작");
         secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
-        LOGGER.info("[init] JwtTokenProvider 내 secretKey 초기화 완료");
     }
 
     public String createAccessToken(Long id) {
-        LOGGER.info("[createAccessToken] 토큰 생성 시작");
         Date now = new Date();
         String accessToken = Jwts.builder()
             .setSubject(String.valueOf(id))
@@ -56,13 +53,10 @@ public class JwtTokenProvider {
             .setExpiration(new Date(now.getTime() + accessTokenValidMillisecond))
             .signWith(SignatureAlgorithm.HS256, secretKey)
             .compact();
-
-        LOGGER.info("[createAccessToken] 토큰 생성 완료");
         return accessToken;
     }
 
     public String createRefreshToken(Long id) {
-        LOGGER.info("[createRefreshToken] 리프레시 토큰 생성 시작");
         Date now = new Date();
         String refreshToken = Jwts.builder()
                 .setSubject(String.valueOf(id))
@@ -70,12 +64,10 @@ public class JwtTokenProvider {
                 .setExpiration(new Date(now.getTime() + refreshTokenValidMillisecond)) // 7일 유효
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
-        LOGGER.info("[createRefreshToken] 리프레시 토큰 생성 완료");
         return refreshToken;
     }
 
     public boolean validateToken(String token) {
-        LOGGER.info("[validateToken] 토큰 유효 체크 시작");
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
             LOGGER.info("[validateToken] 토큰 유효 체크 완료");
@@ -87,7 +79,6 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        LOGGER.info("[getAuthentication] 토큰 인증 정보 조회 시작");
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUsername(token));
         LOGGER.info("[getAuthentication] 토큰 인증 정보 조회 완료, UserDetails UserName : {}",
             userDetails.getUsername());
@@ -96,15 +87,12 @@ public class JwtTokenProvider {
     }
 
     public String getUsername(String token) {
-        LOGGER.info("[getUsername] 토큰 기반 회원 구별 정보 추출");
         String info = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody()
             .getSubject();
-        LOGGER.info("[getUsername] 토큰 기반 회원 구별 정보 추출 완료, info : {}", info);
         return info;
     }
 
     public String resolveToken(HttpServletRequest request) {
-        LOGGER.info("[resolveToken] HTTP 헤더에서 Token 값 추출");
         return request.getHeader("x-auth-token");
     }
 

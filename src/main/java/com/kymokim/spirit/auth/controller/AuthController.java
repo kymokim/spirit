@@ -6,6 +6,7 @@ import com.kymokim.spirit.auth.service.AuthService;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.common.exception.ErrorResponse;
 import com.kymokim.spirit.common.security.JwtTokenProvider;
+import com.kymokim.spirit.menu.controller.MenuController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +33,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     @Operation(summary = "회원가입")
     @ApiResponses(value = {
@@ -39,7 +43,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<ResponseDto> registerUser(@Valid @RequestBody RequestAuth.RegisterUserDto registerUserDto) {
-        System.out.println("Auth/registerUser API called.");
+        LOGGER.info("Auth/registerUser API called.");
         authService.registerUser(registerUserDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User registered successfully.")
@@ -58,7 +62,7 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<ResponseDto> loginUser(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
-        System.out.println("Auth/loginUser API called.");
+        LOGGER.info("Auth/loginUser API called.");
         ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginUser(loginUserRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User logged in successfully.")
@@ -78,7 +82,7 @@ public class AuthController {
     })
     @GetMapping("/reissue-token")
     public ResponseEntity<ResponseDto> reissueToken(HttpServletRequest request){
-        System.out.println("Auth/reissueToken API called.");
+        LOGGER.info("Auth/reissueToken API called.");
         String refreshToken = jwtTokenProvider.resolveToken(request);
         ResponseAuth.ReissueTokenDto reissueTokenDto = authService.reissueToken(refreshToken);
         ResponseDto responseDto = ResponseDto.builder()
@@ -100,7 +104,7 @@ public class AuthController {
     })
     @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> uploadImg(@Valid @RequestPart(value = "file") MultipartFile file) {
-        System.out.println("Auth/uploadImg API called.");
+        LOGGER.info("Auth/uploadImg API called.");
         authService.uploadImg(file);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User image uploaded successfully.")
@@ -120,7 +124,7 @@ public class AuthController {
     })
     @DeleteMapping("/delete-image")
     public ResponseEntity<ResponseDto> deleteImg(){
-        System.out.println("Auth/deleteImg API called.");
+        LOGGER.info("Auth/deleteImg API called.");
         authService.deleteImg();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User image deleted successfully.")
@@ -134,7 +138,7 @@ public class AuthController {
     })
     @PostMapping("/check-nickname")
     public ResponseEntity<ResponseDto> checkNickname(@Valid @RequestParam String nickname) {
-        System.out.println("Auth/checkNickname API called.");
+        LOGGER.info("Auth/checkNickname API called.");
         ResponseAuth.CheckNicknameDto checkNicknameDto = authService.checkNickname(nickname);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User nickname check result retrieved.")
@@ -155,7 +159,7 @@ public class AuthController {
     })
     @PutMapping("/update-nickname")
     public ResponseEntity<ResponseDto> updateNickname(@Valid @RequestParam String nickname) {
-        System.out.println("Auth/updateNickname API called.");
+        LOGGER.info("Auth/updateNickname API called.");
         authService.updateNickname(nickname);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User nickname updated successfully.")
@@ -173,7 +177,7 @@ public class AuthController {
     })
     @GetMapping("/get")
     public ResponseEntity<ResponseDto> getUser() {
-        System.out.println("Auth/getUser API called.");
+        LOGGER.info("Auth/getUser API called.");
         ResponseAuth.GetUserDto response = authService.getUser();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User information retrieved successfully.")
@@ -192,7 +196,7 @@ public class AuthController {
     })
     @PostMapping("/logout")
     public ResponseEntity<ResponseDto> logoutUser(HttpServletRequest request){
-        System.out.println("Auth/logoutUser API called.");
+        LOGGER.info("Auth/logoutUser API called.");
         String refreshToken = jwtTokenProvider.resolveToken(request);
         authService.logoutUser(refreshToken);
         ResponseDto responseDto = ResponseDto.builder()

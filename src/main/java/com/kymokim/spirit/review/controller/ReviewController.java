@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -78,9 +81,21 @@ public class ReviewController {
 
     //토큰 받아서 본인이 작성자인지 알려주는 boolean 값 리턴 필요
     @GetMapping("/get-by/store/{storeId}")
-    public ResponseEntity<ResponseDto> getReviewByStore(@PathVariable("storeId") Long storeId) {
+    public ResponseEntity<ResponseDto> getReviewByStore(@PathVariable("storeId") Long storeId,
+                                                        @PageableDefault(size = 10) Pageable pageable) {
         LOGGER.info("Review/getReviewByStore API called.");
-        List<ResponseReview.ReviewListDto> response = reviewService.getReviewByStore(storeId);
+        Page<ResponseReview.ReviewListDto> response = reviewService.getReviewByStore(storeId, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Review list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/get-by/recent")
+    public ResponseEntity<ResponseDto> getRecentReview(@PageableDefault(size = 10) Pageable pageable) {
+        LOGGER.info("Review/getRecentReview API called.");
+        Page<ResponseReview.ReviewListDto> response = reviewService.getRecentReview(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review list retrieved successfully.")
                 .data(response)

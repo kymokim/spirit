@@ -7,7 +7,8 @@ import org.springframework.http.HttpStatus;
 public enum CommonErrorCode implements ErrorCode {
     OLD_IMG_URL_EMPTY(HttpStatus.BAD_REQUEST, 20000, "OLD_IMG_URL_EMPTY"),
     NEW_FILE_CREATE_FAILED(HttpStatus.BAD_REQUEST, 20001, "NEW_FILE_CREATE_FAILED"),
-    FILE_CONVERSION_FAILED(HttpStatus.BAD_REQUEST, 20002, "FILE_CONVERSION_FAILED");
+    FILE_CONVERSION_FAILED(HttpStatus.BAD_REQUEST, 20002, "FILE_CONVERSION_FAILED"),
+    CREATOR_ID_EMPTY(HttpStatus.BAD_REQUEST, 20003, "CREATOR_ID_EMPTY");
 
     private final HttpStatus httpStatus;
     private final Integer code;

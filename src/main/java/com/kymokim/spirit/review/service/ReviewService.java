@@ -122,10 +122,10 @@ public class ReviewService {
     }
 
     @Transactional
-    public Page<ResponseReview.ReviewListDto> getRecentReview(Pageable pageable){
+    public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable){
         Long userId = resolveUserId();
         Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByIdDesc(userId, pageable);
-        return reviewPage.map(ResponseReview.ReviewListDto :: toDto);
+        return reviewPage.map(ResponseReview.GetRecentReviewDto :: toDto);
     }
 
     @Transactional

@@ -1,9 +1,8 @@
 package com.kymokim.spirit.store.entity;
 
+import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.common.exception.CustomException;
-import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.menu.entity.Menu;
-import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import lombok.Builder;
 import lombok.Data;

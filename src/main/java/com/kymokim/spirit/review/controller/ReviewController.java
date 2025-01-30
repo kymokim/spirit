@@ -95,7 +95,7 @@ public class ReviewController {
     @GetMapping("/get-by/recent")
     public ResponseEntity<ResponseDto> getRecentReview(@PageableDefault(size = 10) Pageable pageable) {
         LOGGER.info("Review/getRecentReview API called.");
-        Page<ResponseReview.ReviewListDto> response = reviewService.getRecentReview(pageable);
+        Page<ResponseReview.GetRecentReviewDto> response = reviewService.getRecentReview(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review list retrieved successfully.")
                 .data(response)

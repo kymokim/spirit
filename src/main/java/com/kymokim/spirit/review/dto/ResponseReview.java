@@ -64,4 +64,32 @@ public class ResponseReview {
                     .build();
         }
     }
+
+    @Builder
+    @Getter
+    public static class GetRecentReviewDto {
+        private Long id;
+        private String content;
+        private Double rate;
+        private Long storeId;
+        private String storeName;
+        private List<String> imgUrlList;
+
+        public static GetRecentReviewDto toDto(Review review) {
+
+            List<String> imgUrlList = new ArrayList<>();
+            if (!review.getImgUrlList().isEmpty()) {
+                review.getImgUrlList().forEach(reviewImage -> imgUrlList.add(reviewImage.getUrl()));
+            }
+
+            return GetRecentReviewDto.builder()
+                    .id(review.getId())
+                    .content(review.getContent())
+                    .rate(review.getRate())
+                    .storeId(review.getStore().getId())
+                    .storeName(review.getStore().getName())
+                    .imgUrlList(imgUrlList)
+                    .build();
+        }
+    }
 }

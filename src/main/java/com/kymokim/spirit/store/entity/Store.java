@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.entity;
 
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
@@ -87,9 +88,6 @@ public class Store {
     private List<Menu> menuList = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<Review> reviewList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder
@@ -138,9 +136,6 @@ public class Store {
 
     public void addMenuList(Menu menu) {
         this.menuList.add(menu);
-    }
-    public void addReviewList(Review review){
-        this.reviewList.add(review);
     }
     public void addImgUrlList(StoreImage storeImage){
         this.imgUrlList.add(storeImage);

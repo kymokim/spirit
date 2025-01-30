@@ -16,7 +16,7 @@ public class RequestMenu {
         private String name;
         private String description;
         @NotEmpty
-        private Long price;
+        private String price;
         @NotEmpty
         private Long storeId;
         @NotEmpty
@@ -40,7 +40,7 @@ public class RequestMenu {
         private String name;
         private String description;
         @NotEmpty
-        private Long price;
+        private String price;
         @NotEmpty
         private Boolean isMain;
 

@@ -197,7 +197,7 @@ public class ResponseStore {
     @Builder
     private static class MenuListDto{
         private String name;
-        private Long price;
+        private String price;
         private String imgUrl;
 
         private static MenuListDto toDto(Menu menu){

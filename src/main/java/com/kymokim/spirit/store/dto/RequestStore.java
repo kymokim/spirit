@@ -42,6 +42,7 @@ public class RequestStore {
         @NotEmpty(message = "카테고리가 비었습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
+        @NotEmpty(message = "대표 주종이 비었습니다.")
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         @Schema(description = "휴무일")
         private Set<DayOfWeek> closedDays;

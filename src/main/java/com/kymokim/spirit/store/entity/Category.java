@@ -22,7 +22,7 @@ public enum Category {
     //찜, 찌개
     STEW,
 
-    //구이, 탕
+    //구이
     GRILLED,
 
     //치킨

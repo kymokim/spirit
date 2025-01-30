@@ -118,7 +118,7 @@ public class StoreQueryController {
                                                           @RequestParam("longitude") double longitude,
                                                           @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                           @PageableDefault(size = 10) Pageable pageable){
-        System.out.println("Store Query/getByBusinessHours API called.");
+        LOGGER.info("Store Query/getByBusinessHours API called.");
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByBusinessHoursDto> dtoPage = storeQueryService.getByBusinessHours(criteria, pageable);
         ResponseDto responseDto = ResponseDto.builder()

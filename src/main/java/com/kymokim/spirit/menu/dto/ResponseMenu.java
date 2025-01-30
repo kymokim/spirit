@@ -12,8 +12,7 @@ public class ResponseMenu {
         private Long id;
         private String name;
         private String description;
-        private Long price;
-        private Long likeCount;
+        private String price;
         private Long storeId;
         private String imgUrl;
         private Boolean isMain;
@@ -24,7 +23,6 @@ public class ResponseMenu {
                     .name(menu.getName())
                     .description(menu.getDescription())
                     .price(menu.getPrice())
-                    .likeCount(menu.getLikeCount())
                     .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
@@ -38,8 +36,7 @@ public class ResponseMenu {
         private Long id;
         private String name;
         private String description;
-        private Long price;
-        private Long likeCount;
+        private String price;
         private String imgUrl;
         private Boolean isMain;
 
@@ -49,7 +46,6 @@ public class ResponseMenu {
                     .name(menu.getName())
                     .description(menu.getDescription())
                     .price(menu.getPrice())
-                    .likeCount(menu.getLikeCount())
                     .imgUrl(menu.getImgUrl())
                     .isMain(menu.getIsMain())
                     .build();

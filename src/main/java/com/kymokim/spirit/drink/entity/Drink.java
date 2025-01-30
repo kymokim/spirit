@@ -1,19 +1,18 @@
-package com.kymokim.spirit.menu.entity;
+package com.kymokim.spirit.drink.entity;
 
 import com.kymokim.spirit.store.entity.Store;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
-
-@Table(name = "menu")
+@Table(name = "drink")
 @Entity
 @Getter
 @NoArgsConstructor
 @Data
-public class Menu {
+public class Drink {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -26,26 +25,27 @@ public class Menu {
     private String price;
     @Column(name = "img_url")
     private String imgUrl;
-    @Column(name = "is_main")
-    private Boolean isMain;
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "drink_type")
+    private DrinkType type;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @Builder
-    public Menu(String name, String description, String price, Store store, boolean isMain) {
+    public Drink(String name, String description, String price, Store store, DrinkType type) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.store = store;
-        this.isMain = isMain;
+        this.type = type;
     }
 
-    public void update(String name, String description, String price, boolean isMain) {
+    public void update(String name, String description, String price, DrinkType type) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.isMain = isMain;
+        this.type = type;
     }
 }

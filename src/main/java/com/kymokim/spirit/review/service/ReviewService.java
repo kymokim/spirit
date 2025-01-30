@@ -17,6 +17,8 @@ import com.kymokim.spirit.store.entity.StoreImage;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -114,11 +116,16 @@ public class ReviewService {
     }
 
     @Transactional
-    public List<ResponseReview.ReviewListDto> getReviewByStore(Long storeId) {
-        List<Review> entityList = reviewRepository.findAllByStoreId(storeId);
-        List<ResponseReview.ReviewListDto> dtoList = new ArrayList<>();
-        entityList.forEach(review -> dtoList.add(ResponseReview.ReviewListDto.toDto(review)));
-        return dtoList;
+    public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
+        Page<Review> reviewPage = reviewRepository.findAllByStoreId(storeId, pageable);
+        return reviewPage.map(ResponseReview.ReviewListDto :: toDto);
+    }
+
+    @Transactional
+    public Page<ResponseReview.ReviewListDto> getRecentReview(Pageable pageable){
+        Long userId = resolveUserId();
+        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByIdDesc(userId, pageable);
+        return reviewPage.map(ResponseReview.ReviewListDto :: toDto);
     }
 
     @Transactional

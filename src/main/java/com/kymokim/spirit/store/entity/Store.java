@@ -84,10 +84,10 @@ public class Store {
     @Column(name = "like_count")
     private Long likeCount = 0L;
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Menu> menuList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder

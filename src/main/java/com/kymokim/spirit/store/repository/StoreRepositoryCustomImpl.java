@@ -108,7 +108,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         QMenu menu = QMenu.menu;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .leftJoin(store.menuList, menu).fetchJoin()
+                .leftJoin(store.menuList, menu)
                 .where(radiusCondition(criteria)
                         .and(storeNameCondition(searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))

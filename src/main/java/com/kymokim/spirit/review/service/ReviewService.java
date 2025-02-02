@@ -60,7 +60,7 @@ public class ReviewService {
         Auth writer = authRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
         Store store = resolveStore(createReviewDto.getStoreId());
-        Review review = RequestReview.CreateReviewDto.toEntity(createReviewDto, store, writer.getId(), writer.getNickname());
+        Review review = createReviewDto.toEntity(store, writer.getId(), writer.getNickname());
         reviewRepository.save(review);
 
         if (files != null) {
@@ -117,21 +117,22 @@ public class ReviewService {
 
     @Transactional
     public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
-        Page<Review> reviewPage = reviewRepository.findAllByStoreId(storeId, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
         return reviewPage.map(ResponseReview.ReviewListDto :: toDto);
     }
 
     @Transactional
     public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable){
         Long userId = resolveUserId();
-        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByIdDesc(userId, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
         return reviewPage.map(ResponseReview.GetRecentReviewDto :: toDto);
     }
 
     @Transactional
     public void updateReview(Long reviewId, RequestReview.UpdateReviewDto updateReviewDto) {
         Review originalReview = resolveReview(reviewId);
-        Review updatedReview = RequestReview.UpdateReviewDto.toEntity(originalReview, updateReviewDto);
+        Review updatedReview = updateReviewDto.toEntity(originalReview);
+        updatedReview.getHistoryInfo().update(resolveUserId());
         reviewRepository.save(updatedReview);
     }
 

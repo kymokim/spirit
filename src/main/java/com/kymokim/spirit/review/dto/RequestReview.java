@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -19,14 +20,17 @@ public class RequestReview {
         @NotEmpty
         private Double rate;
         @NotEmpty
+        private LocalDateTime visitedAt;
+        @NotEmpty
         private Long storeId;
 
-        public static Review toEntity(CreateReviewDto createReviewDto, Store store, Long writerId, String writerNickname) {
+        public Review toEntity(Store store, Long writerId, String writerNickname) {
             return Review.builder()
                     .writerId(writerId)
                     .writerNickname(writerNickname)
-                    .content(createReviewDto.getContent())
-                    .rate(createReviewDto.getRate())
+                    .content(this.content)
+                    .rate(this.rate)
+                    .visitedAt(this.visitedAt)
                     .store(store)
                     .build();
         }
@@ -39,9 +43,11 @@ public class RequestReview {
         private String content;
         @NotEmpty
         private Double rate;
+        @NotEmpty
+        private LocalDateTime visitedAt;
 
-        public static Review toEntity(Review review, UpdateReviewDto updateReviewDto) {
-            review.update(updateReviewDto.getContent(), updateReviewDto.getRate());
+        public Review toEntity(Review review) {
+            review.update(this.content, this.rate, this.visitedAt);
             return review;
         }
     }

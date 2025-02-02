@@ -117,7 +117,7 @@ public class StoreQueryService {
     @Transactional
     public Page<ResponseStore.GetRecentStoreDto> getRecentStore(Pageable pageable) {
         Long userId = resolveUserId();
-        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByIdDesc(userId, pageable);
+        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
 
         List<Long> storeIdList = reviewPage.stream()
                 .map(review -> review.getStore().getId())

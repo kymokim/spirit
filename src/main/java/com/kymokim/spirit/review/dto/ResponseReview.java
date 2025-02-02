@@ -4,6 +4,7 @@ import com.kymokim.spirit.review.entity.Review;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class ResponseReview {
         private String writerNickname;
         private String content;
         private Double rate;
+        private LocalDateTime visitedAt;
         private Long storeId;
         private List<String> imgUrlList;
 
@@ -33,6 +35,7 @@ public class ResponseReview {
                     .writerNickname(review.getWriterNickname())
                     .content(review.getContent())
                     .rate(review.getRate())
+                    .visitedAt(review.getVisitedAt())
                     .storeId(review.getStore().getId())
                     .imgUrlList(imgUrlList)
                     .build();
@@ -46,6 +49,7 @@ public class ResponseReview {
         private String writerNickname;
         private String content;
         private Double rate;
+        private LocalDateTime visitedAt;
         private List<String> imgUrlList;
 
         public static ReviewListDto toDto(Review review) {
@@ -60,6 +64,7 @@ public class ResponseReview {
                     .writerNickname(review.getWriterNickname())
                     .content(review.getContent())
                     .rate(review.getRate())
+                    .visitedAt(review.getVisitedAt())
                     .imgUrlList(imgUrlList)
                     .build();
         }
@@ -71,6 +76,7 @@ public class ResponseReview {
         private Long id;
         private String content;
         private Double rate;
+        private LocalDateTime visitedAt;
         private Long storeId;
         private String storeName;
         private List<String> imgUrlList;
@@ -86,6 +92,7 @@ public class ResponseReview {
                     .id(review.getId())
                     .content(review.getContent())
                     .rate(review.getRate())
+                    .visitedAt(review.getVisitedAt())
                     .storeId(review.getStore().getId())
                     .storeName(review.getStore().getName())
                     .imgUrlList(imgUrlList)

@@ -1,5 +1,6 @@
 package com.kymokim.spirit.review.entity;
 
+import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreImage;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +37,12 @@ public class Review {
     @Column(name = "rate")
     private Double rate;
 
+    @Column(name = "visited_at")
+    private LocalDateTime visitedAt;
+
+    @Embedded
+    private HistoryInfo historyInfo;
+
     @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ReviewImage> imgUrlList = new ArrayList<>();
 
@@ -43,17 +51,20 @@ public class Review {
     private Store store;
 
     @Builder
-    public Review(Long writerId,String writerNickname, String content, Double rate, Store store) {
+    public Review(Long writerId, String writerNickname, String content, Double rate, LocalDateTime visitedAt, Store store) {
         this.writerNickname = writerNickname;
         this.writerId = writerId;
         this.content = content;
         this.rate = rate;
+        this.visitedAt = visitedAt;
+        this.historyInfo = new HistoryInfo(writerId);
         this.store = store;
     }
 
-    public void update(String content, Double rate) {
+    public void update(String content, Double rate, LocalDateTime visitedAt) {
         this.content = content;
         this.rate = rate;
+        this.visitedAt = visitedAt;
     }
 
     public void addImgUrlList(ReviewImage reviewImage){

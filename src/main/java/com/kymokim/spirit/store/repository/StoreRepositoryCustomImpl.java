@@ -35,12 +35,16 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return distance.loe(criteria.getRadius());
     }
 
-    // 영업중인 가게 탐색
+    // 현재 시간 기준 영업중인 가게 탐색
     private BooleanExpression openCondition(){
-        // 현재 시간 필드
-        LocalDateTime now = LocalDateTime.now();
-        LocalTime currentTime = now.toLocalTime();
-        DayOfWeek today = now.getDayOfWeek();
+        return openCondition(LocalDateTime.now());
+    }
+
+    // 영업중인 가게 탐색
+    private BooleanExpression openCondition(LocalDateTime conditionTime){
+        // 조건 시간 필드
+        LocalTime currentTime = conditionTime.toLocalTime();
+        DayOfWeek today = conditionTime.getDayOfWeek();
         // 영업 시간 필드
         TimePath<LocalTime> openTime = store.businessHours.openTime;
         TimePath<LocalTime> closeTime = store.businessHours.closeTime;

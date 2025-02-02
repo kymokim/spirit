@@ -10,5 +10,11 @@ RUN ./gradlew build
 FROM openjdk:21
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
+
+# Set timezone to Asia/Seoul
+ENV TZ=Asia/Seoul
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Set profile environment
 ENV SPRING_PROFILES_ACTIVE=dev
 CMD ["sh", "-c", "java -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE} -jar app.jar"]

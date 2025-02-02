@@ -1,12 +1,14 @@
 package com.kymokim.spirit.review.dto;
 
 import com.kymokim.spirit.review.entity.Review;
+import com.kymokim.spirit.store.entity.Category;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ResponseReview {
 
@@ -50,6 +52,7 @@ public class ResponseReview {
         private String content;
         private Double rate;
         private LocalDateTime visitedAt;
+        private LocalDateTime createdAt;
         private List<String> imgUrlList;
 
         public static ReviewListDto toDto(Review review) {
@@ -65,6 +68,7 @@ public class ResponseReview {
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
+                    .createdAt(review.getHistoryInfo().getCreatedAt())
                     .imgUrlList(imgUrlList)
                     .build();
         }
@@ -77,8 +81,10 @@ public class ResponseReview {
         private String content;
         private Double rate;
         private LocalDateTime visitedAt;
+        private LocalDateTime createdAt;
         private Long storeId;
         private String storeName;
+        private Set<Category> categories;
         private List<String> imgUrlList;
 
         public static GetRecentReviewDto toDto(Review review) {
@@ -93,8 +99,10 @@ public class ResponseReview {
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
+                    .createdAt(review.getHistoryInfo().getCreatedAt())
                     .storeId(review.getStore().getId())
                     .storeName(review.getStore().getName())
+                    .categories(review.getStore().getCategories())
                     .imgUrlList(imgUrlList)
                     .build();
         }

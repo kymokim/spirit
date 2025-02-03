@@ -53,9 +53,10 @@ public class ResponseReview {
         private Double rate;
         private LocalDateTime visitedAt;
         private LocalDateTime createdAt;
+        private Boolean isWriter;
         private List<String> imgUrlList;
 
-        public static ReviewListDto toDto(Review review) {
+        public static ReviewListDto toDto(Review review, Boolean isWriter) {
 
             List<String> imgUrlList = new ArrayList<>();
             if (!review.getImgUrlList().isEmpty()) {
@@ -69,6 +70,7 @@ public class ResponseReview {
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
                     .createdAt(review.getHistoryInfo().getCreatedAt())
+                    .isWriter(isWriter)
                     .imgUrlList(imgUrlList)
                     .build();
         }

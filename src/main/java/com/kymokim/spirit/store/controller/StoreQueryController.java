@@ -3,10 +3,12 @@ package com.kymokim.spirit.store.controller;
 import com.kymokim.spirit.auth.controller.AuthController;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.LocationCriteria;
+import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.service.StoreQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,7 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
     @Operation(summary = "가게 검색(가게명, 메뉴명) 리스트 조회")
     @GetMapping("/keyword/{keyword}")
     public ResponseEntity<ResponseDto> searchStore(@PathVariable("keyword") String keyword,
@@ -162,6 +165,23 @@ public class StoreQueryController {
         Page<ResponseStore.GetRecentStoreDto> dtoPage = storeQueryService.getRecentStore(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "다중 조건 검색 리스트 조회")
+    @GetMapping("/condition-search")
+    public ResponseEntity<ResponseDto> conditionSearchStore(@RequestParam("latitude") double latitude,
+                                                            @RequestParam("longitude") double longitude,
+                                                            @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                            @PageableDefault(size = 10) Pageable pageable,
+                                                            @Valid RequestStore.ConditionSearchDto conditionSearchDto){
+        LOGGER.info("Store Query/conditionSearchStore API called.");
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store condition search list retrieved successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

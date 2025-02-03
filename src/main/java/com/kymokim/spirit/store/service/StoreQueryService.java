@@ -3,6 +3,7 @@ package com.kymokim.spirit.store.service;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
+import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
@@ -130,6 +131,11 @@ public class StoreQueryService {
             Store store = storeMap.get(review.getStore().getId());
             return ResponseStore.GetRecentStoreDto.toDto(store, calculateRate(store));
         });
+    }
 
+    @Transactional
+    public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable){
+        Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
+        return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
     }
 }

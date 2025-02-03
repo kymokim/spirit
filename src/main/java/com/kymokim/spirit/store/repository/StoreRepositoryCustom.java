@@ -5,6 +5,7 @@ import com.kymokim.spirit.store.entity.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -20,4 +21,6 @@ public interface StoreRepositoryCustom {
     Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable);
 
     List<Store> findByRadius(LocationCriteria criteria);
+
+    Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable);
 }

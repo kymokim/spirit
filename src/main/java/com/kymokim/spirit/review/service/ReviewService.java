@@ -26,10 +26,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -118,7 +115,7 @@ public class ReviewService {
     @Transactional
     public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
         Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
-        return reviewPage.map(ResponseReview.ReviewListDto :: toDto);
+        return reviewPage.map(review -> ResponseReview.ReviewListDto.toDto(review, Objects.equals(review.getWriterId(), resolveUserId())));
     }
 
     @Transactional

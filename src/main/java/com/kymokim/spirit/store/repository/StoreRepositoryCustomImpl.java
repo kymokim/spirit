@@ -76,6 +76,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return store.categories.contains(Category.valueOf(category));
     }
 
+    // 단체 가능 여부에 해당하는 가게 탐색
+    private BooleanExpression isGroupAvailableCondition(Boolean isGroupAvailable) {
+        return store.isGroupAvailable.eq(isGroupAvailable);
+    }
+
     // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중으로 정렬
     private OrderSpecifier<Integer> orderByIsOpen(){
         return new CaseBuilder().when(openCondition()).then(1).otherwise(0).desc();
@@ -191,5 +196,24 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return queryFactory.selectFrom(store)
                 .where(radiusCondition(criteria))
                 .fetch();
+    }
+
+    @Override
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable){
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        store = QStore.store;
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .where(radiusCondition(criteria)
+                        .and(categoryCondition(category))
+                        .and(isGroupAvailableCondition(isGroupAvailable))
+                        .and(openCondition(conditionTime)))
+                .orderBy(orderByLikeCount());
+
+        List<Store> storeList = query.offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(storeList, pageable, query.fetchCount());
     }
 }

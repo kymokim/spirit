@@ -19,16 +19,17 @@ public class RequestDrink {
         @NotEmpty
         private String price;
         @NotEmpty
-        private Long storeId;
-        @NotEmpty
         private DrinkType type;
+        @NotEmpty
+        private Long storeId;
 
-        public Drink toEntity(Store store) {
+        public Drink toEntity(Store store, Long creatorId) {
             return Drink.builder()
                     .name(this.name)
                     .description(this.description)
                     .price(this.price)
                     .type(this.type)
+                    .creatorId(creatorId)
                     .store(store)
                     .build();
         }

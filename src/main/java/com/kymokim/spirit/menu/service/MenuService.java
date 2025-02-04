@@ -11,6 +11,7 @@ import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,10 @@ public class MenuService {
     private final StoreRepository storeRepository;
     private final S3Service s3Service;
 
+    private Long resolveUserId(){
+        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
     private Store resolveStore(Long storeId){
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
@@ -38,7 +43,7 @@ public class MenuService {
     @Transactional
     public void createMenu(MultipartFile file, RequestMenu.CreateMenuDto createMenuDto) {
         Store store = resolveStore(createMenuDto.getStoreId());
-        Menu menu = createMenuDto.toEntity(store);
+        Menu menu = createMenuDto.toEntity(store, resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "menu/" + String.valueOf(menu.getId()));
@@ -100,6 +105,7 @@ public class MenuService {
     public void updateMenu(Long menuId, RequestMenu.UpdateMenuDto updateMenuDto) {
         Menu originalMenu = resolveMenu(menuId);
         Menu updatedMenu = updateMenuDto.toEntity(originalMenu);
+        updatedMenu.getHistoryInfo().update(resolveUserId());
         menuRepository.save(updatedMenu);
     }
 

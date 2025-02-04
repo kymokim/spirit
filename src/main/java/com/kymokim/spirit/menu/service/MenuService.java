@@ -38,7 +38,7 @@ public class MenuService {
     @Transactional
     public void createMenu(MultipartFile file, RequestMenu.CreateMenuDto createMenuDto) {
         Store store = resolveStore(createMenuDto.getStoreId());
-        Menu menu = RequestMenu.CreateMenuDto.toEntity(createMenuDto, store);
+        Menu menu = createMenuDto.toEntity(store);
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "menu/" + String.valueOf(menu.getId()));
@@ -99,7 +99,7 @@ public class MenuService {
     @Transactional
     public void updateMenu(Long menuId, RequestMenu.UpdateMenuDto updateMenuDto) {
         Menu originalMenu = resolveMenu(menuId);
-        Menu updatedMenu = RequestMenu.UpdateMenuDto.toEntity(originalMenu, updateMenuDto);
+        Menu updatedMenu = updateMenuDto.toEntity(originalMenu);
         menuRepository.save(updatedMenu);
     }
 

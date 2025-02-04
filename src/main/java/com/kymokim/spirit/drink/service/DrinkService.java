@@ -38,7 +38,7 @@ public class DrinkService {
     @Transactional
     public void createDrink(MultipartFile file, RequestDrink.CreateDrinkDto createDrinkDto) {
         Store store = resolveStore(createDrinkDto.getStoreId());
-        Drink drink = RequestDrink.CreateDrinkDto.toEntity(createDrinkDto, store);
+        Drink drink = createDrinkDto.toEntity(store);
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "drink/" + String.valueOf(drink.getId()));
@@ -96,7 +96,7 @@ public class DrinkService {
     @Transactional
     public void updateDrink(Long drinkId, RequestDrink.UpdateDrinkDto updateDrinkDto) {
         Drink originalDrink = resolveDrink(drinkId);
-        Drink updatedDrink = RequestDrink.UpdateDrinkDto.toEntity(originalDrink, updateDrinkDto);
+        Drink updatedDrink = updateDrinkDto.toEntity(originalDrink);
         drinkRepository.save(updatedDrink);
     }
 

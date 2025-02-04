@@ -128,6 +128,12 @@ public class ReviewService {
     @Transactional
     public void updateReview(Long reviewId, RequestReview.UpdateReviewDto updateReviewDto) {
         Review originalReview = resolveReview(reviewId);
+        Store store = originalReview.getStore();
+
+        Double totalRate = store.getTotalRate() - originalReview.getRate();
+        store.setTotalRate(totalRate + updateReviewDto.getRate());
+        storeRepository.save(store);
+
         Review updatedReview = updateReviewDto.toEntity(originalReview);
         updatedReview.getHistoryInfo().update(resolveUserId());
         reviewRepository.save(updatedReview);

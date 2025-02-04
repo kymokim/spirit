@@ -23,12 +23,12 @@ public class RequestDrink {
         @NotEmpty
         private DrinkType type;
 
-        public static Drink toEntity(CreateDrinkDto createDrinkDto, Store store) {
+        public Drink toEntity(Store store) {
             return Drink.builder()
-                    .name(createDrinkDto.getName())
-                    .description(createDrinkDto.getDescription())
-                    .price(createDrinkDto.getPrice())
-                    .type(createDrinkDto.getType())
+                    .name(this.name)
+                    .description(this.description)
+                    .price(this.price)
+                    .type(this.type)
                     .store(store)
                     .build();
         }
@@ -45,8 +45,8 @@ public class RequestDrink {
         @NotEmpty
         private DrinkType type;
 
-        public static Drink toEntity(Drink drink, UpdateDrinkDto updateDrinkDto) {
-            drink.update(updateDrinkDto.getName(), updateDrinkDto.getDescription(), updateDrinkDto.getPrice(), updateDrinkDto.getType());
+        public Drink toEntity(Drink drink) {
+            drink.update(this.name, this.description, this.price, this.type);
             return drink;
         }
     }

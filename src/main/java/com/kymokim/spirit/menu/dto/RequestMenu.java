@@ -22,12 +22,12 @@ public class RequestMenu {
         @NotEmpty
         private Boolean isMain;
 
-        public static Menu toEntity(CreateMenuDto createMenuDto, Store store) {
+        public Menu toEntity(Store store) {
             return Menu.builder()
-                    .name(createMenuDto.getName())
-                    .description(createMenuDto.getDescription())
-                    .price(createMenuDto.getPrice())
-                    .isMain(createMenuDto.getIsMain())
+                    .name(this.name)
+                    .description(this.description)
+                    .price(this.price)
+                    .isMain(this.isMain)
                     .store(store)
                     .build();
         }
@@ -44,8 +44,8 @@ public class RequestMenu {
         @NotEmpty
         private Boolean isMain;
 
-        public static Menu toEntity(Menu menu, UpdateMenuDto updateMenuDto) {
-            menu.update(updateMenuDto.getName(), updateMenuDto.getDescription(), updateMenuDto.getPrice(), updateMenuDto.getIsMain());
+        public Menu toEntity(Menu menu) {
+            menu.update(this.name, this.description, this.price, this.isMain);
             return menu;
         }
     }

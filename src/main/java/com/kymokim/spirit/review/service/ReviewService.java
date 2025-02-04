@@ -130,8 +130,8 @@ public class ReviewService {
         Review originalReview = resolveReview(reviewId);
         Store store = originalReview.getStore();
 
-        Double totalRate = store.getTotalRate() - originalReview.getRate();
-        store.setTotalRate(totalRate + updateReviewDto.getRate());
+        Double totalRate = store.getTotalRate() - originalReview.getRate() + updateReviewDto.getRate();
+        store.setTotalRate(totalRate);
         storeRepository.save(store);
 
         Review updatedReview = updateReviewDto.toEntity(originalReview);

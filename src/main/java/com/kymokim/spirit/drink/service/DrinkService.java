@@ -11,6 +11,7 @@ import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,10 +36,14 @@ public class DrinkService {
                 .orElseThrow(() -> new CustomException(DrinkErrorCode.DRINK_NOT_FOUND));
     }
 
+    private Long resolveUserId(){
+        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+
     @Transactional
     public void createDrink(MultipartFile file, RequestDrink.CreateDrinkDto createDrinkDto) {
         Store store = resolveStore(createDrinkDto.getStoreId());
-        Drink drink = createDrinkDto.toEntity(store);
+        Drink drink = createDrinkDto.toEntity(store, resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "drink/" + String.valueOf(drink.getId()));
@@ -97,6 +102,7 @@ public class DrinkService {
     public void updateDrink(Long drinkId, RequestDrink.UpdateDrinkDto updateDrinkDto) {
         Drink originalDrink = resolveDrink(drinkId);
         Drink updatedDrink = updateDrinkDto.toEntity(originalDrink);
+        updatedDrink.getHistoryInfo().update(resolveUserId());
         drinkRepository.save(updatedDrink);
     }
 

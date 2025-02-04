@@ -22,12 +22,13 @@ public class RequestMenu {
         @NotEmpty
         private Boolean isMain;
 
-        public Menu toEntity(Store store) {
+        public Menu toEntity(Store store, Long creatorId) {
             return Menu.builder()
                     .name(this.name)
                     .description(this.description)
                     .price(this.price)
                     .isMain(this.isMain)
+                    .creatorId(creatorId)
                     .store(store)
                     .build();
         }

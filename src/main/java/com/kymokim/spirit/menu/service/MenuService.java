@@ -69,6 +69,7 @@ public class MenuService {
             throw new CustomException(MenuErrorCode.MENU_IMG_FILE_EMPTY);
         }
         menu.setImgUrl(imageUrl);
+        menu.getHistoryInfo().update(resolveUserId());
         menuRepository.save(menu);
     }
 

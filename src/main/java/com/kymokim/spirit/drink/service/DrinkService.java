@@ -67,6 +67,7 @@ public class DrinkService {
             throw new CustomException(DrinkErrorCode.DRINK_IMG_FILE_EMPTY);
         }
         drink.setImgUrl(imageUrl);
+        drink.getHistoryInfo().update(resolveUserId());
         drinkRepository.save(drink);
     }
 

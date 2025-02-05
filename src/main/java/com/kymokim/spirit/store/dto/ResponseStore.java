@@ -158,6 +158,7 @@ public class ResponseStore {
     @Builder
     public static class GetByCategoryDto {
         private Long id;
+        private String mainImgUrl;
         private String name;
         private CommonStore.LocationDto locationDto;
         private CommonStore.BusinessHoursDto businessHoursDto;
@@ -181,6 +182,7 @@ public class ResponseStore {
 
             return GetByCategoryDto.builder()
                     .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))

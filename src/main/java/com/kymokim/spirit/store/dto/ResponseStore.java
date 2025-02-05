@@ -171,6 +171,11 @@ public class ResponseStore {
 
         public static GetByCategoryDto toDto(Store store, Double storeRate){
 
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()){
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()){
                 store.getMenuList().forEach(menu -> {
@@ -186,6 +191,7 @@ public class ResponseStore {
                     .name(store.getName())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .mainDrinkDtos(mainDrinkDtos)
                     .closedDays(store.getClosedDays())
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())

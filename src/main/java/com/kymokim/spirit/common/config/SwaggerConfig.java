@@ -72,6 +72,15 @@ public class SwaggerConfig {
     }
 
     @Bean
+    public GroupedOpenApi drink(){
+        String[] pathsToMatch = {"/api/drink/**"};
+        return GroupedOpenApi.builder()
+                .group("Drink")
+                .pathsToMatch(pathsToMatch)
+                .build();
+    }
+
+    @Bean
     public GroupedOpenApi review(){
         String[] pathsToMatch = {"/api/review/**"};
         return GroupedOpenApi.builder()

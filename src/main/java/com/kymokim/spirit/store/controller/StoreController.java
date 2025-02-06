@@ -61,7 +61,7 @@ public class StoreController {
     public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
                                                    @PathVariable("storeId") Long storeId) {
         LOGGER.info("Store/uploadImage API called.");
-        ResponseStore.UploadImageDto dto = storeService.uploadImage(files, storeId);
+        ResponseStore.ImageListDto dto = storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
                 .data(dto)
@@ -83,9 +83,10 @@ public class StoreController {
     public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                    @PathVariable("storeId") Long storeId){
         LOGGER.info("Store/deleteImage API called.");
-        storeService.deleteImage(deleteImageDto, storeId);
+        ResponseStore.ImageListDto dto = storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

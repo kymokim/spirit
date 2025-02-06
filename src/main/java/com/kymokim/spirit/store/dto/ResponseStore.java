@@ -28,10 +28,10 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    public static class UploadImageDto{
+    public static class ImageListDto{
         private List<String> imgUrlList;
-        public static UploadImageDto toDto(List<String> urlList){
-            return UploadImageDto.builder()
+        public static ImageListDto toDto(List<String> urlList){
+            return ImageListDto.builder()
                     .imgUrlList(urlList)
                     .build();
         }

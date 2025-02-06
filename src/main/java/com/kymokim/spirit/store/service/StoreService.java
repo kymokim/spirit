@@ -89,7 +89,7 @@ public class StoreService {
     }
 
     @Transactional
-    public ResponseStore.UploadImageDto uploadImage(MultipartFile[] files, Long storeId) {
+    public ResponseStore.ImageListDto uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -106,7 +106,7 @@ public class StoreService {
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
-        return ResponseStore.UploadImageDto.toDto(urlList);
+        return ResponseStore.ImageListDto.toDto(urlList);
     }
 
     @Transactional
@@ -126,7 +126,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId){
+    public ResponseStore.ImageListDto deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId){
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             StoreImage storeImage = storeImageRepository.findByUrl(imgUrl)
@@ -139,6 +139,8 @@ public class StoreService {
             store.removeImgUrlList(storeImage);
         }
         storeRepository.save(store);
+        List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
+        return ResponseStore.ImageListDto.toDto(urlList);
     }
 
     //Delete permission exception handling required.

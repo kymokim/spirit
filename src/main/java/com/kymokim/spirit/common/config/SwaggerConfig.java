@@ -28,7 +28,7 @@ public class SwaggerConfig {
 
 
         return new OpenAPI()
-                .addServersItem(new Server().url("http://43.203.91.148:8080").description("Server host"))
+                .addServersItem(new Server().url("https://team-spirit.click").description("Server host"))
                 .addServersItem(new Server().url("/").description("Local host"))
                 .components(components)
                 .addSecurityItem(securityRequirement)

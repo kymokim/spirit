@@ -61,9 +61,10 @@ public class StoreController {
     public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
                                                    @PathVariable("storeId") Long storeId) {
         LOGGER.info("Store/uploadImage API called.");
-        storeService.uploadImage(files, storeId);
+        ResponseStore.UploadImageDto dto = storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

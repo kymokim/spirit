@@ -45,15 +45,6 @@ public class StoreQueryService {
         return Math.round(rateAvg * 100.0) / 100.0;
     }
 
-    @Deprecated
-    @Transactional
-    public List<ResponseStore.GetAllStoreDto> getAllStore(){
-        List<Store> storeList = storeRepository.findAll();
-        List<ResponseStore.GetAllStoreDto> getAllStoreDtoList = new ArrayList<>();
-        storeList.forEach(store -> getAllStoreDtoList.add(ResponseStore.GetAllStoreDto.toDto(store)));
-        return getAllStoreDtoList;
-    }
-
     @Transactional
     public ResponseStore.GetStoreDto getStore(Long storeId) {
         Store store = resolveStore(storeId);

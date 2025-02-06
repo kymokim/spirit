@@ -15,21 +15,6 @@ import java.util.Set;
 
 public class ResponseStore {
 
-    @Deprecated
-    @Getter
-    @Builder
-    public static class GetAllStoreDto {
-        private Long id;
-        private String name;
-
-        public static GetAllStoreDto toDto(Store store){
-            return GetAllStoreDto.builder()
-                    .id(store.getId())
-                    .name(store.getName())
-                    .build();
-        }
-    }
-
     @Getter
     @Builder
     public static class CreateStoreRsDto{
@@ -37,6 +22,17 @@ public class ResponseStore {
         public static CreateStoreRsDto toDto(Store store){
             return CreateStoreRsDto.builder()
                     .id(store.getId())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class UploadImageDto{
+        private List<String> imgUrlList;
+        public static UploadImageDto toDto(List<String> urlList){
+            return UploadImageDto.builder()
+                    .imgUrlList(urlList)
                     .build();
         }
     }

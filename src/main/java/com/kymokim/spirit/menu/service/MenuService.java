@@ -2,6 +2,7 @@ package com.kymokim.spirit.menu.service;
 
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.menu.dto.RequestMenu;
 import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.menu.entity.Menu;
@@ -87,19 +88,23 @@ public class MenuService {
         menuRepository.save(menu);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ResponseMenu.MenuListDto> getByStore(Long storeId){
-        Store store = resolveStore(storeId);
-        List<ResponseMenu.MenuListDto> menuList = new ArrayList<>();
-        if(!store.getMenuList().isEmpty())
-            store.getMenuList().forEach(menu -> menuList.add(ResponseMenu.MenuListDto.toDto(menu)));
-        return menuList;
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Store store = resolveStore(storeId);
+            List<ResponseMenu.MenuListDto> menuList = new ArrayList<>();
+            if(!store.getMenuList().isEmpty())
+                store.getMenuList().forEach(menu -> menuList.add(ResponseMenu.MenuListDto.toDto(menu)));
+            return menuList;
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseMenu.GetMenuDto getMenu(Long menuId) {
-        Menu menu = resolveMenu(menuId);
-        return ResponseMenu.GetMenuDto.toDto(menu);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Menu menu = resolveMenu(menuId);
+            return ResponseMenu.GetMenuDto.toDto(menu);
+        }, 3);
     }
 
     @Transactional

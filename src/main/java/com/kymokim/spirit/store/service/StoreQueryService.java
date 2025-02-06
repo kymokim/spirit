@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.service;
 
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.RequestStore;
@@ -45,88 +46,106 @@ public class StoreQueryService {
         return Math.round(rateAvg * 100.0) / 100.0;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseStore.GetStoreDto getStore(Long storeId) {
-        Store store = resolveStore(storeId);
-        boolean isStoreLiked = false;
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(resolveUserId(), storeId);
-        if (likedStore != null) {
-            isStoreLiked = true;
-        }
-        return ResponseStore.GetStoreDto.toDto(store, calculateRate(store), isStoreLiked);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Store store = resolveStore(storeId);
+            boolean isStoreLiked = false;
+            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(resolveUserId(), storeId);
+            if (likedStore != null) {
+                isStoreLiked = true;
+            }
+            return ResponseStore.GetStoreDto.toDto(store, calculateRate(store), isStoreLiked);
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.SearchStoreDto> searchStore(LocationCriteria criteria, String searchKeyword, Pageable pageable){
-        Page<Store> storePage = storeRepository.findByNameAndMenu(criteria, searchKeyword, pageable);
-        return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByNameAndMenu(criteria, searchKeyword, pageable);
+            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetByDistanceDto> getByDistance(LocationCriteria criteria, Pageable pageable){
-        Page<Store> storePage = storeRepository.findByDistance(criteria, pageable);
-        return storePage.map(store -> ResponseStore.GetByDistanceDto.toDto(store, calculateRate(store)));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByDistance(criteria, pageable);
+            return storePage.map(store -> ResponseStore.GetByDistanceDto.toDto(store, calculateRate(store)));
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetByCategoryDto> getByCategory(LocationCriteria criteria, String category, Pageable pageable) {
-        Page<Store> storePage = storeRepository.findByCategory(criteria, category, pageable);
-        return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store)));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByCategory(criteria, category, pageable);
+            return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store)));
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetByBusinessHoursDto> getByBusinessHours(LocationCriteria criteria, Pageable pageable) {
-        Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
-        return storePage.map(ResponseStore.GetByBusinessHoursDto::toDto);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
+            return storePage.map(ResponseStore.GetByBusinessHoursDto::toDto);
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria){
-        List<Store> storeList = storeRepository.findByRadius(criteria);
-        List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
-        storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Store> storeList = storeRepository.findByRadius(criteria);
+            List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
+            storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
         return dtoList;
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetLikedStoreDto> getLikedStore(Pageable pageable){
-        Long userId = resolveUserId();
-        Page<LikedStore> likedStorePage = likedStoreRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = resolveUserId();
+            Page<LikedStore> likedStorePage = likedStoreRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
 
-        List<Long> storeIdList = likedStorePage.stream()
-                .map(LikedStore::getStoreId)
-                .collect(Collectors.toList());
+            List<Long> storeIdList = likedStorePage.stream()
+                    .map(LikedStore::getStoreId)
+                    .collect(Collectors.toList());
 
-        Map<Long, Store> storeMap = storeRepository.findByIdIn(storeIdList).stream()
-                .collect(Collectors.toMap(Store::getId, store -> store));
+            Map<Long, Store> storeMap = storeRepository.findByIdIn(storeIdList).stream()
+                    .collect(Collectors.toMap(Store::getId, store -> store));
 
-        return likedStorePage.map(likedStore -> {
-            Store store = storeMap.get(likedStore.getStoreId());
-            return ResponseStore.GetLikedStoreDto.toDto(store, calculateRate(store));
-        });
+            return likedStorePage.map(likedStore -> {
+                Store store = storeMap.get(likedStore.getStoreId());
+                return ResponseStore.GetLikedStoreDto.toDto(store, calculateRate(store));
+            });
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetRecentStoreDto> getRecentStore(Pageable pageable) {
-        Long userId = resolveUserId();
-        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = resolveUserId();
+            Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
 
-        List<Long> storeIdList = reviewPage.stream()
-                .map(review -> review.getStore().getId())
-                .collect(Collectors.toList());
+            List<Long> storeIdList = reviewPage.stream()
+                    .map(review -> review.getStore().getId())
+                    .collect(Collectors.toList());
 
-        Map<Long, Store> storeMap = storeRepository.findByIdIn(storeIdList).stream()
-                .collect(Collectors.toMap(Store::getId, store -> store));
+            Map<Long, Store> storeMap = storeRepository.findByIdIn(storeIdList).stream()
+                    .collect(Collectors.toMap(Store::getId, store -> store));
 
-        return reviewPage.map(review -> {
-            Store store = storeMap.get(review.getStore().getId());
-            return ResponseStore.GetRecentStoreDto.toDto(store, calculateRate(store));
-        });
+            return reviewPage.map(review -> {
+                Store store = storeMap.get(review.getStore().getId());
+                return ResponseStore.GetRecentStoreDto.toDto(store, calculateRate(store));
+            });
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable){
-        Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
-        return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
+            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+        }, 3);
     }
 }

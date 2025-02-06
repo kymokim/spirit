@@ -5,6 +5,7 @@ import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
 import com.kymokim.spirit.review.entity.Review;
@@ -106,23 +107,29 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseReview.GetReviewDto getReview(Long reviewId){
-        Review review = resolveReview(reviewId);
-        return ResponseReview.GetReviewDto.toDto(review);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Review review = resolveReview(reviewId);
+            return ResponseReview.GetReviewDto.toDto(review);
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
-        Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
-        return reviewPage.map(review -> ResponseReview.ReviewListDto.toDto(review, Objects.equals(review.getWriterId(), resolveUserId())));
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
+            return reviewPage.map(review -> ResponseReview.ReviewListDto.toDto(review, Objects.equals(review.getWriterId(), resolveUserId())));
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable){
-        Long userId = resolveUserId();
-        Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = resolveUserId();
+            Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
         return reviewPage.map(ResponseReview.GetRecentReviewDto :: toDto);
+        }, 3);
     }
 
     @Transactional

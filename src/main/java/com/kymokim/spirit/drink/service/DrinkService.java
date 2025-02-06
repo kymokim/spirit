@@ -2,6 +2,7 @@ package com.kymokim.spirit.drink.service;
 
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.drink.dto.RequestDrink;
 import com.kymokim.spirit.drink.dto.ResponseDrink;
 import com.kymokim.spirit.drink.exception.DrinkErrorCode;
@@ -85,18 +86,22 @@ public class DrinkService {
         drinkRepository.save(drink);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ResponseDrink.DrinkListDto> getByStore(Long storeId){
-        List<Drink> entityList = drinkRepository.findAllByStoreId(storeId);
-        List<ResponseDrink.DrinkListDto> dtoList = new ArrayList<>();
-        entityList.forEach(drink -> dtoList.add(ResponseDrink.DrinkListDto.toDto(drink)));
-        return dtoList;
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Drink> entityList = drinkRepository.findAllByStoreId(storeId);
+            List<ResponseDrink.DrinkListDto> dtoList = new ArrayList<>();
+            entityList.forEach(drink -> dtoList.add(ResponseDrink.DrinkListDto.toDto(drink)));
+            return dtoList;
+        }, 3);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseDrink.GetDrinkDto getDrink(Long drinkId) {
-        Drink drink = resolveDrink(drinkId);
-        return ResponseDrink.GetDrinkDto.toDto(drink);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Drink drink = resolveDrink(drinkId);
+            return ResponseDrink.GetDrinkDto.toDto(drink);
+        }, 3);
     }
 
     @Transactional

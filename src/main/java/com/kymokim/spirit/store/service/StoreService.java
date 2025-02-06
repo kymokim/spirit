@@ -89,7 +89,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void uploadImage(MultipartFile[] files, Long storeId) {
+    public ResponseStore.UploadImageDto uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -103,7 +103,10 @@ public class StoreService {
         } else {
             throw new CustomException(StoreErrorCode.STORE_IMG_FILE_EMPTY);
         }
+        store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
+        List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
+        return ResponseStore.UploadImageDto.toDto(urlList);
     }
 
     @Transactional

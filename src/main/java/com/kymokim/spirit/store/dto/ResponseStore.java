@@ -102,11 +102,18 @@ public class ResponseStore {
         private CommonStore.LocationDto locationDto;
         private CommonStore.BusinessHoursDto businessHoursDto;
         private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<DayOfWeek> closedDays;
         private Double storeRate;
         private Long reviewCount;
 
         public static SearchStoreDto toDto(Store store, Double storeRate){
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()){
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
             return SearchStoreDto.builder()
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
@@ -115,6 +122,7 @@ public class ResponseStore {
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
                     .categories(store.getCategories())
+                    .mainDrinkDtos(mainDrinkDtos)
                     .closedDays(store.getClosedDays())
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())

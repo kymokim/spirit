@@ -16,48 +16,18 @@ public enum Category {
     //감성주점
     GAMSEONG,
 
-    //족발, 보쌈
-    JOGBO,
+    //구이, 찜
+    GRILLED_STEW,
 
-    //찜, 찌개
-    STEW,
+    //치킨, 호프
+    CHICKEN_HOF,
 
-    //구이
-    GRILLED,
+    //회, 해산물
+    RAW_SEAFOOD,
 
-    //치킨
-    CHICKEN,
-
-    //전, 막걸리
-    JEONMAK,
-
-    //마른 안주
-    DRIED,
-
-    //해산물
-    SEAFOOD,
-
-    //룸
-    ROOM,
-
-    //단체, 행사
-    GROUP,
-
-    //야장
-    OUTDOOR,
-
-    //포차
+    //포장마차
     POCHA,
 
-    //호프
-    HOF,
-
-    //와인바
-    WINE,
-
-    //칵테일
-    COCKTAIL,
-
     //펍, 바
-    PUBBAR
+    PUB_BAR
 }

@@ -136,6 +136,7 @@ public class ResponseStore {
         private Long id;
         private String mainImgUrl;
         private String name;
+        private String contact;
         private CommonStore.LocationDto locationDto;
         private CommonStore.BusinessHoursDto businessHoursDto;
         private Set<Category> categories;
@@ -146,6 +147,7 @@ public class ResponseStore {
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
+                    .contact(store.getContact())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
                     .categories(store.getCategories())

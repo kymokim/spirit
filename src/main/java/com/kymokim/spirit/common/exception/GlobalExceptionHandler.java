@@ -24,9 +24,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpectedException(Exception ex) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR) // 500 에러 반환
-                .body(Map.of("errorCode", "INTERNAL_SERVER_ERROR", "message", "An unexpected error occurred."));
+        String errorMessage = "Internal Server Error: " + ex.getMessage();
+        return ErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, 10000, errorMessage);
     }
 
     // 이 아래 있는 예외 처리 핸들러들이 전부 작동하지 않아서 401로 떠서 일단 토큰 오류와 구분하기 위해 500이 뜨도록 설정
@@ -41,7 +40,7 @@ public class GlobalExceptionHandler {
         for (FieldError fieldError : fieldErrors) {
             defaultMessage = fieldError.getDefaultMessage();
         }
-        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10000, defaultMessage);
+        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10001, defaultMessage);
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
@@ -51,7 +50,7 @@ public class GlobalExceptionHandler {
 
         // 클라이언트에 반환할 오류 메시지를 작성합니다.
         String errorMessage = "지원하지 않는 미디어 타입입니다 " + ex.getContentType();
-        return ErrorResponse.toResponseEntity(HttpStatus.UNSUPPORTED_MEDIA_TYPE, 10001, errorMessage);
+        return ErrorResponse.toResponseEntity(HttpStatus.UNSUPPORTED_MEDIA_TYPE, 10002, errorMessage);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -61,7 +60,7 @@ public class GlobalExceptionHandler {
 
         // 클라이언트에 반환할 오류 메시지를 작성합니다.
         String errorMessage = "HTTP 요청 메시지가 잘못되었습니다 " + ex.getMostSpecificCause().getMessage();
-        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10002, errorMessage);
+        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10003, errorMessage);
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
@@ -71,7 +70,7 @@ public class GlobalExceptionHandler {
 
         // 클라이언트에 반환할 오류 메시지를 작성합니다.
         String errorMessage = ex.getRequestPartName() + " HTTP 요청 파트가 누락되었습니다" ;
-        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10003, errorMessage);
+        return ErrorResponse.toResponseEntity(HttpStatus.BAD_REQUEST, 10004, errorMessage);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -81,6 +80,6 @@ public class GlobalExceptionHandler {
 
         // 클라이언트에 반환할 오류 메시지를 작성합니다.
         String errorMessage = "지원하지 않는 HTTP 메서드입니다. 지원되는 메서드: " + String.join(", ", ex.getSupportedMethods());
-        return ErrorResponse.toResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, 10004, errorMessage);
+        return ErrorResponse.toResponseEntity(HttpStatus.METHOD_NOT_ALLOWED, 10005, errorMessage);
     }
 }

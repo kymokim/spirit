@@ -132,6 +132,23 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return new PageImpl<>(storeList, pageable, query.fetchCount());
     }
 
+    // 검색어가 가게명에 포함되는 가게 리스트 반환
+    @Override
+    public Page<Store> findByName(String searchKeyword, Pageable pageable) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        store = QStore.store;
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .where(storeNameCondition(searchKeyword))
+                .distinct();
+
+        List<Store> storeList = query.offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(storeList, pageable, query.fetchCount());
+    }
+
     // 가까운 순 가게 리스트 반환
     @Override
     public Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable){

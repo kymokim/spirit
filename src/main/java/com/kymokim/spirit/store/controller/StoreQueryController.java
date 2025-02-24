@@ -75,7 +75,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> searchAllStore(@PathVariable("keyword") String keyword,
                                                       @PageableDefault(size = 10) Pageable pageable){
         LOGGER.info("Store Query/searchAllStore API called.");
-        Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.searchAllStore(keyword, pageable);
+        Page<ResponseStore.SearchAllStoreDto> dtoPage = storeQueryService.searchAllStore(keyword, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store all search list retrieved successfully.")
                 .data(dtoPage)

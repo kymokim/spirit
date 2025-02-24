@@ -132,6 +132,30 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class SearchAllStoreDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private CommonStore.LocationDto locationDto;
+        private CommonStore.BusinessHoursDto businessHoursDto;
+        private Set<Category> categories;
+        private Set<DayOfWeek> closedDays;
+
+        public static SearchAllStoreDto toDto(Store store){
+            return SearchAllStoreDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .businessHoursDto(CommonStore.BusinessHoursDto.toDto(store.getBusinessHours()))
+                    .categories(store.getCategories())
+                    .closedDays(store.getClosedDays())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class GetByDistanceDto {
         private Long id;
         private String mainImgUrl;

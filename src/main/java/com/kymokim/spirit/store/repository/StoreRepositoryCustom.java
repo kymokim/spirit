@@ -14,6 +14,8 @@ public interface StoreRepositoryCustom {
 
     Page<Store> findByNameAndMenu(LocationCriteria criteria, String searchKeyword, Pageable pageable);
 
+    Page<Store> findByName(String searchKeyword, Pageable pageable);
+
     Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable);
 
     Page<Store> findByCategory(LocationCriteria criteria, String category, Pageable pageable);

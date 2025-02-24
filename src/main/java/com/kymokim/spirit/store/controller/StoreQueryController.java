@@ -70,6 +70,19 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "전체 가게 검색(가게명) 리스트 조회")
+    @GetMapping("/keyword/all/{keyword}")
+    public ResponseEntity<ResponseDto> searchAllStore(@PathVariable("keyword") String keyword,
+                                                      @PageableDefault(size = 10) Pageable pageable){
+        LOGGER.info("Store Query/searchAllStore API called.");
+        Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.searchAllStore(keyword, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store all search list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "가까운 순서 가게 리스트 조회")
     @GetMapping("/distance")
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,

@@ -68,6 +68,14 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ResponseStore.SearchStoreDto> searchAllStore(String searchKeyword, Pageable pageable){
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<Store> storePage = storeRepository.findByName(searchKeyword, pageable);
+            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
     public Page<ResponseStore.GetByDistanceDto> getByDistance(LocationCriteria criteria, Pageable pageable){
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByDistance(criteria, pageable);

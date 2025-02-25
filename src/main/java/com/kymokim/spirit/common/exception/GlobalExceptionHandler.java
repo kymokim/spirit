@@ -25,6 +25,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpectedException(Exception ex) {
         String errorMessage = "Internal Server Error: " + ex.getMessage();
+        System.out.println(errorMessage);
         return ErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, 10000, errorMessage);
     }
 

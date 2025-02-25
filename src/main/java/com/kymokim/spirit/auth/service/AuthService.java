@@ -1,13 +1,16 @@
 package com.kymokim.spirit.auth.service;
 
-import com.kymokim.spirit.auth.dto.CommonAuth;
+import com.kymokim.spirit.archive.entity.ArchiveType;
+import com.kymokim.spirit.archive.service.ArchiveService;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.dto.ResponseAuth;
+import com.kymokim.spirit.auth.entity.PersonalInfo;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.security.JwtTokenProvider;
+import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.RedisService;
 import com.kymokim.spirit.common.service.S3Service;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,8 @@ public class AuthService{
     private final AuthRepository authRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final S3Service s3Service;
+    private final ArchiveService archiveService;
+    private final AESUtil aesUtil;
 
     private Auth resolveUser(){
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -38,7 +43,11 @@ public class AuthService{
         if(user != null){
             throw new CustomException(AuthErrorCode.USER_SOCIAL_INFO_EXISTS);
         }
-        user = registerUserDto.toEntity();
+
+        // 본인인증 api 추가 시 해당 부분 변경
+        PersonalInfo personalInfo = new RequestAuth.PersonalInfoRqDto().toEntity(aesUtil);
+
+        user = registerUserDto.toEntity(personalInfo);
         authRepository.save(user);
     }
 
@@ -144,5 +153,13 @@ public class AuthService{
             authRepository.save(user);
         } else
             throw new CustomException(AuthErrorCode.REFRESH_TOKEN_MATCH_FAILED);
+    }
+
+    @Transactional
+    public void withdrawUser(){
+        Auth user = resolveUser();
+        archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
+        user.withdraw();
+        authRepository.save(user);
     }
 }

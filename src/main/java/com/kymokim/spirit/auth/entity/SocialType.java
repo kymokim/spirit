@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum SocialType {
-    KAKAO, GOOGLE, APPLE
+    KAKAO, GOOGLE, APPLE, NONE
 }

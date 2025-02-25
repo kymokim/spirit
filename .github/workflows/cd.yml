@@ -106,12 +106,23 @@ jobs:
           mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
           echo "kakao.rest.key=${{ secrets.KAKAO_REST_KEY }}" >> ${APP_CONFIG_FILE}
 
+      # jwt key 생성
       - name: Create jwt-secret-keys.properties
         env:
           APP_CONFIG_FILE: src/main/resources/secret/jwt-secret-key.properties
         run: |
           mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
           echo "jwt.secret=${{ secrets.JWT_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
+
+      # aes-key.properties 생성
+      - name: Create aes-key.properties
+        env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
+          APP_CONFIG_FILE: src/main/resources/secret/aes-key.properties
+        run: |
+          mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
+          echo "security.aes.algorithm=${{ secrets.AES_ALGORITHM }}" >> ${APP_CONFIG_FILE}
+          echo "security.aes.key=${{ secrets.AES_KEY }}" >> ${APP_CONFIG_FILE}
+          echo "security.aes.iv=${{ secrets.AES_IV }}" >> ${APP_CONFIG_FILE}
 
       # 3. Gradle 빌드 및 Docker 이미지 생성
       - name: Grant execute permission for gradlew

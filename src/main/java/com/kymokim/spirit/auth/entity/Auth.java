@@ -40,6 +40,9 @@ public class Auth implements UserDetails {
     @Embedded
     private SocialInfo socialInfo;
 
+    @Embedded
+    private PersonalInfo personalInfo;
+
     @Column(name = "nickname", nullable = false)
     private String nickname;
 
@@ -53,13 +56,24 @@ public class Auth implements UserDetails {
     @Column(name = "refresh_token", length = 1000)
     private String refreshToken;
 
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatus;
+
     @Builder
-    public Auth(SocialInfo socialInfo, String nickname, String imgUrl, String refreshToken){
+    public Auth(SocialInfo socialInfo, PersonalInfo personalInfo, String nickname){
         this.socialInfo = socialInfo;
+        this.personalInfo = personalInfo;
         setNickname(nickname);
         this.roles.add(Role.USER);
-        this.imgUrl = imgUrl;
-        this.refreshToken = refreshToken;
+        this.userStatus = UserStatus.NORMAL;
+    }
+
+    public void withdraw(){
+        this.socialInfo.withdraw();
+        this.personalInfo.withdraw();
+        this.imgUrl = null;
+        this.refreshToken = null;
+        this.userStatus = UserStatus.WITHDREW;
     }
 
     public void setNickname(String nickname) {

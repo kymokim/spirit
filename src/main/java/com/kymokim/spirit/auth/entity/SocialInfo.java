@@ -41,4 +41,9 @@ public class SocialInfo {
         }
         this.id = id;
     }
+
+    public void withdraw(){
+        this.type = SocialType.NONE;
+        this.id = "";
+    }
 }

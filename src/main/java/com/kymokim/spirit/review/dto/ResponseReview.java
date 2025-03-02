@@ -18,6 +18,7 @@ public class ResponseReview {
         private Long id;
         private Long writerId;
         private String writerNickname;
+        private String writerImgUrl;
         private String content;
         private Double rate;
         private LocalDateTime visitedAt;
@@ -33,8 +34,9 @@ public class ResponseReview {
 
             return GetReviewDto.builder()
                     .id(review.getId())
-                    .writerId(review.getWriterId())
-                    .writerNickname(review.getWriterNickname())
+                    .writerId(review.getWriter().getId())
+                    .writerNickname(review.getWriter().getNickname())
+                    .writerImgUrl(review.getWriter().getImgUrl())
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
@@ -49,6 +51,7 @@ public class ResponseReview {
     public static class ReviewListDto {
         private Long id;
         private String writerNickname;
+        private String writerImgUrl;
         private String content;
         private Double rate;
         private LocalDateTime visitedAt;
@@ -65,7 +68,8 @@ public class ResponseReview {
 
             return ReviewListDto.builder()
                     .id(review.getId())
-                    .writerNickname(review.getWriterNickname())
+                    .writerNickname(review.getWriter().getNickname())
+                    .writerImgUrl(review.getWriter().getImgUrl())
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())

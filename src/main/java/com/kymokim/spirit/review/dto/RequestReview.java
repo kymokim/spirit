@@ -1,5 +1,6 @@
 package com.kymokim.spirit.review.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
@@ -24,13 +25,12 @@ public class RequestReview {
         @NotEmpty
         private Long storeId;
 
-        public Review toEntity(Store store, Long writerId, String writerNickname) {
+        public Review toEntity(Store store, Auth writer) {
             return Review.builder()
-                    .writerId(writerId)
-                    .writerNickname(writerNickname)
                     .content(this.content)
                     .rate(this.rate)
                     .visitedAt(this.visitedAt)
+                    .writer(writer)
                     .store(store)
                     .build();
         }

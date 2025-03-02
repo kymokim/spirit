@@ -1,5 +1,6 @@
 package com.kymokim.spirit.review.entity;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreImage;
@@ -25,12 +26,6 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(name = "writer_id")
-    private Long writerId;
-
-    @Column(name = "writer_nickname")
-    private String writerNickname;
-
     @Column(name = "content")
     private String content;
 
@@ -47,17 +42,20 @@ public class Review {
     private List<ReviewImage> imgUrlList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_id", nullable = false)
+    private Auth writer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @Builder
-    public Review(Long writerId, String writerNickname, String content, Double rate, LocalDateTime visitedAt, Store store) {
-        this.writerNickname = writerNickname;
-        this.writerId = writerId;
+    public Review(String content, Double rate, LocalDateTime visitedAt, Auth writer, Store store) {
         this.content = content;
         this.rate = rate;
         this.visitedAt = visitedAt;
-        this.historyInfo = new HistoryInfo(writerId);
+        this.historyInfo = new HistoryInfo(writer.getId());
+        this.writer = writer;
         this.store = store;
     }
 

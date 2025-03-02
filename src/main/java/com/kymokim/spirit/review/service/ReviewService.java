@@ -58,7 +58,7 @@ public class ReviewService {
         Auth writer = authRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
         Store store = resolveStore(createReviewDto.getStoreId());
-        Review review = createReviewDto.toEntity(store, writer.getId(), writer.getNickname());
+        Review review = createReviewDto.toEntity(store, writer);
         reviewRepository.save(review);
 
         if (files != null) {
@@ -119,7 +119,7 @@ public class ReviewService {
     public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
-            return reviewPage.map(review -> ResponseReview.ReviewListDto.toDto(review, Objects.equals(review.getWriterId(), resolveUserId())));
+            return reviewPage.map(review -> ResponseReview.ReviewListDto.toDto(review, Objects.equals(review.getWriter().getId(), resolveUserId())));
         }, 3);
     }
 
@@ -150,7 +150,7 @@ public class ReviewService {
     public void deleteReview(Long reviewId) {
         Long userId = resolveUserId();
         Review review = resolveReview(reviewId);
-        if(review.getWriterId().equals(userId)) {
+        if(Objects.equals(review.getWriter().getId(),userId)) {
             reviewRepository.delete(review);
         } else
             throw new EntityNotFoundException();

@@ -15,7 +15,7 @@ import jakarta.persistence.*;
 public class LikedStore {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "storeId", nullable = false)

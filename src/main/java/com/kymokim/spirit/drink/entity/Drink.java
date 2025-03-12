@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class Drink {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "name")

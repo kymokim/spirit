@@ -78,7 +78,6 @@ jobs:
           echo "    username: ${{ secrets.DB_USERNAME }}" >> ${APP_CONFIG_FILE}
           echo "    password: ${{ secrets.DB_PASSWORD }}" >> ${APP_CONFIG_FILE}
           echo "  jpa:" >> ${APP_CONFIG_FILE}
-          echo "    database: mysql" >> ${APP_CONFIG_FILE}
           echo "    show-sql: false" >> ${APP_CONFIG_FILE}
           echo "    generate-ddl: false" >> ${APP_CONFIG_FILE}
           echo "    hibernate:" >> ${APP_CONFIG_FILE}

@@ -1,8 +1,11 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.MainDrink;
+import com.kymokim.spirit.store.entity.OperationInfo;
 import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -34,20 +37,20 @@ public class RequestStore {
         @Schema(description = "단체석 보유 여부")
         @NotEmpty(message = "단체석 보유 여부가 비었습니다.")
         private Boolean isGroupAvailable;
+        @Schema(description = "24시간 운영 여부")
+        @NotEmpty(message = "24시간 운영 여부가 비었습니다.")
+        private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
         @NotEmpty(message = "위치 정보가 비었습니다.")
         private CommonStore.LocationDto locationDto;
-        @Schema(description = "영업 시간")
-        @NotEmpty(message = "영업 시간이 비었습니다.")
-        private CommonStore.BusinessHoursDto businessHoursDto;
         @Schema(description = "카테고리")
         @NotEmpty(message = "카테고리가 비었습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         @NotEmpty(message = "대표 주종이 비었습니다.")
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
-        @Schema(description = "휴무일")
-        private Set<DayOfWeek> closedDays;
+        @Schema(description = "운영 정보")
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
         public Store toEntity(Long creatorId) {
 
@@ -55,19 +58,40 @@ public class RequestStore {
             if (!this.mainDrinkDtos.isEmpty()) {
                 this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
             }
-            return Store.builder()
-                    .name(this.name)
-                    .contact(this.contact)
-                    .description(this.description)
-                    .hasScreen(this.hasScreen)
-                    .isGroupAvailable(this.isGroupAvailable)
-                    .creatorId(creatorId)
-                    .location(this.locationDto.toEntity())
-                    .businessHours(this.businessHoursDto.toEntity())
-                    .categories(this.categories)
-                    .mainDrinks(mainDrinks)
-                    .closedDays(this.closedDays)
-                    .build();
+
+            Set<OperationInfo> operationInfos = new HashSet<>();
+            if (!this.isAlwaysOpen && (this.operationInfoDtos != null && !this.operationInfoDtos.isEmpty())) {
+                this.operationInfoDtos.forEach(operationInfoDto -> operationInfos.add(operationInfoDto.toEntity()));
+                return Store.builder()
+                        .name(this.name)
+                        .contact(this.contact)
+                        .description(this.description)
+                        .hasScreen(this.hasScreen)
+                        .isGroupAvailable(this.isGroupAvailable)
+                        .isAlwaysOpen(this.isAlwaysOpen)
+                        .creatorId(creatorId)
+                        .location(this.locationDto.toEntity())
+                        .categories(this.categories)
+                        .mainDrinks(mainDrinks)
+                        .operationInfos(operationInfos)
+                        .build();
+            }
+            else if (this.isAlwaysOpen && (this.operationInfoDtos == null || this.operationInfoDtos.isEmpty())) {
+                return Store.builder()
+                        .name(this.name)
+                        .contact(this.contact)
+                        .description(this.description)
+                        .hasScreen(this.hasScreen)
+                        .isGroupAvailable(this.isGroupAvailable)
+                        .isAlwaysOpen(this.isAlwaysOpen)
+                        .creatorId(creatorId)
+                        .location(this.locationDto.toEntity())
+                        .categories(this.categories)
+                        .mainDrinks(mainDrinks)
+                        .build();
+            }
+            else
+                throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
         }
     }
 
@@ -86,16 +110,16 @@ public class RequestStore {
         private Boolean hasScreen;
         @Schema(description = "단체석 보유 여부")
         private Boolean isGroupAvailable;
+        @Schema(description = "24시간 운영 여부")
+        private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
         private CommonStore.LocationDto locationDto;
-        @Schema(description = "영업 시간")
-        private CommonStore.BusinessHoursDto businessHoursDto;
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
-        @Schema(description = "휴무일")
-        private Set<DayOfWeek> closedDays;
+        @Schema(description = "운영 정보")
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
     }
 
     @Data

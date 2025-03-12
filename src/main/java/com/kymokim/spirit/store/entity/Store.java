@@ -14,6 +14,7 @@ import jakarta.persistence.*;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Table(name = "store")
@@ -23,7 +24,7 @@ import java.util.Set;
 @Data
 public class Store {
 
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "main_img_url")
@@ -47,14 +48,14 @@ public class Store {
     @Column(name = "is_group_available", nullable = false)
     private Boolean isGroupAvailable;
 
+    @Column(name = "is_always_open", nullable = false)
+    private Boolean isAlwaysOpen;
+
     @Embedded
     private HistoryInfo historyInfo;
 
     @Embedded
     private Location location;
-
-    @Embedded
-    private BusinessHours businessHours;
 
     @CollectionTable(name = "categories", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = Category.class)
@@ -64,15 +65,13 @@ public class Store {
 
     @CollectionTable(name = "main_drinks", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = MainDrink.class)
-    @Enumerated(EnumType.STRING)
     @Column(name = "main_drinks")
     private Set<MainDrink> mainDrinks;
 
-    @CollectionTable(name = "closed_days", joinColumns = @JoinColumn(name = "store_id"))
-    @ElementCollection(targetClass = DayOfWeek.class)
-    @Enumerated(EnumType.STRING)
-    @Column(name = "closed_days")
-    private Set<DayOfWeek> closedDays;
+    @CollectionTable(name = "operation_infos", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = OperationInfo.class)
+    @Column(name = "operation_infos")
+    private Set<OperationInfo> operationInfos;
 
     @Column(name = "total_rate")
     private Double totalRate = 0D;
@@ -90,19 +89,18 @@ public class Store {
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder
-    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable, Long creatorId,
-                 Location location, BusinessHours businessHours, Set<Category> categories, Set<MainDrink> mainDrinks, Set<DayOfWeek> closedDays) {
+    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable, Boolean isAlwaysOpen,
+                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks, Set<OperationInfo> operationInfos) {
         setName(name);
         this.contact = contact;
         this.description = description;
         setHasScreen(hasScreen);
         setIsGroupAvailable(isGroupAvailable);
+        setIsAlwaysOpenAndOperationInfos(isAlwaysOpen, operationInfos);
         this.historyInfo = new HistoryInfo(creatorId);
         this.location = location;
-        this.businessHours = businessHours;
         setCategories(categories);
         this.mainDrinks = mainDrinks;
-        this.closedDays = closedDays;
     }
 
     public void setName(String name){
@@ -124,6 +122,17 @@ public class Store {
             throw new CustomException(StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
         }
         this.isGroupAvailable = isGroupAvailable;
+    }
+
+    public void setIsAlwaysOpenAndOperationInfos(Boolean isAlwaysOpen, Set<OperationInfo> operationInfos){
+        if (Objects.equals(isAlwaysOpen, false) && (operationInfos != null && !operationInfos.isEmpty())){
+            this.setIsAlwaysOpen(false);
+            this.setOperationInfos(operationInfos);
+        } else if (Objects.equals(isAlwaysOpen, true) && (operationInfos == null || operationInfos.isEmpty())){
+            this.setIsAlwaysOpen(true);
+            this.setOperationInfos(null);
+        }
+        else throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
     }
 
     public void setCategories(Set<Category> categories){

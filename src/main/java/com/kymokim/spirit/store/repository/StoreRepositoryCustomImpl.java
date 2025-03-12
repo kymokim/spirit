@@ -3,6 +3,7 @@ package com.kymokim.spirit.store.repository;
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.Category;
+import com.kymokim.spirit.store.entity.QOperationInfo;
 import com.kymokim.spirit.store.entity.QStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.querydsl.core.types.OrderSpecifier;
@@ -19,6 +20,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext
@@ -42,21 +44,35 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 영업중인 가게 탐색
     private BooleanExpression openCondition(LocalDateTime conditionTime){
+        // 0. 항상 영업중인지(24시간)
+        BooleanExpression isAlwaysOpen = store.isAlwaysOpen.isTrue();
+
         // 조건 시간 필드
         LocalTime currentTime = conditionTime.toLocalTime();
         DayOfWeek today = conditionTime.getDayOfWeek();
         // 영업 시간 필드
-        TimePath<LocalTime> openTime = store.businessHours.openTime;
-        TimePath<LocalTime> closeTime = store.businessHours.closeTime;
-        // 1. 휴무일 여부 판단
-        BooleanExpression notClosedToday = store.closedDays.contains(today).not();
-        // 2. 정상 영업 시간인 경우 판단
-        BooleanExpression openDuringDay = openTime.before(currentTime).and(closeTime.after(currentTime));
-        // 3. 자정을 넘어가는 영업 시간인 경우 판단
+        TimePath<LocalTime> openTime = store.operationInfos.any().openTime;
+        TimePath<LocalTime> closeTime = store.operationInfos.any().closeTime;
+
+        // 1. 오늘에 해당하는 요일 존재 여부 판단(요일 맞추기)
+        BooleanExpression matchDay = store.operationInfos.any().dayOfWeek.eq(today);
+        // 2. 휴무일 여부 판단
+        BooleanExpression notClosedToday = store.operationInfos.any().isClosed.isFalse();
+        // 3. 정상 영업 시간인 경우(시작 시간 < 마감 시간) 판단
+        BooleanExpression openDuringDay = openTime.before(currentTime)
+                // 마감 시간 > 현재 시간
+                .and(closeTime.after(currentTime));
+        // 4. 자정을 넘어가는 영업 시간인 경우(시작 시간 > 마감 시간) 판단
         BooleanExpression openOverMidnight = openTime.after(closeTime)
-                .and(openTime.before(currentTime).or(closeTime.after(currentTime)));
-        // 1번이 참이고, 2번 또는 3번이 참이면 true
-        return notClosedToday.and(openDuringDay.or(openOverMidnight));
+                // 오픈 시간 < 현재 시간(자정 이전)
+                .and(openTime.before(currentTime)
+                        // 마감 시간 > 현재 시간(자정 이후)
+                        .or(closeTime.after(currentTime)));
+        // 0번이 참이거나, 1번과 2번과 3/4번(둘 중에 하나라도 참)이 참이면 true
+        return isAlwaysOpen.or(matchDay
+                .and(notClosedToday)
+                .and(openDuringDay.or(openOverMidnight))
+        );
     }
 
     // 검색어가 공백 제외하고 이름에 포함되어 있는 가게 탐색
@@ -91,15 +107,29 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return store.likeCount.desc();
     }
 
+    // 24시간 영업일 경우 우선으로 정렬
+    private OrderSpecifier<Integer> orderByAlwaysOpen(){
+
+        NumberExpression<Integer> alwaysOpenPriority = new CaseBuilder()
+                .when(store.isAlwaysOpen.isTrue())
+                .then(1)
+                .otherwise(0);
+        return alwaysOpenPriority.desc();
+    }
+
     // 마감시간 늦는 순서대로 정렬
-    private OrderSpecifier<Integer> orderByCloseTime() {
-        TimePath<LocalTime> closeTime = store.businessHours.closeTime;
+    private OrderSpecifier<Integer> orderByCloseTime(QOperationInfo operationInfo) {
+        TimePath<LocalTime> openTime = operationInfo.openTime;
+        TimePath<LocalTime> closeTime = operationInfo.closeTime;
 
         // 자정 전후 시간 조정 로직
         NumberExpression<Integer> adjustedCloseTime = new CaseBuilder()
-                .when(closeTime.before(LocalTime.MIDNIGHT)) // 자정 이전 마감 시간은 -24시간 처리
-                .then(closeTime.hour().add(-24))
-                .otherwise(closeTime.hour()); // 자정 이후 마감 시간은 그대로 유지
+                // 오픈 시간 < 마감 시간인 경우(자정 이후 마감)
+                .when(openTime.after(closeTime))
+                // 마감 시간 + 24시간
+                .then(closeTime.hour().add(24).multiply(60).add(closeTime.minute()))
+                // 그렇지 않은 경우(자정 이전 마감) 마감시간 그대로 유지
+                .otherwise(closeTime.hour().multiply(60).add(closeTime.minute()));
 
         return adjustedCloseTime.desc(); // 늦은 시간순으로 정렬
     }
@@ -186,16 +216,21 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return new PageImpl<>(storeList, pageable, query.fetchCount());
     }
 
+    // 현재 영업중인 가게중, 영업시간 늦는 순서 가게 리스트 반환
     @Override
     public Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable){
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria)
                         .and(openCondition()))
-                .orderBy(orderByCloseTime())
-                .orderBy(orderByLikeCount());
+                .orderBy(orderByAlwaysOpen())
+                .orderBy(orderByCloseTime(operationInfo))
+                .orderBy(orderByLikeCount())
+                .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

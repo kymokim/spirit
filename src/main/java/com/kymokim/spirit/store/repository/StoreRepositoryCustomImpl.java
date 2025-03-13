@@ -50,14 +50,10 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         // 조건 시간 필드
         LocalTime currentTime = conditionTime.toLocalTime();;
         DayOfWeek today = conditionTime.getDayOfWeek();
-        System.out.println(currentTime);
-        System.out.println(today);
 
         // 영업 시간 필드
         TimePath<LocalTime> openTime = operationInfo.openTime;
         TimePath<LocalTime> closeTime = operationInfo.closeTime;
-        System.out.println(openTime);
-        System.out.println(closeTime);
 
         // 1. 오늘에 해당하는 요일 존재 여부 판단(요일 맞추기)
         BooleanExpression matchDay = operationInfo.dayOfWeek.eq(today);

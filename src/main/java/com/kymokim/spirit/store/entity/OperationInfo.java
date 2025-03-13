@@ -1,18 +1,22 @@
 package com.kymokim.spirit.store.entity;
 
-import com.kymokim.spirit.common.exception.CustomException;
-import com.kymokim.spirit.store.exception.StoreErrorCode;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
+@Entity
+@Table(name = "operation_info")
 @Getter
-@Embeddable
+@NoArgsConstructor
 public class OperationInfo {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @Column(name = "day_of_week")
     private DayOfWeek dayOfWeek;
 
@@ -31,15 +35,19 @@ public class OperationInfo {
     @Column(name = "break_end_time")
     private LocalTime breakEndTime;
 
-    protected OperationInfo(){}
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    private Store store;
 
     @Builder
-    public OperationInfo(DayOfWeek dayOfWeek, Boolean isClosed, LocalTime openTime, LocalTime closeTime, LocalTime breakStartTime, LocalTime breakEndTime){
+    public OperationInfo(DayOfWeek dayOfWeek, Boolean isClosed, LocalTime openTime, LocalTime closeTime,
+                         LocalTime breakStartTime, LocalTime breakEndTime, Store store){
         this.dayOfWeek = dayOfWeek;
         this.isClosed = isClosed;
         this.openTime = openTime;
         this.closeTime = closeTime;
         this.breakStartTime = breakStartTime;
         this.breakEndTime = breakEndTime;
+        this.store = store;
     }
 }

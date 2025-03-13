@@ -8,6 +8,7 @@ import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
+import com.kymokim.spirit.store.repository.OperationInfoRepository;
 import com.kymokim.spirit.store.repository.StoreImageRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class StoreService {
     private final StoreImageRepository storeImageRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final S3Service s3Service;
+    private final OperationInfoRepository operationInfoRepository;
 
     private Long resolveUserId(){
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -52,6 +54,11 @@ public class StoreService {
             }
             storeRepository.save(store);
         }
+        setIsAlwaysOpenAndOperationInfos(store, createStoreRqDto.getIsAlwaysOpen(), createStoreRqDto.getOperationInfoDtos());
+        Store updatedStore = resolveStore(store.getId());
+        if(updatedStore.getIsAlwaysOpen() == null && (updatedStore.getOperationInfos() == null || updatedStore.getOperationInfos().isEmpty()))
+            throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
+
         return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
@@ -65,18 +72,13 @@ public class StoreService {
         updateIfNotNullOrEmpty(updateStoreDto.getDescription(), store::setDescription);
         updateIfNotNullOrEmpty(updateStoreDto.getHasScreen(), store::setHasScreen);
         updateIfNotNullOrEmpty(updateStoreDto.getIsGroupAvailable(), store::setIsGroupAvailable);
-//        updateIfNotNullOrEmpty(updateStoreDto.getIsAlwaysOpen(), store::setIsAlwaysOpen);
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
         updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkDtos(), mainDrinkDtos -> {
             Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
             store.setMainDrinks(mainDrinks);
         });
-//        updateIfNotNullOrEmpty(updateStoreDto.getOperationInfoDtos(), operationInfoDtos -> {
-//            Set<OperationInfo> operationInfos = operationInfoDtos.stream().map(CommonStore.OperationInfoDto::toEntity).collect(Collectors.toSet());
-//            store.setOperationInfos(operationInfos);
-//        });
-        updateIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), updateStoreDto.getOperationInfoDtos());
+        setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), updateStoreDto.getOperationInfoDtos());
 
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
@@ -89,13 +91,32 @@ public class StoreService {
         }
     }
 
-    private void updateIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos){
+    private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos){
         if (isAlwaysOpen != null || (operationInfoDtos != null && !operationInfoDtos.isEmpty())){
-            Set<OperationInfo> operationInfos = new HashSet<>();
-            if (operationInfoDtos != null && !operationInfoDtos.isEmpty()){
-                operationInfos = operationInfoDtos.stream().map(CommonStore.OperationInfoDto::toEntity).collect(Collectors.toSet());
-            }
-            store.setIsAlwaysOpenAndOperationInfos(isAlwaysOpen, operationInfos);
+            if (Objects.equals(isAlwaysOpen, false) && (operationInfoDtos != null && !operationInfoDtos.isEmpty())){
+                if (store.getOperationInfos() != null){
+                    for (OperationInfo operationInfo : store.getOperationInfos()) {
+                        operationInfoRepository.delete(operationInfo);
+                        store.removeOperationInfos(operationInfo);
+                    }
+                }
+                store.setIsAlwaysOpen(false);
+                operationInfoDtos.forEach(operationInfoDto -> {
+                    OperationInfo operationInfo = operationInfoDto.toEntity(store);
+                    operationInfoRepository.save(operationInfo);
+                    store.addOperationInfos(operationInfo);
+                });
+                storeRepository.save(store);
+            } else if (Objects.equals(isAlwaysOpen, true) && (operationInfoDtos == null || operationInfoDtos.isEmpty())) {
+                if (store.getOperationInfos() != null){
+                    for (OperationInfo operationInfo : store.getOperationInfos()) {
+                        operationInfoRepository.delete(operationInfo);
+                        store.removeOperationInfos(operationInfo);
+                    }
+                }
+                store.setIsAlwaysOpen(true);
+                storeRepository.save(store);
+            } else throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
         }
     }
 

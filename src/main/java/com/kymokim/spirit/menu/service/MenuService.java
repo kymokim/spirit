@@ -118,6 +118,9 @@ public class MenuService {
     @Transactional
     public void deleteMenu(Long menuId) {
         Menu menu = resolveMenu(menuId);
+        Store store = resolveStore(menu.getStore().getId());
+        store.removeMenuList(menu);
         menuRepository.delete(menu);
+        storeRepository.save(store);
     }
 }

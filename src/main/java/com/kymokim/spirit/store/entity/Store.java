@@ -12,10 +12,7 @@ import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
 import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Table(name = "store")
 @Entity
@@ -48,7 +45,7 @@ public class Store {
     @Column(name = "is_group_available", nullable = false)
     private Boolean isGroupAvailable;
 
-    @Column(name = "is_always_open", nullable = false)
+    @Column(name = "is_always_open")
     private Boolean isAlwaysOpen;
 
     @Embedded
@@ -68,11 +65,6 @@ public class Store {
     @Column(name = "main_drinks")
     private Set<MainDrink> mainDrinks;
 
-    @CollectionTable(name = "operation_infos", joinColumns = @JoinColumn(name = "store_id"))
-    @ElementCollection(targetClass = OperationInfo.class)
-    @Column(name = "operation_infos")
-    private Set<OperationInfo> operationInfos;
-
     @Column(name = "total_rate")
     private Double totalRate = 0D;
 
@@ -83,20 +75,22 @@ public class Store {
     private Long likeCount = 0L;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<OperationInfo> operationInfos = new HashSet<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Menu> menuList = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder
-    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable, Boolean isAlwaysOpen,
-                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks, Set<OperationInfo> operationInfos) {
+    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
+                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
         setName(name);
         this.contact = contact;
         this.description = description;
         setHasScreen(hasScreen);
         setIsGroupAvailable(isGroupAvailable);
-        setIsAlwaysOpenAndOperationInfos(isAlwaysOpen, operationInfos);
         this.historyInfo = new HistoryInfo(creatorId);
         this.location = location;
         setCategories(categories);
@@ -124,17 +118,6 @@ public class Store {
         this.isGroupAvailable = isGroupAvailable;
     }
 
-    public void setIsAlwaysOpenAndOperationInfos(Boolean isAlwaysOpen, Set<OperationInfo> operationInfos){
-        if (Objects.equals(isAlwaysOpen, false) && (operationInfos != null && !operationInfos.isEmpty())){
-            this.setIsAlwaysOpen(false);
-            this.setOperationInfos(operationInfos);
-        } else if (Objects.equals(isAlwaysOpen, true) && (operationInfos == null || operationInfos.isEmpty())){
-            this.setIsAlwaysOpen(true);
-            this.setOperationInfos(null);
-        }
-        else throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
-    }
-
     public void setCategories(Set<Category> categories){
         if (categories == null || categories.isEmpty()){
             throw new CustomException(StoreErrorCode.STORE_CATEGORIES_EMPTY);
@@ -142,8 +125,20 @@ public class Store {
         this.categories = categories;
     }
 
+    public void addOperationInfos(OperationInfo operationInfo){
+        this.operationInfos.add(operationInfo);
+    }
+
+    public void removeOperationInfos(OperationInfo operationInfo){
+        this.operationInfos.remove(operationInfo);
+    }
+
     public void addMenuList(Menu menu) {
         this.menuList.add(menu);
+    }
+
+    public void removeMenuList(Menu menu){
+        this.menuList.remove(menu);
     }
     public void addImgUrlList(StoreImage storeImage){
         this.imgUrlList.add(storeImage);

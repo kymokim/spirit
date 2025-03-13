@@ -4,6 +4,7 @@ import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.entity.Location;
 import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.store.entity.OperationInfo;
+import com.kymokim.spirit.store.entity.Store;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -70,7 +71,7 @@ public class CommonStore {
                     .build();
         }
 
-        public OperationInfo toEntity(){
+        public OperationInfo toEntity(Store store){
             return OperationInfo.builder()
                     .dayOfWeek(this.dayOfWeek)
                     .isClosed(this.isClosed)
@@ -78,6 +79,7 @@ public class CommonStore {
                     .closeTime(this.closeTime)
                     .breakStartTime(this.breakStartTime)
                     .breakEndTime(this.breakEndTime)
+                    .store(store)
                     .build();
         }
     }

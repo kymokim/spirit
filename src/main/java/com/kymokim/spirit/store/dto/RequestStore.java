@@ -58,40 +58,17 @@ public class RequestStore {
             if (!this.mainDrinkDtos.isEmpty()) {
                 this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
             }
-
-            Set<OperationInfo> operationInfos = new HashSet<>();
-            if (!this.isAlwaysOpen && (this.operationInfoDtos != null && !this.operationInfoDtos.isEmpty())) {
-                this.operationInfoDtos.forEach(operationInfoDto -> operationInfos.add(operationInfoDto.toEntity()));
                 return Store.builder()
                         .name(this.name)
                         .contact(this.contact)
                         .description(this.description)
                         .hasScreen(this.hasScreen)
                         .isGroupAvailable(this.isGroupAvailable)
-                        .isAlwaysOpen(this.isAlwaysOpen)
-                        .creatorId(creatorId)
-                        .location(this.locationDto.toEntity())
-                        .categories(this.categories)
-                        .mainDrinks(mainDrinks)
-                        .operationInfos(operationInfos)
-                        .build();
-            }
-            else if (this.isAlwaysOpen && (this.operationInfoDtos == null || this.operationInfoDtos.isEmpty())) {
-                return Store.builder()
-                        .name(this.name)
-                        .contact(this.contact)
-                        .description(this.description)
-                        .hasScreen(this.hasScreen)
-                        .isGroupAvailable(this.isGroupAvailable)
-                        .isAlwaysOpen(this.isAlwaysOpen)
                         .creatorId(creatorId)
                         .location(this.locationDto.toEntity())
                         .categories(this.categories)
                         .mainDrinks(mainDrinks)
                         .build();
-            }
-            else
-                throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
         }
     }
 

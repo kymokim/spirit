@@ -29,9 +29,6 @@ public class GlobalExceptionHandler {
         return ErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, 10000, errorMessage);
     }
 
-    // 이 아래 있는 예외 처리 핸들러들이 전부 작동하지 않아서 401로 떠서 일단 토큰 오류와 구분하기 위해 500이 뜨도록 설정
-    // 추가적인 예외처리가 필요할 듯
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         // 유효성 검사 실패에 대한 처리 로직을 구현

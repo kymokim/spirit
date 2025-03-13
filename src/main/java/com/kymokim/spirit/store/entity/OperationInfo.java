@@ -1,5 +1,7 @@
 package com.kymokim.spirit.store.entity;
 
+import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +44,8 @@ public class OperationInfo {
     @Builder
     public OperationInfo(DayOfWeek dayOfWeek, Boolean isClosed, LocalTime openTime, LocalTime closeTime,
                          LocalTime breakStartTime, LocalTime breakEndTime, Store store){
+        if (isClosed.equals(true) && (openTime != null || closeTime != null || breakStartTime != null || breakEndTime != null))
+            throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
         this.dayOfWeek = dayOfWeek;
         this.isClosed = isClosed;
         this.openTime = openTime;

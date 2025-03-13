@@ -38,36 +38,41 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     // 현재 시간 기준 영업중인 가게 탐색
-    private BooleanExpression openCondition(){
-        return openCondition(LocalDateTime.now());
+    private BooleanExpression openCondition(QOperationInfo operationInfo){
+        return openCondition(operationInfo, LocalDateTime.now());
     }
 
     // 영업중인 가게 탐색
-    private BooleanExpression openCondition(LocalDateTime conditionTime){
+    private BooleanExpression openCondition(QOperationInfo operationInfo, LocalDateTime conditionTime){
         // 0. 항상 영업중인지(24시간)
         BooleanExpression isAlwaysOpen = store.isAlwaysOpen.isTrue();
 
         // 조건 시간 필드
-        LocalTime currentTime = conditionTime.toLocalTime();
+        LocalTime currentTime = conditionTime.toLocalTime();;
         DayOfWeek today = conditionTime.getDayOfWeek();
+        System.out.println(currentTime);
+        System.out.println(today);
+
         // 영업 시간 필드
-        TimePath<LocalTime> openTime = store.operationInfos.any().openTime;
-        TimePath<LocalTime> closeTime = store.operationInfos.any().closeTime;
+        TimePath<LocalTime> openTime = operationInfo.openTime;
+        TimePath<LocalTime> closeTime = operationInfo.closeTime;
+        System.out.println(openTime);
+        System.out.println(closeTime);
 
         // 1. 오늘에 해당하는 요일 존재 여부 판단(요일 맞추기)
-        BooleanExpression matchDay = store.operationInfos.any().dayOfWeek.eq(today);
+        BooleanExpression matchDay = operationInfo.dayOfWeek.eq(today);
         // 2. 휴무일 여부 판단
-        BooleanExpression notClosedToday = store.operationInfos.any().isClosed.isFalse();
-        // 3. 정상 영업 시간인 경우(시작 시간 < 마감 시간) 판단
+        BooleanExpression notClosedToday = operationInfo.isClosed.isFalse();
+        // 3. 정상 영업 시간인 경우, 오픈 시간 < 현재 시간이고
         BooleanExpression openDuringDay = openTime.before(currentTime)
-                // 마감 시간 > 현재 시간
+                // 현재 시간 < 마감 시간이면 영업중
                 .and(closeTime.after(currentTime));
-        // 4. 자정을 넘어가는 영업 시간인 경우(시작 시간 > 마감 시간) 판단
+        // 4. 자정을 넘어가는 영업 시간인 경우(시작 시간 > 마감 시간)
         BooleanExpression openOverMidnight = openTime.after(closeTime)
                 // 오픈 시간 < 현재 시간(자정 이전)
-                .and(openTime.before(currentTime)
+                .and(openTime.before(currentTime))
                         // 마감 시간 > 현재 시간(자정 이후)
-                        .or(closeTime.after(currentTime)));
+                        .or(closeTime.after(currentTime));
         // 0번이 참이거나, 1번과 2번과 3/4번(둘 중에 하나라도 참)이 참이면 true
         return isAlwaysOpen.or(matchDay
                 .and(notClosedToday)
@@ -98,8 +103,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중으로 정렬
-    private OrderSpecifier<Integer> orderByIsOpen(){
-        return new CaseBuilder().when(openCondition()).then(1).otherwise(0).desc();
+    private OrderSpecifier<Integer> orderByIsOpen(QOperationInfo operationInfo){
+        return new CaseBuilder().when(openCondition(operationInfo)).then(1).otherwise(0).desc();
     }
 
     // 좋아요 많은 순서대로 정렬
@@ -122,9 +127,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         TimePath<LocalTime> openTime = operationInfo.openTime;
         TimePath<LocalTime> closeTime = operationInfo.closeTime;
 
-        // 자정 전후 시간 조정 로직
+        // 자정 이후 마감인 경우 시간 조정 로직
         NumberExpression<Integer> adjustedCloseTime = new CaseBuilder()
-                // 오픈 시간 < 마감 시간인 경우(자정 이후 마감)
+                // 오픈 시간 > 마감 시간인 경우(자정 이후 마감)
                 .when(openTime.after(closeTime))
                 // 마감 시간 + 24시간
                 .then(closeTime.hour().add(24).multiply(60).add(closeTime.minute()))
@@ -145,13 +150,15 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QMenu menu = QMenu.menu;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.menuList, menu)
+                .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria)
                         .and(storeNameCondition(searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))
-                .orderBy(orderByIsOpen())
+                .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByLikeCount())
                 .distinct();
 
@@ -184,10 +191,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     public Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable){
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria))
-                .orderBy(orderByIsOpen())
+                .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByDistance());
 
         List<Store> storeList = query.offset(pageable.getOffset())
@@ -202,11 +211,13 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     public Page<Store> findByCategory(LocationCriteria criteria, String category, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria)
                         .and(categoryCondition(category)))
-                .orderBy(orderByIsOpen())
+                .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByLikeCount());
 
         List<Store> storeList = query.offset(pageable.getOffset())
@@ -226,7 +237,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria)
-                        .and(openCondition()))
+                        .and(openCondition(operationInfo)))
                 .orderBy(orderByAlwaysOpen())
                 .orderBy(orderByCloseTime(operationInfo))
                 .orderBy(orderByLikeCount())
@@ -254,12 +265,14 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable){
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                .leftJoin(store.operationInfos, operationInfo)
                 .where(radiusCondition(criteria)
                         .and(categoryCondition(category))
                         .and(isGroupAvailableCondition(isGroupAvailable))
-                        .and(openCondition(conditionTime)))
+                        .and(openCondition(operationInfo, conditionTime)))
                 .orderBy(orderByLikeCount());
 
         List<Store> storeList = query.offset(pageable.getOffset())

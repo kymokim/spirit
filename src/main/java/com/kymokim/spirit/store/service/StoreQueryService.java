@@ -156,4 +156,14 @@ public class StoreQueryService {
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
         }, 3);
     }
+
+    @Transactional(readOnly = true)
+    public List<ResponseStore.GetMainBannerDto> getMainBanner(LocationCriteria criteria){
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Store> storeList = storeRepository.findByRadiusAndCategory(criteria);
+            List<ResponseStore.GetMainBannerDto> dtoList = new ArrayList<>();
+            storeList.forEach(store -> dtoList.add(ResponseStore.GetMainBannerDto.toDto(store)));
+            return dtoList;
+        }, 3);
+    }
 }

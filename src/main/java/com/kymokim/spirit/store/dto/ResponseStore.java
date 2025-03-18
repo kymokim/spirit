@@ -48,6 +48,7 @@ public class ResponseStore {
         private Boolean hasScreen;
         private Boolean isGroupAvailable;
         private Boolean isAlwaysOpen;
+        private Boolean isDeleted;
         private CommonStore.LocationDto locationDto;
         private Set<Category> categories;
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
@@ -84,6 +85,7 @@ public class ResponseStore {
                     .hasScreen(store.getHasScreen())
                     .isGroupAvailable(store.getIsGroupAvailable())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .isDeleted(store.getIsDeleted())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .categories(store.getCategories())
                     .mainDrinkDtos(mainDrinkDtos)
@@ -422,6 +424,7 @@ public class ResponseStore {
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
+        private Boolean isDeleted;
         private CommonStore.LocationDto locationDto;
         private Set<Category> categories;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
@@ -440,11 +443,30 @@ public class ResponseStore {
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .isDeleted(store.getIsDeleted())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .categories(store.getCategories())
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetMainBannerDto{
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private Set<Category> categories;
+
+        public static GetMainBannerDto toDto(Store store){
+            return GetMainBannerDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .categories(store.getCategories())
                     .build();
         }
     }

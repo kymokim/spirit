@@ -187,4 +187,19 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @Operation(summary = "메인 배너 리스트 조회")
+    @GetMapping("/main-banner")
+    public ResponseEntity<ResponseDto> getMainBanner(@RequestParam("latitude") double latitude,
+                                                     @RequestParam("longitude") double longitude,
+                                                     @RequestParam(value = "radius", defaultValue = "2") double radius){
+        LOGGER.info("Store Query/getMainBanner API called.");
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.GetMainBannerDto> dtoList = storeQueryService.getMainBanner(criteria);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Main banner list retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

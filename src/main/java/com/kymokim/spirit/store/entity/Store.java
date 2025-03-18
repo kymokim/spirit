@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.time.DayOfWeek;
 import java.util.*;
@@ -47,6 +48,10 @@ public class Store {
 
     @Column(name = "is_always_open")
     private Boolean isAlwaysOpen;
+
+    @Column(name = "is_deleted")
+    @ColumnDefault("false")
+    private Boolean isDeleted = false;
 
     @Embedded
     private HistoryInfo historyInfo;
@@ -103,40 +108,33 @@ public class Store {
         }
         this.name = name;
     }
-
     public void setHasScreen(Boolean hasScreen){
         if (hasScreen == null ){
             throw new CustomException(StoreErrorCode.HAS_SCREEN_EMPTY);
         }
         this.hasScreen = hasScreen;
     }
-
     public void setIsGroupAvailable(Boolean isGroupAvailable){
         if (isGroupAvailable == null ){
             throw new CustomException(StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
         }
         this.isGroupAvailable = isGroupAvailable;
     }
-
     public void setCategories(Set<Category> categories){
         if (categories == null || categories.isEmpty()){
             throw new CustomException(StoreErrorCode.STORE_CATEGORIES_EMPTY);
         }
         this.categories = categories;
     }
-
     public void addOperationInfos(OperationInfo operationInfo){
         this.operationInfos.add(operationInfo);
     }
-
     public void removeOperationInfos(OperationInfo operationInfo){
         this.operationInfos.remove(operationInfo);
     }
-
     public void addMenuList(Menu menu) {
         this.menuList.add(menu);
     }
-
     public void removeMenuList(Menu menu){
         this.menuList.remove(menu);
     }
@@ -152,6 +150,13 @@ public class Store {
     public void decreaseReviewCount() {
         this.reviewCount--;
     }
-    public void increaseLikeCount(){ this.likeCount++; }
-    public void decreaseLikeCount(){ this.likeCount--; }
+    public void increaseLikeCount(){
+        this.likeCount++;
+    }
+    public void decreaseLikeCount(){
+        this.likeCount--;
+    }
+    public void delete(){
+        this.isDeleted = true;
+    }
 }

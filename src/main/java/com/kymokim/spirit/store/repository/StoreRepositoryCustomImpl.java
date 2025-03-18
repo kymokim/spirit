@@ -28,6 +28,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     private NumberExpression<Double> distance;
     private QStore store;
 
+    // 삭제 여부에 해당하는 가게 검색
+    private BooleanExpression isDeletedCondition(Boolean isDeleted){
+        return store.isDeleted.eq(isDeleted);
+    }
+
     // 반경 내에 있는 가게 탐색
     private BooleanExpression radiusCondition(LocationCriteria criteria){
         distance = Expressions.numberTemplate(Double.class,
@@ -151,7 +156,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.menuList, menu)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(storeNameCondition(searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))
                 .orderBy(orderByIsOpen(operationInfo))
@@ -172,7 +178,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         store = QStore.store;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .where(storeNameCondition(searchKeyword))
+                .where(isDeletedCondition(false)
+                        .and(storeNameCondition(searchKeyword)))
                 .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
@@ -191,7 +198,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria))
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria)))
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByDistance());
 
@@ -211,7 +219,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(categoryCondition(category)))
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByLikeCount());
@@ -232,7 +241,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(openCondition(operationInfo)))
                 .orderBy(orderByAlwaysOpen())
                 .orderBy(orderByCloseTime(operationInfo))
@@ -253,7 +263,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         store = QStore.store;
 
         return queryFactory.selectFrom(store)
-                .where(radiusCondition(criteria))
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria)))
                 .fetch();
     }
 
@@ -265,7 +276,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(categoryCondition(category))
                         .and(isGroupAvailableCondition(isGroupAvailable))
                         .and(openCondition(operationInfo, conditionTime)))

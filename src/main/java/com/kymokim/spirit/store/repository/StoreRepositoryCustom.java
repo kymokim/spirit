@@ -25,4 +25,6 @@ public interface StoreRepositoryCustom {
     List<Store> findByRadius(LocationCriteria criteria);
 
     Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable);
+
+    List<Store> findByRadiusAndCategory(LocationCriteria criteria);
 }

@@ -175,10 +175,15 @@ public class StoreService {
         return ResponseStore.ImageListDto.toDto(urlList);
     }
 
-    //Delete permission exception handling required.
+    //TODO 매장 운영자 추가 시 소유자만 삭제 가능하게도 추가
     @Transactional
     public void deleteStore(Long storeId) {
         Store store = resolveStore(storeId);
-        storeRepository.delete(store);
+        store.delete();
+        List<LikedStore> likedStoreList = likedStoreRepository.findAllByStoreId(storeId);
+        if (likedStoreList != null){
+            likedStoreList.forEach(likedStoreRepository::delete);
+        }
+        storeRepository.save(store);
     }
 }

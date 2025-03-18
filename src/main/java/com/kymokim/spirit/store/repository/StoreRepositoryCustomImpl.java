@@ -19,6 +19,8 @@ import org.springframework.data.domain.Pageable;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -27,6 +29,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     private EntityManager entityManager;
     private NumberExpression<Double> distance;
     private QStore store;
+
+    // 삭제 여부에 해당하는 가게 검색
+    private BooleanExpression isDeletedCondition(Boolean isDeleted){
+        return store.isDeleted.eq(isDeleted);
+    }
 
     // 반경 내에 있는 가게 탐색
     private BooleanExpression radiusCondition(LocationCriteria criteria){
@@ -151,7 +158,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.menuList, menu)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(storeNameCondition(searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))
                 .orderBy(orderByIsOpen(operationInfo))
@@ -172,7 +180,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         store = QStore.store;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .where(storeNameCondition(searchKeyword))
+                .where(isDeletedCondition(false)
+                        .and(storeNameCondition(searchKeyword)))
                 .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
@@ -191,7 +200,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria))
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria)))
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByDistance());
 
@@ -211,7 +221,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(categoryCondition(category)))
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByLikeCount());
@@ -232,7 +243,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(openCondition(operationInfo)))
                 .orderBy(orderByAlwaysOpen())
                 .orderBy(orderByCloseTime(operationInfo))
@@ -253,7 +265,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         store = QStore.store;
 
         return queryFactory.selectFrom(store)
-                .where(radiusCondition(criteria))
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria)))
                 .fetch();
     }
 
@@ -265,7 +278,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(radiusCondition(criteria)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria))
                         .and(categoryCondition(category))
                         .and(isGroupAvailableCondition(isGroupAvailable))
                         .and(openCondition(operationInfo, conditionTime)))
@@ -276,5 +290,43 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 .fetch();
 
         return new PageImpl<>(storeList, pageable, query.fetchCount());
+    }
+
+    // 랜덤 카테고리 선정 후 10개 반환, 반경 내 없으면 전체에서 반환
+    @Override
+    public List<Store> findByRadiusAndCategory(LocationCriteria criteria) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
+
+        // 반경 내 술집 존재 여부
+        boolean hasNearbyStores = queryFactory.selectFrom(store)
+                .where(isDeletedCondition(false)
+                        .and(radiusCondition(criteria)))
+                .fetchFirst() != null;
+
+        // 카테고리 랜덤 순회
+        List<Category> categories = Arrays.asList(Category.values());
+        Collections.shuffle(categories);
+
+        for (Category category : categories) {
+            JPQLQuery<Store> query = queryFactory.selectFrom(store)
+                    .leftJoin(store.operationInfos, operationInfo)
+                    .where(isDeletedCondition(false)
+                            // 반경 안에 가게가 있으면 반경 내에서, 없으면 전체에서 조회
+                            .and(hasNearbyStores ? radiusCondition(criteria) : null)
+                            .and(store.categories.contains(category)))
+                    .orderBy(orderByIsOpen(operationInfo))
+                    .orderBy(orderByLikeCount())
+                    .limit(10);
+
+            List<Store> result = query.fetch();
+            // 결과가 있으면 바로 반환
+            if (!result.isEmpty()) {
+                return result;
+            }
+        }
+        // 조회된 가게가 없으면 빈 리스트 반환
+        return List.of();
     }
 }

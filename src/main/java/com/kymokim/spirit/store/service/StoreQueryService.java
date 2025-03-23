@@ -4,9 +4,11 @@ import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
+import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
@@ -158,12 +160,10 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseStore.GetMainBannerDto> getMainBanner(LocationCriteria criteria){
+    public ResponseStore.GetMainBannerDto getMainBanner(LocationCriteria criteria){
         return TransactionRetryUtil.executeWithRetry(() -> {
-            List<Store> storeList = storeRepository.findByRadiusAndCategory(criteria);
-            List<ResponseStore.GetMainBannerDto> dtoList = new ArrayList<>();
-            storeList.forEach(store -> dtoList.add(ResponseStore.GetMainBannerDto.toDto(store)));
-            return dtoList;
+            QueryStore.CategoryStoreListGroup categoryStoreListGroup = storeRepository.findByRadiusAndCategory(criteria);
+            return ResponseStore.GetMainBannerDto.toDto(categoryStoreListGroup.category(), categoryStoreListGroup.storeList());
         }, 3);
     }
 }

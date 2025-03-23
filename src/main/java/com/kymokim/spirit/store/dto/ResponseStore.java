@@ -456,13 +456,35 @@ public class ResponseStore {
     @Getter
     @Builder
     public static class GetMainBannerDto{
+        private Category category;
+        private List<MainBannerStoreDto> mainBannerStoreDtoList;
+
+        public static GetMainBannerDto toDto(Category category, List<Store> storeList){
+
+            List<MainBannerStoreDto> storeDtoList = new ArrayList<>();
+            if (!storeList.isEmpty()){
+                storeList.forEach(store -> {
+                    storeDtoList.add(MainBannerStoreDto.toDto(store));
+                });
+            }
+
+            return GetMainBannerDto.builder()
+                    .category(category)
+                    .mainBannerStoreDtoList(storeDtoList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class MainBannerStoreDto {
         private Long id;
         private String mainImgUrl;
         private String name;
         private Set<Category> categories;
 
-        public static GetMainBannerDto toDto(Store store){
-            return GetMainBannerDto.builder()
+        public static MainBannerStoreDto toDto(Store store){
+            return MainBannerStoreDto.builder()
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())

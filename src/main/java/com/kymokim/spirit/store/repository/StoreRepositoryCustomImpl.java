@@ -2,6 +2,7 @@ package com.kymokim.spirit.store.repository;
 
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
+import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.QOperationInfo;
 import com.kymokim.spirit.store.entity.QStore;
@@ -55,8 +56,14 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         BooleanExpression isAlwaysOpen = store.isAlwaysOpen.isTrue();
 
         // 조건 시간 필드
-        LocalTime currentTime = conditionTime.toLocalTime();;
-        DayOfWeek today = conditionTime.getDayOfWeek();
+        LocalTime currentTime = conditionTime.toLocalTime();
+        DayOfWeek today;
+        if (currentTime.isBefore(LocalTime.of(6,0))){
+            today = conditionTime.minusDays(1).getDayOfWeek();
+        }
+        else {
+            today = conditionTime.getDayOfWeek();
+        }
 
         // 영업 시간 필드
         TimePath<LocalTime> openTime = operationInfo.openTime;
@@ -73,9 +80,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         // 4. 자정을 넘어가는 영업 시간인 경우(시작 시간 > 마감 시간)
         BooleanExpression openOverMidnight = openTime.after(closeTime)
                 // 오픈 시간 < 현재 시간(자정 이전)
-                .and(openTime.before(currentTime))
+                .and(openTime.before(currentTime)
                         // 마감 시간 > 현재 시간(자정 이후)
-                        .or(closeTime.after(currentTime));
+                        .or(closeTime.after(currentTime)));
         // 0번이 참이거나, 1번과 2번과 3/4번(둘 중에 하나라도 참)이 참이면 true
         return isAlwaysOpen.or(matchDay
                 .and(notClosedToday)
@@ -294,7 +301,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 랜덤 카테고리 선정 후 10개 반환, 반경 내 없으면 전체에서 반환
     @Override
-    public List<Store> findByRadiusAndCategory(LocationCriteria criteria) {
+    public QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
@@ -323,10 +330,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             List<Store> result = query.fetch();
             // 결과가 있으면 바로 반환
             if (!result.isEmpty()) {
-                return result;
+                return new QueryStore.CategoryStoreListGroup(category, result);
             }
         }
-        // 조회된 가게가 없으면 빈 리스트 반환
-        return List.of();
+        return null;
     }
 }

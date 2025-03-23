@@ -1,13 +1,15 @@
 package com.kymokim.spirit.store.repository;
 
 import com.kymokim.spirit.store.dto.LocationCriteria;
+import com.kymokim.spirit.store.dto.QueryStore;
+import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
+import java.util.Map;
 
 
 public interface StoreRepositoryCustom {
@@ -26,5 +28,5 @@ public interface StoreRepositoryCustom {
 
     Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable);
 
-    List<Store> findByRadiusAndCategory(LocationCriteria criteria);
+    QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 }

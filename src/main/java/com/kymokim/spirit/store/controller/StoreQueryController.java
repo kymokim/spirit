@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.controller;
 
-import com.kymokim.spirit.auth.controller.AuthController;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.RequestStore;
@@ -14,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -195,10 +193,10 @@ public class StoreQueryController {
                                                      @RequestParam(value = "radius", defaultValue = "2") double radius){
         LOGGER.info("Store Query/getMainBanner API called.");
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
-        List<ResponseStore.GetMainBannerDto> dtoList = storeQueryService.getMainBanner(criteria);
+        ResponseStore.GetMainBannerDto dto = storeQueryService.getMainBanner(criteria);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Main banner list retrieved successfully.")
-                .data(dtoList)
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

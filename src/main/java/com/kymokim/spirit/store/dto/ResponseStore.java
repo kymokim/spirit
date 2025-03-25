@@ -4,10 +4,8 @@ import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
-
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -123,7 +121,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             return SearchStoreDto.builder()
@@ -158,7 +163,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             return SearchAllStoreDto.builder()
@@ -191,7 +203,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             return GetByDistanceDto.builder()
@@ -232,7 +251,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             List<MenuListDto> menuList = new ArrayList<>();
@@ -297,7 +323,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             return GetByBusinessHoursDto.builder()
@@ -337,7 +370,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             List<MenuListDto> menuList = new ArrayList<>();
@@ -389,7 +429,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             List<MenuListDto> menuList = new ArrayList<>();
@@ -435,7 +482,14 @@ public class ResponseStore {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()){
-                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
             }
 
             return GetRecentStoreDto.builder()
@@ -481,14 +535,12 @@ public class ResponseStore {
         private Long id;
         private String mainImgUrl;
         private String name;
-        private Set<Category> categories;
 
         public static MainBannerStoreDto toDto(Store store){
             return MainBannerStoreDto.builder()
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
-                    .categories(store.getCategories())
                     .build();
         }
     }

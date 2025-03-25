@@ -58,7 +58,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         // 조건 시간 필드
         LocalTime currentTime = conditionTime.toLocalTime();
         DayOfWeek today;
-        if (currentTime.isBefore(LocalTime.of(6,0))){
+        if (currentTime.isBefore(LocalTime.of(9,0))){
             today = conditionTime.minusDays(1).getDayOfWeek();
         }
         else {

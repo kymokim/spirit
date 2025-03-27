@@ -159,14 +159,15 @@ jobs:
       PROFILE: ${{ needs.setup-env.outputs.profile }}
       SERVICE: ${{ needs.setup-env.outputs.service }}
     steps:
-      # EC2 인스턴스에 SSH로 접속하여 Docker 이미지 풀 및 실행
+      # EC2 인스턴스에 SSH로 접속하여 Docker 이미지 풀 및 실행(prod)
       - name: Deploy to EC2 via SSH
+        if: env.PROFILE == 'prod'
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          port: 22
+          port: ${{ secrets.EC2_PORT }}
           script: |
             # AWS CLI로 ECR 로그인
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
@@ -174,16 +175,6 @@ jobs:
             # 기존 컨테이너가 있다면 종료하고 삭제
             docker stop ${{env.SERVICE}}-${{env.PROFILE}} || true
             docker rm ${{env.SERVICE}}-${{env.PROFILE}} || true
-            # 브랜치에 따른 포트 설정
-            if [[ ${{env.PROFILE}} == "prod" ]]; then
-              PORT=8080
-            elif [[ ${{env.PROFILE}} == "dev" ]]; then
-              PORT=8081
-            else
-              PORT=8080
-            fi
-
-            echo "Deploying ${{env.SERVICE}} to port ${PORT} with profile ${{env.PROFILE}}"
             
             # ECR에서 Docker 이미지 풀
             docker pull ${{env.ECR_URI}}:${{env.PROFILE}}-latest
@@ -191,6 +182,33 @@ jobs:
             # Docker 컨테이너 실행
             docker run -d \
             --name ${{env.SERVICE}}-${{env.PROFILE}} \
-            -p ${PORT}:${PORT} \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=${{env.PROFILE}} \
+            ${{ env.ECR_URI }}:${{env.PROFILE}}-latest
+
+      # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
+      - name: Deploy to OPM via SSH
+        if: env.PROFILE == 'dev'
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.OPM_HOST }}
+          username: ${{ secrets.OPM_USERNAME }}
+          password: ${{ secrets.OPM_PASSWORD }}
+          port: ${{ secrets.OPM_PORT }}
+          script: |
+            # AWS CLI로 ECR 로그인
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            
+            # 기존 컨테이너가 있다면 종료하고 삭제
+            docker stop ${{env.SERVICE}}-${{env.PROFILE}} || true
+            docker rm ${{env.SERVICE}}-${{env.PROFILE}} || true
+            
+            # ECR에서 Docker 이미지 풀
+            docker pull ${{env.ECR_URI}}:${{env.PROFILE}}-latest
+
+            # Docker 컨테이너 실행
+            docker run -d \
+            --name ${{env.SERVICE}}-${{env.PROFILE}} \
+            -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{env.PROFILE}} \
             ${{ env.ECR_URI }}:${{env.PROFILE}}-latest

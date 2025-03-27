@@ -6,9 +6,11 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "operation_info")
@@ -44,7 +46,9 @@ public class OperationInfo {
     @Builder
     public OperationInfo(DayOfWeek dayOfWeek, Boolean isClosed, LocalTime openTime, LocalTime closeTime,
                          LocalTime breakStartTime, LocalTime breakEndTime, Store store){
-        if (isClosed.equals(true) && (openTime != null || closeTime != null || breakStartTime != null || breakEndTime != null))
+        if (Boolean.TRUE.equals(isClosed) && (!Objects.equals(openTime, null) || !Objects.equals(closeTime, null) || !Objects.equals(breakStartTime, null) || !Objects.equals(breakEndTime, null)))
+            throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
+        if (Boolean.FALSE.equals(isClosed) && (Objects.equals(openTime, null) || Objects.equals(closeTime, null)))
             throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
         this.dayOfWeek = dayOfWeek;
         this.isClosed = isClosed;

@@ -78,7 +78,13 @@ public class StoreService {
             Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
             store.setMainDrinks(mainDrinks);
         });
-        setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), updateStoreDto.getOperationInfoDtos());
+        if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)){
+            if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)){
+                setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), null);
+            } else {
+                setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), updateStoreDto.getOperationInfoDtos());
+            }
+        }
 
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
@@ -92,13 +98,12 @@ public class StoreService {
     }
 
     private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos){
-        if (isAlwaysOpen != null || (operationInfoDtos != null && !operationInfoDtos.isEmpty())){
-            if (Objects.equals(isAlwaysOpen, false) && (operationInfoDtos != null && !operationInfoDtos.isEmpty())){
-                if (store.getOperationInfos() != null){
-                    for (OperationInfo operationInfo : store.getOperationInfos()) {
-                        operationInfoRepository.delete(operationInfo);
-                        store.removeOperationInfos(operationInfo);
-                    }
+        if (isAlwaysOpen != null){
+            if (Objects.equals(isAlwaysOpen, false) && (!Objects.equals(operationInfoDtos, null) && !operationInfoDtos.isEmpty())){
+                if (store.getOperationInfos() != null && !store.getOperationInfos().isEmpty()) {
+                    Set<OperationInfo> currentOperationInfos = new HashSet<>(store.getOperationInfos());
+                    operationInfoRepository.deleteAll(currentOperationInfos);
+                    store.getOperationInfos().clear();
                 }
                 store.setIsAlwaysOpen(false);
                 operationInfoDtos.forEach(operationInfoDto -> {
@@ -107,12 +112,11 @@ public class StoreService {
                     store.addOperationInfos(operationInfo);
                 });
                 storeRepository.save(store);
-            } else if (Objects.equals(isAlwaysOpen, true) && (operationInfoDtos == null || operationInfoDtos.isEmpty())) {
-                if (store.getOperationInfos() != null){
-                    for (OperationInfo operationInfo : store.getOperationInfos()) {
-                        operationInfoRepository.delete(operationInfo);
-                        store.removeOperationInfos(operationInfo);
-                    }
+            } else if (Objects.equals(isAlwaysOpen, true) && (Objects.equals(operationInfoDtos, null))) {
+                if (store.getOperationInfos() != null && !store.getOperationInfos().isEmpty()){
+                    Set<OperationInfo> currentOperationInfos = new HashSet<>(store.getOperationInfos());
+                    operationInfoRepository.deleteAll(currentOperationInfos);
+                    store.getOperationInfos().clear();
                 }
                 store.setIsAlwaysOpen(true);
                 storeRepository.save(store);

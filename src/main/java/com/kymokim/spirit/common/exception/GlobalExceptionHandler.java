@@ -1,5 +1,7 @@
 package com.kymokim.spirit.common.exception;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,6 +19,8 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Log log = LogFactory.getLog(GlobalExceptionHandler.class);
+
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
         return ErrorResponse.toResponseEntity(e.getErrorCode(), e.getExtraMessage());
@@ -24,6 +28,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpectedException(Exception ex) {
+        ex.printStackTrace();
         String errorMessage = "Internal Server Error: " + ex.getMessage();
         System.out.println(errorMessage);
         return ErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, 10000, errorMessage);

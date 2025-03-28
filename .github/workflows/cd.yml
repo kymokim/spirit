@@ -9,8 +9,8 @@ on:
 
 env:
   ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
-#  PROFILE: "default"
-#  SERVICE: "default"
+  PROFILE: "default"
+  SERVICE: "default"
 
 jobs:
   setup-env:

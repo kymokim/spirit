@@ -9,8 +9,8 @@ on:
 
 env:
   ECR_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY_NAME }}
-  PROFILE: "default"
-  SERVICE: "default"
+  #PROFILE: "default"
+  #SERVICE: "default"
 
 jobs:
   setup-env:
@@ -52,13 +52,13 @@ jobs:
 
       - name: Set DB_URL to prod
         id: set-prod-db
-        if: $PROFILE == 'prod'
+        if: ${{ PROFILE == 'prod' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_PROD }}" >> $GITHUB_ENV
 
       - name: Set DB_URL to dev
         id: set-dev-db
-        if: $PROFILE == 'dev'
+        if: ${{ PROFILE == 'dev' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_DEV }}" >> $GITHUB_ENV
 

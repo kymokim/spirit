@@ -53,13 +53,13 @@ jobs:
 
       - name: Set DB_URL to prod
         id: set-prod-db
-        if: $PROFILE == 'prod'
+        if: ${{ env.PROFILE == 'prod' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_PROD }}" >> $GITHUB_ENV
 
       - name: Set DB_URL to dev
         id: set-dev-db
-        if: $PROFILE == 'dev'
+        if: ${{ env.PROFILE == 'dev' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_DEV }}" >> $GITHUB_ENV
 
@@ -157,7 +157,7 @@ jobs:
     steps:
       # EC2 인스턴스에 SSH로 접속하여 Docker 이미지 풀 및 실행(prod)
       - name: Deploy to EC2 via SSH
-        if: $PROFILE == 'prod'
+        if: ${{ env.PROFILE == 'prod' }}
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -184,7 +184,7 @@ jobs:
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH
-        if: $PROFILE == 'dev'
+        if: ${{ env.PROFILE == 'dev' }}
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.OPM_HOST }}

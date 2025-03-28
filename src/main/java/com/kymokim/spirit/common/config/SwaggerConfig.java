@@ -28,7 +28,8 @@ public class SwaggerConfig {
 
 
         return new OpenAPI()
-                .addServersItem(new Server().url("https://team-spirit.click").description("Server host"))
+                .addServersItem(new Server().url("https://dev.team-spirit.click").description("Dev Server"))
+                .addServersItem(new Server().url("https://team-spirit.click").description("Prod Server"))
                 .addServersItem(new Server().url("/").description("Local host"))
                 .components(components)
                 .addSecurityItem(securityRequirement)
@@ -49,6 +50,15 @@ public class SwaggerConfig {
         String[] pathsToMatch = {"/api/auth/**"};
         return GroupedOpenApi.builder()
                 .group("Auth")
+                .pathsToMatch(pathsToMatch)
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi archive(){
+        String[] pathsToMatch = {"/api/archive/**"};
+        return GroupedOpenApi.builder()
+                .group("Archive")
                 .pathsToMatch(pathsToMatch)
                 .build();
     }

@@ -65,7 +65,7 @@ jobs:
 
       - name: Create application.yml dynamically
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
-          APP_CONFIG_FILE: src/main/resources/application-$PROFILE.yml
+          APP_CONFIG_FILE: src/main/resources/application-${{ env.PROFILE }}.yml
         run: |
           echo "spring:" >> ${APP_CONFIG_FILE}
           echo "  datasource:" >> ${APP_CONFIG_FILE}
@@ -128,7 +128,7 @@ jobs:
           # Gradle 빌드 명령어 실행
           ./gradlew build
           # Docker 이미지 빌드
-          docker build -t $SERVICE:$PROFILE-latest .
+          docker build -t ${{ env.SERVICE }}:${{ env.PROFILE }}-latest .
       # 4. AWS 자격증명
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -144,8 +144,8 @@ jobs:
       # 6. Docker 이미지 ECR에 푸시
       - name: Push Docker image to ECR
         run: |
-          docker tag $SERVICE:$PROFILE-latest ${ECR_URI}:$PROFILE-latest
-          docker push ${ECR_URI}:$PROFILE-latest
+          docker tag ${{ env.SERVICE }}:${{ env.PROFILE }}-latest ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
+          docker push ${{ env.ECR_URI }}:$PROFILE-latest
   deploy:
     runs-on: ubuntu-latest
     needs:
@@ -169,18 +169,18 @@ jobs:
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
             
             # 기존 컨테이너가 있다면 종료하고 삭제
-            docker stop $SERVICE-$PROFILE || true
-            docker rm $SERVICE-$PROFILE || true
+            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             
             # ECR에서 Docker 이미지 풀
-            docker pull ${{env.ECR_URI}}:$PROFILE-latest
+            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
             # Docker 컨테이너 실행
             docker run -d \
-            --name $SERVICE-$PROFILE \
+            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
             -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=$PROFILE \
-            ${{ env.ECR_URI }}:$PROFILE-latest
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH
@@ -196,15 +196,15 @@ jobs:
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
             
             # 기존 컨테이너가 있다면 종료하고 삭제
-            docker stop $SERVICE-$PROFILE || true
-            docker rm $SERVICE-$PROFILE || true
+            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             
             # ECR에서 Docker 이미지 풀
-            docker pull ${{env.ECR_URI}}:$PROFILE-latest
+            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
             # Docker 컨테이너 실행
             docker run -d \
-            --name $SERVICE-$PROFILE \
+            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
             -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=$PROFILE \
-            ${{ env.ECR_URI }}:$PROFILE-latest
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest

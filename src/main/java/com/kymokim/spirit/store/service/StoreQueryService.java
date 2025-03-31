@@ -8,7 +8,6 @@ import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
-import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;

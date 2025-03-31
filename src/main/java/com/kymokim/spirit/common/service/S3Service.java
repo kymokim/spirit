@@ -28,6 +28,9 @@ public class S3Service {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
+    @Value("${cloud.aws.s3.profile}")
+    private String profile;
+
     // S3 업로드
     public String upload(MultipartFile multipartFile, String dirName) {
         File uploadFile = convert(multipartFile);
@@ -55,7 +58,7 @@ public class S3Service {
     }
 
     private String upload(File uploadFile, String dirName) {
-        String fileName = dirName + "/" + UUID.randomUUID().toString() + uploadFile.getName();
+        String fileName = profile + "/" + dirName + "/" + UUID.randomUUID().toString() + uploadFile.getName();
         String uploadImageUrl = putS3(uploadFile, fileName);
         removeNewFile(uploadFile);
         return uploadImageUrl;

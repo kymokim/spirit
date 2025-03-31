@@ -48,6 +48,7 @@ jobs:
           echo "cloud.aws.region.static=${{ secrets.AWS_REGION }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.bucket.url=${{ secrets.S3_BUCKET_URL }}" >> ${APP_CONFIG_FILE}
           echo "cloud.aws.s3.signature-version=v4" >> ${APP_CONFIG_FILE}
+          echo "cloud.aws.s3.profile=local" >> ${APP_CONFIG_FILE}
 
       # api-key.properties 생성
       - name: Create api-key.properties

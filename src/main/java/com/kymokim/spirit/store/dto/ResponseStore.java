@@ -535,12 +535,20 @@ public class ResponseStore {
         private Long id;
         private String mainImgUrl;
         private String name;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
 
         public static MainBannerStoreDto toDto(Store store){
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()) {
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
             return MainBannerStoreDto.builder()
                     .id(store.getId())
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
+                    .mainDrinkDtos(mainDrinkDtos)
                     .build();
         }
     }

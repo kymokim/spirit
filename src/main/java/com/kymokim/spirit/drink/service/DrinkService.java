@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -76,7 +77,7 @@ public class DrinkService {
     public void deleteImage(Long drinkId){
         Drink drink = resolveDrink(drinkId);
         String originUrl;
-        if (!(drink.getImgUrl() == null) && !drink.getImgUrl().isEmpty()){
+        if (!Objects.equals(drink.getImgUrl(), null) && !drink.getImgUrl().isEmpty()){
             originUrl = drink.getImgUrl();
         } else {
             throw new CustomException(DrinkErrorCode.DRINK_ORIGIN_IMG_URL_EMPTY);
@@ -115,6 +116,9 @@ public class DrinkService {
     @Transactional
     public void deleteDrink(Long drinkId) {
         Drink drink = resolveDrink(drinkId);
+        if (!Objects.equals(drink.getImgUrl(), null) && !drink.getImgUrl().isEmpty()){
+            s3Service.deleteFile(drink.getImgUrl());
+        }
         drinkRepository.delete(drink);
     }
 }

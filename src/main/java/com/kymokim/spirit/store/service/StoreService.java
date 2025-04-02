@@ -183,6 +183,13 @@ public class StoreService {
     @Transactional
     public void deleteStore(Long storeId) {
         Store store = resolveStore(storeId);
+        if (!Objects.equals(store.getImgUrlList(), null) && !store.getImgUrlList().isEmpty()) {
+            for (StoreImage storeImage : store.getImgUrlList()) {
+                s3Service.deleteFile(storeImage.getUrl());
+                storeImageRepository.delete(storeImage);
+                store.removeImgUrlList(storeImage);
+            }
+        }
         store.delete();
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByStoreId(storeId);
         if (likedStoreList != null){

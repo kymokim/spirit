@@ -45,6 +45,9 @@ public class AuthService{
         if(user != null){
             throw new CustomException(AuthErrorCode.USER_SOCIAL_INFO_EXISTS);
         }
+        if (!isNicknameUsable(registerUserDto.getNickname())) {
+            throw new CustomException(AuthErrorCode.USER_NICKNAME_EXISTS);
+        }
 
         // 본인인증 api 추가 시 해당 부분 변경
         PersonalInfo personalInfo = new RequestAuth.PersonalInfoRqDto().toEntity(aesUtil);

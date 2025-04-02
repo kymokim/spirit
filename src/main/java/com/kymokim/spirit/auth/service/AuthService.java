@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService{
@@ -105,7 +107,7 @@ public class AuthService{
     public void deleteImg(){
         Auth user = resolveUser();
         String originUrl;
-        if ( !(user.getImgUrl() == null) && !user.getImgUrl().isEmpty()){
+        if ( !Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty() ){
             originUrl = user.getImgUrl();
         } else {
             throw new CustomException(AuthErrorCode.USER_ORIGIN_IMG_URL_EMPTY);
@@ -158,6 +160,10 @@ public class AuthService{
     @Transactional
     public void withdrawUser(){
         Auth user = resolveUser();
+        if ( !Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty() ){
+            s3Service.deleteFile(user.getImgUrl());
+            user.setImgUrl(null);
+        }
         archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
         user.withdraw();
         authRepository.save(user);

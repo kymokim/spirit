@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +79,7 @@ public class MenuService {
     public void deleteImage(Long menuId){
         Menu menu = resolveMenu(menuId);
         String originUrl;
-        if (!(menu.getImgUrl() == null) && !menu.getImgUrl().isEmpty()){
+        if (!Objects.equals(menu.getImgUrl(), null) && !menu.getImgUrl().isEmpty()){
             originUrl = menu.getImgUrl();
         } else {
             throw new CustomException(MenuErrorCode.MENU_ORIGIN_IMG_URL_EMPTY);
@@ -119,6 +120,9 @@ public class MenuService {
     public void deleteMenu(Long menuId) {
         Menu menu = resolveMenu(menuId);
         Store store = resolveStore(menu.getStore().getId());
+        if (!Objects.equals(menu.getImgUrl(), null) && !menu.getImgUrl().isEmpty()){
+            s3Service.deleteFile(menu.getImgUrl());
+        }
         store.removeMenuList(menu);
         menuRepository.delete(menu);
         storeRepository.save(store);

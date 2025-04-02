@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 public enum ReviewErrorCode implements ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, 25000, "REVIEW_NOT_FOUND"),
     REVIEW_ORIGIN_IMG_URL_EMPTY(HttpStatus.BAD_REQUEST, 25001, "REVIEW_ORIGIN_IMG_URL_EMPTY"),
-    REVIEW_IMG_FILE_EMPTY(HttpStatus.BAD_REQUEST, 25002, "REVIEW_IMG_FILE_EMPTY");
+    REVIEW_IMG_FILE_EMPTY(HttpStatus.BAD_REQUEST, 25002, "REVIEW_IMG_FILE_EMPTY"),
+    NOT_REVIEW_WRITER(HttpStatus.BAD_REQUEST, 25003, "NOT_REVIEW_WRITER");
 
     private final HttpStatus httpStatus;
     private final Integer code;

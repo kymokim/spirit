@@ -146,22 +146,28 @@ public class ReviewService {
         reviewRepository.save(updatedReview);
     }
 
+    //TODO 관리자도 삭제 가능하게 권한 처리 추가 필요
     @Transactional
     public void deleteReview(Long reviewId) {
         Long userId = resolveUserId();
         Review review = resolveReview(reviewId);
-        if(Objects.equals(review.getWriter().getId(),userId)) {
-            reviewRepository.delete(review);
-        } else
-            throw new EntityNotFoundException();
+        if(!Objects.equals(review.getWriter().getId(), userId)) {
+            throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
+        }
+        if (!Objects.equals(review.getImgUrlList(), null) && !review.getImgUrlList().isEmpty()) {
+            for (ReviewImage reviewImage : review.getImgUrlList()) {
+                s3Service.deleteFile(reviewImage.getUrl());
+                reviewImageRepository.delete(reviewImage);
+                review.removeImgUrlList(reviewImage);
+            }
+        }
+        reviewRepository.delete(review);
         Store store = review.getStore();
-
         if (store.getReviewCount() > 0) {
             store.decreaseReviewCount();
-        } else throw new RuntimeException("Review must be larger than 0.");
-
-        Double totalRate = store.getTotalRate() - review.getRate();
-        store.setTotalRate(totalRate);
+            Double totalRate = store.getTotalRate() - review.getRate();
+            store.setTotalRate(totalRate);
+        }
         storeRepository.save(store);
 
     }

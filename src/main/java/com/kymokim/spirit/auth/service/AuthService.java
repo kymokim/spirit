@@ -30,6 +30,7 @@ public class AuthService{
     private final S3Service s3Service;
     private final ArchiveService archiveService;
     private final AESUtil aesUtil;
+    private final SocialTokenVerifier socialTokenVerifier;
 
     private Auth resolveUser(){
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -56,12 +57,16 @@ public class AuthService{
         authRepository.save(user);
     }
 
-    //일단 socialToken은 받기만 하고 추후 검증 로직 추가
     @Transactional
     public ResponseAuth.LoginUserRsDto loginUser(RequestAuth.LoginUserRqDto loginUserRqDto) {
         Auth user = authRepository.findBySocialInfo(loginUserRqDto.getSocialInfoDto().toEntity());
         if(user == null) {
             throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
+        }
+        String verifiedSocialId = socialTokenVerifier.verify(loginUserRqDto.getSocialInfoDto().getType(), loginUserRqDto.getSocialToken());
+
+        if (!Objects.equals(verifiedSocialId, loginUserRqDto.getSocialInfoDto().getId())) {
+            throw new CustomException(AuthErrorCode.INVALID_SOCIAL_TOKEN);
         }
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());

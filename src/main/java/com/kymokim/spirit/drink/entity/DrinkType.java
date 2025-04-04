@@ -31,9 +31,9 @@ public enum DrinkType {
     //진
     GIN,
 
-    //하이볼
-    HIGHBALL,
-
     //데킬라
-    TEQUILA
+    TEQUILA,
+
+    //하이볼
+    HIGHBALL
 }

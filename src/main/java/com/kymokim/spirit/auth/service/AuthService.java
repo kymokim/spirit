@@ -14,7 +14,9 @@ import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.RedisService;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.store.entity.LikedStore;
+import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
+import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class AuthService{
     private final AESUtil aesUtil;
     private final SocialTokenVerifier socialTokenVerifier;
     private final LikedStoreRepository likedStoreRepository;
+    private final StoreRepository storeRepository;
 
     private Auth resolveUser(){
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -178,7 +181,13 @@ public class AuthService{
         }
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
         if (likedStoreList != null){
-            likedStoreList.forEach(likedStoreRepository::delete);
+            likedStoreList.forEach(likedStore -> {
+                Store store = storeRepository.findById(likedStore.getStoreId()).get();
+                if(store != null){
+                    store.decreaseLikeCount();
+                }
+                likedStoreRepository.delete(likedStore);
+            });
         }
         archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
         user.withdraw();

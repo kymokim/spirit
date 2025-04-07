@@ -11,4 +11,5 @@ public interface LikedStoreRepository extends JpaRepository<LikedStore, Long> {
     LikedStore findByUserIdAndStoreId(Long userId, Long storeId);
     Page<LikedStore> findAllByUserIdOrderByIdDesc(Long userId, Pageable pageable);
     List<LikedStore> findAllByStoreId(Long storeId);
+    List<LikedStore> findAllByUserId(Long userId);
 }

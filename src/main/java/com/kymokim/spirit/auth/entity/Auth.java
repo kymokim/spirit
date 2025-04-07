@@ -69,6 +69,7 @@ public class Auth implements UserDetails {
     }
 
     public void withdraw(){
+        this.nickname = "탈퇴한 사용자";
         this.socialInfo.withdraw();
         this.personalInfo.withdraw();
         this.imgUrl = null;

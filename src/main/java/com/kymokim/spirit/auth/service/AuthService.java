@@ -13,12 +13,15 @@ import com.kymokim.spirit.common.security.JwtTokenProvider;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.RedisService;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.store.entity.LikedStore;
+import com.kymokim.spirit.store.repository.LikedStoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -31,6 +34,7 @@ public class AuthService{
     private final ArchiveService archiveService;
     private final AESUtil aesUtil;
     private final SocialTokenVerifier socialTokenVerifier;
+    private final LikedStoreRepository likedStoreRepository;
 
     private Auth resolveUser(){
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -171,6 +175,10 @@ public class AuthService{
         if ( !Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty() ){
             s3Service.deleteFile(user.getImgUrl());
             user.setImgUrl(null);
+        }
+        List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
+        if (likedStoreList != null){
+            likedStoreList.forEach(likedStoreRepository::delete);
         }
         archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
         user.withdraw();

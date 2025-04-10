@@ -155,7 +155,8 @@ public class ReviewService {
             throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
         }
         if (!Objects.equals(review.getImgUrlList(), null) && !review.getImgUrlList().isEmpty()) {
-            for (ReviewImage reviewImage : review.getImgUrlList()) {
+            List<ReviewImage> toDelete = new ArrayList<>(review.getImgUrlList());
+            for (ReviewImage reviewImage : toDelete) {
                 s3Service.deleteFile(reviewImage.getUrl());
                 reviewImageRepository.delete(reviewImage);
                 review.removeImgUrlList(reviewImage);

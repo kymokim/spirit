@@ -184,7 +184,8 @@ public class StoreService {
     public void deleteStore(Long storeId) {
         Store store = resolveStore(storeId);
         if (!Objects.equals(store.getImgUrlList(), null) && !store.getImgUrlList().isEmpty()) {
-            for (StoreImage storeImage : store.getImgUrlList()) {
+            List<StoreImage> toDelete = new ArrayList<>(store.getImgUrlList());
+            for (StoreImage storeImage : toDelete) {
                 s3Service.deleteFile(storeImage.getUrl());
                 storeImageRepository.delete(storeImage);
                 store.removeImgUrlList(storeImage);

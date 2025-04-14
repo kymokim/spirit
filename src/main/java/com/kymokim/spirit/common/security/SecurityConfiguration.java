@@ -65,16 +65,10 @@ public class SecurityConfiguration{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 관리자 페이지 호스팅 전 개발 단계에서만 전체 origin 허용, 추후 비활성화
-        configuration.setAllowedOriginPatterns(List.of("*"));
-        // 관리자 페이지 호스팅 시, 해당 도메인 추가 후 활성화
-//        configuration.setAllowedOriginPatterns(List.of(
-//                "https://admin.domain.com",
-//        ));
+        configuration.setAllowedOriginPatterns(List.of("https://adorable-dasik-848d4d.netlify.app"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        // Authorization 헤더 사용 또는 쿠키/세션 기반 인증인 경우 활성화
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

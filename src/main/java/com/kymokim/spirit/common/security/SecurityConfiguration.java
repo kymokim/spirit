@@ -45,7 +45,6 @@ public class SecurityConfiguration{
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
                         .requestMatchers("**exception**").permitAll()
@@ -67,10 +66,10 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOrigin("https://teamspirit19.netlify.app"); // ✅ 모든 Origin 허용 (Spring 5.3+)
-        configuration.addAllowedMethod("*"); // ✅ GET, POST, PUT 등 모든 HTTP Method 허용
-        configuration.addAllowedHeader("*"); // ✅ 모든 Header 허용
-        configuration.setAllowCredentials(true); // 인증 정보 포함 허용 (ex: 쿠키)
+        configuration.setAllowCredentials(true);
+        configuration.addAllowedOrigin("https://teamspirit19.netlify.app");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

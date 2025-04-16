@@ -67,7 +67,7 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*"); // ✅ 모든 Origin 허용 (Spring 5.3+)
+        configuration.addAllowedOrigin("https://teamspirit19.netlify.app"); // ✅ 모든 Origin 허용 (Spring 5.3+)
         configuration.addAllowedMethod("*"); // ✅ GET, POST, PUT 등 모든 HTTP Method 허용
         configuration.addAllowedHeader("*"); // ✅ 모든 Header 허용
         configuration.setAllowCredentials(true); // 인증 정보 포함 허용 (ex: 쿠키)

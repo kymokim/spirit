@@ -40,7 +40,7 @@ public class SecurityConfiguration{
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // cors 설정 추가
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .csrf(AbstractHttpConfigurer::disable) // REST API는 csrf 보안이 필요 없으므로 비활성화
 
@@ -76,7 +76,7 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
+        configuration.setAllowedOriginPatterns(List.of(
                 "https://dev.team-spirit.click",
                 "https://teamspirit19.netlify.app"
         ));

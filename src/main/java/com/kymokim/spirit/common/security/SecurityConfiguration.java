@@ -39,6 +39,9 @@ public class SecurityConfiguration{
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // cors 설정 추가
+                .cors(Customizer.withDefaults())
+
                 .csrf(AbstractHttpConfigurer::disable) // REST API는 csrf 보안이 필요 없으므로 비활성화
 
                 // JWT Token 인증방식으로 세션은 필요 없으므로 Stateless 설정
@@ -56,9 +59,6 @@ public class SecurityConfiguration{
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
                         .requestMatchers("**exception**").permitAll()
                 )
-
-                // cors 설정 추가
-                .cors(Customizer.withDefaults())
 
                 //나머지 요청은 인증된 USER 접근 가능
                 .authorizeHttpRequests(authorize-> authorize.anyRequest().hasRole("USER"))
@@ -79,7 +79,9 @@ public class SecurityConfiguration{
         configuration.setAllowedOrigins(List.of(
                 "https://dev.team-spirit.click",
                 "https://teamspirit19.netlify.app",
-                "http://localhost:8080"
+                "http://127.0.0.1:8080",
+                "https://kymokim.iptime.org",
+                "http://kymokim.iptime.org"
         ));
         configuration.addExposedHeader("*");
         configuration.addAllowedOrigin("*");

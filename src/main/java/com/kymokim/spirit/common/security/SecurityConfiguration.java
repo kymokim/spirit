@@ -58,10 +58,11 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
                         .requestMatchers("**exception**").permitAll()
+                        .anyRequest().hasRole("USER")
                 )
 
                 //나머지 요청은 인증된 USER 접근 가능
-                .authorizeHttpRequests(authorize-> authorize.anyRequest().hasRole("USER"))
+//                .authorizeHttpRequests(authorize-> authorize.anyRequest().hasRole("USER"))
 
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증 실패

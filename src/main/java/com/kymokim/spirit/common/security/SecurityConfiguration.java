@@ -75,7 +75,7 @@ public class SecurityConfiguration{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(List.of(
+        configuration.setAllowedOrigins(List.of(
                 "https://dev.team-spirit.click",
                 "https://teamspirit19.netlify.app"
         ));

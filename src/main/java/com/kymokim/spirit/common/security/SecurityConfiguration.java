@@ -58,7 +58,7 @@ public class SecurityConfiguration{
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 //                        .requestMatchers("/actuator/prometheus", "/actuator/prometheus/").permitAll()
-                        .requestMatchers("/api/auth/**", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
                         .requestMatchers("**exception**").permitAll()
                         .anyRequest().hasRole("USER")

@@ -24,7 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity // Spring Security에 대한 디버깅 모드를 사용하기 위한 어노테이션 (default : false)
-@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
+//@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
 public class SecurityConfiguration{
 
     private final JwtTokenProvider jwtTokenProvider;

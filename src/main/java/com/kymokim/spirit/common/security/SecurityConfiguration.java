@@ -48,6 +48,8 @@ public class SecurityConfiguration{
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // 세션 캐시 해제
+                .requestCache(AbstractHttpConfigurer::disable)
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
@@ -74,7 +76,6 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(false);
         configuration.setAllowedOrigins(List.of(
                 "https://dev.team-spirit.click",
                 "https://teamspirit19.netlify.app"

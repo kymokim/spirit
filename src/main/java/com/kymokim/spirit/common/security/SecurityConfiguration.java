@@ -77,7 +77,8 @@ public class SecurityConfiguration{
         configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(List.of(
                 "https://dev.team-spirit.click",
-                "https://teamspirit19.netlify.app"
+                "https://teamspirit19.netlify.app",
+                "http://localhost:8080"
         ));
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");

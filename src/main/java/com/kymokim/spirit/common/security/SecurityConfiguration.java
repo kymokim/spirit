@@ -78,16 +78,11 @@ public class SecurityConfiguration{
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "https://dev.team-spirit.click",
-                "https://teamspirit19.netlify.app",
-                "http://127.0.0.1:8080",
-                "https://kymokim.iptime.org",
-                "http://kymokim.iptime.org"
+                "https://teamspirit19.netlify.app"
         ));
-        configuration.addExposedHeader("*");
-        configuration.addAllowedOrigin("*");
-        configuration.addAllowedOriginPattern("*");
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

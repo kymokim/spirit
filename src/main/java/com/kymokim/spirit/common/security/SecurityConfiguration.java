@@ -78,8 +78,12 @@ public class SecurityConfiguration{
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "https://dev.team-spirit.click",
-                "https://teamspirit19.netlify.app"
+                "https://teamspirit19.netlify.app",
+                "http://localhost:8080"
         ));
+        configuration.addExposedHeader("*");
+        configuration.addAllowedOrigin("*");
+        configuration.addAllowedOriginPattern("*");
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
 

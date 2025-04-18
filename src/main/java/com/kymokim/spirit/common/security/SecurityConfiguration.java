@@ -60,6 +60,9 @@ public class SecurityConfiguration{
 //                        .requestMatchers("/actuator/prometheus", "/actuator/prometheus/").permitAll()
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
+                        .requestMatchers("/api/store/get-by/keyword/**", "/api/store/get-by/distance", "/api/store/get-by/category/**").permitAll()
+                        .requestMatchers("/api/store/get-by/business-hours", "/api/store/get-by/radius", "/api/store/get-by/condition-search").permitAll()
+                        .requestMatchers("/api/store/get-by/main-banner").permitAll()
                         .requestMatchers("**exception**").permitAll()
                         .anyRequest().hasRole("USER")
                 )

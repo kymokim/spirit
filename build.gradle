@@ -45,8 +45,8 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
 	// Actuator
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'io.micrometer:micrometer-registry-prometheus'
+//	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	// QueryDsl
 	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'

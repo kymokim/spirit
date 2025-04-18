@@ -24,7 +24,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity // Spring Security에 대한 디버깅 모드를 사용하기 위한 어노테이션 (default : false)
-//@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
+@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
 public class SecurityConfiguration{
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -43,7 +43,7 @@ public class SecurityConfiguration{
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 // cors 설정 추가
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+//                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
                 .csrf(AbstractHttpConfigurer::disable) // REST API는 csrf 보안이 필요 없으므로 비활성화
 
@@ -52,7 +52,7 @@ public class SecurityConfiguration{
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 // 세션 캐시 해제
-                .requestCache(AbstractHttpConfigurer::disable)
+//                .requestCache(AbstractHttpConfigurer::disable)
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
@@ -64,11 +64,11 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/store/get-by/business-hours", "/api/store/get-by/radius", "/api/store/get-by/condition-search").permitAll()
                         .requestMatchers("/api/store/get-by/main-banner").permitAll()
                         .requestMatchers("**exception**").permitAll()
-                        .anyRequest().hasRole("USER")
+//                        .anyRequest().hasRole("USER")
                 )
 
                 //나머지 요청은 인증된 USER 접근 가능
-//                .authorizeHttpRequests(authorize-> authorize.anyRequest().hasRole("USER"))
+                .authorizeHttpRequests(authorize-> authorize.anyRequest().hasRole("USER"))
 
                 .exceptionHandling(handler -> handler
                         .authenticationEntryPoint(new CustomAuthenticationEntryPoint()) // 인증 실패
@@ -80,19 +80,19 @@ public class SecurityConfiguration{
         return http.build();
     }
 
-    @Bean           // 1. CORS 정책 Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "https://dev.team-spirit.click",
-                "https://teamspirit19.netlify.app"
-        ));
-        config.setAllowCredentials(true);
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowedOriginPatterns(List.of(
+//                "https://dev.team-spirit.click",
+//                "https://teamspirit19.netlify.app"
+//        ));
+//        config.setAllowCredentials(true);
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", config);
+//        return source;
+//    }
 }

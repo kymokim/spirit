@@ -16,7 +16,7 @@ public class SwaggerConfig {
     public OpenAPI openAPI() {
         Info info = new Info()
                 .version("v1.0.0")
-                .title("TEST")
+                .title("Spirit")
                 .description("API");
 
         SecurityScheme securityScheme = new SecurityScheme()

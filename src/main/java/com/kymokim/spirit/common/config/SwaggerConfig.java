@@ -15,9 +15,9 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         Info info = new Info()
-                .version("v1.0.1")
-                .title("Spirit api")
-                .description("api");
+                .version("v1.0.0")
+                .title("Spirit")
+                .description("API");
 
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
@@ -31,7 +31,6 @@ public class SwaggerConfig {
                 .addServersItem(new Server().url("https://dev.team-spirit.click").description("Dev Server"))
                 .addServersItem(new Server().url("https://team-spirit.click").description("Prod Server"))
                 .addServersItem(new Server().url("/").description("Local host"))
-                .addServersItem(new Server().url("https://kymokim.iptime.org:11080").description("temp"))
                 .components(components)
                 .addSecurityItem(securityRequirement)
                 .info(info);

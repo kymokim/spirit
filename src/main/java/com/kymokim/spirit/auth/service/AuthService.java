@@ -17,7 +17,9 @@ import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +76,19 @@ public class AuthService{
 
         if (!Objects.equals(verifiedSocialId, loginUserRqDto.getSocialInfoDto().getId())) {
             throw new CustomException(AuthErrorCode.INVALID_SOCIAL_TOKEN);
+        }
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        user.setRefreshToken(refreshToken);
+        authRepository.save(user);
+        return ResponseAuth.LoginUserRsDto.toDto(accessToken, refreshToken);
+    }
+
+    @Transactional
+    public ResponseAuth.LoginUserRsDto loginDev(RequestAuth.LoginUserRqDto loginUserRqDto) {
+        Auth user = authRepository.findBySocialInfo(loginUserRqDto.getSocialInfoDto().toEntity());
+        if(user == null) {
+            throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
         }
         String accessToken = jwtTokenProvider.createAccessToken(user.getId());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());

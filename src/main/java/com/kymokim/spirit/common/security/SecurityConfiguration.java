@@ -1,16 +1,12 @@
 package com.kymokim.spirit.common.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,14 +14,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity // Spring Security에 대한 디버깅 모드를 사용하기 위한 어노테이션 (default : false)
-//@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
-@EnableMethodSecurity(prePostEnabled = false, securedEnabled = false)
+@EnableMethodSecurity // @PreAuthorize, @PostAuthorize, @Secured 활성화
 public class SecurityConfiguration{
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -76,7 +70,9 @@ public class SecurityConfiguration{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
-                "https://teamspirit19.netlify.app"
+                "https://teamspirit19.netlify.app",
+                "https://dev.team-spirit.click",
+                "https://team-spirit.click"
         ));
         config.setAllowCredentials(true);
         config.addAllowedHeader("*");

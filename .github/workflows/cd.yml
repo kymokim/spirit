@@ -43,6 +43,8 @@ jobs:
       # 1. GitHub 저장소 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
         # 2. Java 버전 설정
       - name: Set up JDK 21

@@ -80,6 +80,13 @@ jobs:
           echo "    generate-ddl: false" >> ${APP_CONFIG_FILE}
           echo "    hibernate:" >> ${APP_CONFIG_FILE}
           echo "      ddl-auto: none" >> ${APP_CONFIG_FILE}
+          if [[ "${{ env.PROFILE }}" == "prod" ]]; then
+            echo "springdoc:" >> ${APP_CONFIG_FILE}
+            echo "  swagger-ui:" >> ${APP_CONFIG_FILE}
+            echo "    enabled: false" >> ${APP_CONFIG_FILE}
+            echo "  api-docs:" >> ${APP_CONFIG_FILE}
+            echo "    enabled: false" >> ${APP_CONFIG_FILE}
+          fi
 #          echo "management:" >> ${APP_CONFIG_FILE}
 #          echo "  metrics:" >> ${APP_CONFIG_FILE}
 #          echo "    tags:" >> ${APP_CONFIG_FILE}

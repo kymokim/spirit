@@ -44,7 +44,7 @@ public class SecurityConfiguration{
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/login-dev", "/api/auth/check-nickname").permitAll() // 로그인, 회원가입 허용
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll() //스웨거 허용
                         .requestMatchers("/api/location/get-address", "/api/location/get-coordinate").permitAll()
                         .requestMatchers("/api/store/get-by/keyword/**", "/api/store/get-by/distance", "/api/store/get-by/category/**").permitAll()

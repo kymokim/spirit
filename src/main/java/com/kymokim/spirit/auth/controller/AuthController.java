@@ -7,6 +7,7 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.common.exception.ErrorResponse;
 import com.kymokim.spirit.common.security.JwtTokenProvider;
 import com.kymokim.spirit.menu.controller.MenuController;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +68,19 @@ public class AuthController {
         ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginUser(loginUserRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User logged in successfully.")
+                .data(loginUserRsDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Profile("!prod")
+    @Hidden
+    @PostMapping("/login-dev")
+    public ResponseEntity<ResponseDto> loginDev(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
+        LOGGER.info("Auth/loginDev API called.");
+        ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginDev(loginUserRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Dev logged in successfully.")
                 .data(loginUserRsDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

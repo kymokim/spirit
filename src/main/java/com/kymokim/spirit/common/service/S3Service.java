@@ -12,11 +12,14 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -85,7 +88,7 @@ public class S3Service {
 
     private File convert(MultipartFile file) {
         // 원본 파일 이름으로 새 File 객체 생성
-        File convertFile = new File(file.getOriginalFilename());
+        File convertFile = new File(Objects.requireNonNull(file.getOriginalFilename()));
         try {
             // 파일이 성공적으로 생성되었는지 확인
             if (convertFile.createNewFile()) {
@@ -106,9 +109,9 @@ public class S3Service {
     public void deleteFile(String fileUrl) {
 
         try {
-            URL url = new URL(fileUrl);
+            URL url = URI.create(fileUrl).toURL();
             String filePath = url.getPath(); // URL의 경로 부분을 가져옴
-            String decodedFilePath = URLDecoder.decode(filePath, "UTF-8"); // 디코딩하여 원본 경로 추출
+            String decodedFilePath = URLDecoder.decode(filePath, StandardCharsets.UTF_8); // 디코딩하여 원본 경로 추출
 
             String objectKey = decodedFilePath;
             if (decodedFilePath.startsWith("/")) {

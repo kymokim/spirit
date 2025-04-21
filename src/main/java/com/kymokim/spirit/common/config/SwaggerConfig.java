@@ -24,15 +24,14 @@ public class SwaggerConfig {
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.APIKEY)
                 .in(SecurityScheme.In.HEADER).name("x-auth-token");
-        SecurityRequirement securityRequirement = new SecurityRequirement().addList("x-auth-token"); // "x-auth-token"를 사용합니다.
+        SecurityRequirement securityRequirement = new SecurityRequirement().addList("x-auth-token");
 
         Components components = new Components().addSecuritySchemes("x-auth-token", securityScheme);
 
 
         return new OpenAPI()
                 .addServersItem(new Server().url("https://dev.team-spirit.click").description("Dev Server"))
-                .addServersItem(new Server().url("https://team-spirit.click").description("Prod Server"))
-                .addServersItem(new Server().url("/").description("Local host"))
+                .addServersItem(new Server().url("/").description("Local Host"))
                 .components(components)
                 .addSecurityItem(securityRequirement)
                 .info(info);
@@ -57,10 +56,10 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public GroupedOpenApi archive(){
-        String[] pathsToMatch = {"/api/archive/**"};
+    public GroupedOpenApi location(){
+        String[] pathsToMatch = {"/api/location/**"};
         return GroupedOpenApi.builder()
-                .group("Archive")
+                .group("Location")
                 .pathsToMatch(pathsToMatch)
                 .build();
     }

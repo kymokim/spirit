@@ -6,6 +6,7 @@ import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.dto.ResponseAuth;
 import com.kymokim.spirit.auth.entity.PersonalInfo;
+import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
@@ -71,6 +72,27 @@ public class AuthService{
         Auth user = authRepository.findBySocialInfo(loginUserRqDto.getSocialInfoDto().toEntity());
         if(user == null) {
             throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
+        }
+        String verifiedSocialId = socialTokenVerifier.verify(loginUserRqDto.getSocialInfoDto().getType(), loginUserRqDto.getSocialToken());
+
+        if (!Objects.equals(verifiedSocialId, loginUserRqDto.getSocialInfoDto().getId())) {
+            throw new CustomException(AuthErrorCode.INVALID_SOCIAL_TOKEN);
+        }
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
+        user.setRefreshToken(refreshToken);
+        authRepository.save(user);
+        return ResponseAuth.LoginUserRsDto.toDto(accessToken, refreshToken);
+    }
+
+    @Transactional
+    public ResponseAuth.LoginUserRsDto loginAdmin(RequestAuth.LoginUserRqDto loginUserRqDto) {
+        Auth user = authRepository.findBySocialInfo(loginUserRqDto.getSocialInfoDto().toEntity());
+        if(user == null) {
+            throw new CustomException(AuthErrorCode.USER_NOT_FOUND);
+        }
+        if (!user.getRoles().contains(Role.ADMIN)) {
+            throw new CustomException(AuthErrorCode.ADMIN_NOT_FOUND);
         }
         String verifiedSocialId = socialTokenVerifier.verify(loginUserRqDto.getSocialInfoDto().getType(), loginUserRqDto.getSocialToken());
 

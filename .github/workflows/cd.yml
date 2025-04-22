@@ -80,6 +80,10 @@ jobs:
           echo "    generate-ddl: false" >> ${APP_CONFIG_FILE}
           echo "    hibernate:" >> ${APP_CONFIG_FILE}
           echo "      ddl-auto: none" >> ${APP_CONFIG_FILE}
+          echo "management:" >> ${APP_CONFIG_FILE}
+          echo "  metrics:" >> ${APP_CONFIG_FILE}
+          echo "    tags:" >> ${APP_CONFIG_FILE}
+          echo "      application: ${{ env.SERVICE }}-${{ env.PROFILE }}" >> ${APP_CONFIG_FILE}
           if [[ "${{ env.PROFILE }}" == "prod" ]]; then
             echo "springdoc:" >> ${APP_CONFIG_FILE}
             echo "  swagger-ui:" >> ${APP_CONFIG_FILE}
@@ -87,10 +91,6 @@ jobs:
             echo "  api-docs:" >> ${APP_CONFIG_FILE}
             echo "    enabled: false" >> ${APP_CONFIG_FILE}
           fi
-#          echo "management:" >> ${APP_CONFIG_FILE}
-#          echo "  metrics:" >> ${APP_CONFIG_FILE}
-#          echo "    tags:" >> ${APP_CONFIG_FILE}
-#          echo "      application: ${{ env.SERVICE }}-${{ env.PROFILE }}" >> ${APP_CONFIG_FILE}
 
       # application-S3.properties 생성
       - name: Create application-s3.properties

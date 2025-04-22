@@ -45,7 +45,8 @@ public class SecurityConfiguration{
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/login-dev", "/api/auth/login-admin", "/api/auth/check-nickname").permitAll()
-                        .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**", "/actuator/prometheus").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers("/api/location/get-address", "/api/location/get-coordinate").permitAll()
                         .requestMatchers("/api/store/get-by/keyword/**", "/api/store/get-by/distance", "/api/store/get-by/category/**").permitAll()
                         .requestMatchers("/api/store/get-by/business-hours", "/api/store/get-by/radius", "/api/store/get-by/condition-search").permitAll()

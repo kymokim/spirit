@@ -1,0 +1,87 @@
+package com.kymokim.spirit.report.controller;
+
+
+import com.kymokim.spirit.common.dto.ResponseDto;
+import com.kymokim.spirit.report.dto.RequestReport;
+import com.kymokim.spirit.report.dto.ResponseReport;
+import com.kymokim.spirit.report.entity.ReportStatus;
+import com.kymokim.spirit.report.service.ReportService;
+import io.jsonwebtoken.io.IOException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "Report API")
+@Controller
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/report")
+public class ReportController {
+    @Autowired
+    private final ReportService reportService;
+    private final Logger LOGGER = LoggerFactory.getLogger(ReportController.class);
+
+    @PostMapping(value = "/create")
+    public ResponseEntity<ResponseDto> createReport(@RequestBody RequestReport.CreateReportRqDto createReportRqDto) throws IOException {
+        LOGGER.info("Report/createReport API called.");
+        ResponseReport.CreateReportRsDto createReportRsDto = reportService.createReport(createReportRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Report created successfully.")
+                .data(createReportRsDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "신고된 가게 리스트 조회")
+    @GetMapping("/store")
+    public ResponseEntity<ResponseDto> getStoreReports(
+            @PageableDefault(size = 10) Pageable pageable, @RequestParam(value = "status", required = false) ReportStatus reportStatus) {
+        LOGGER.info("Store Report /getStoreReports API called.");
+        Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "신고된 리뷰 리스트 조회")
+    @GetMapping("/review")
+    public ResponseEntity<ResponseDto> getReviewReports(
+            @PageableDefault(size = 10) Pageable pageable, @RequestParam(value = "status", required = false) ReportStatus reportStatus) {
+        LOGGER.info("Store Report /getReviewReports API called.");
+        Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getReviewReports(pageable, reportStatus);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported review list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+    @Operation(summary = "신고 상태 변경")
+    @PatchMapping("status/{reportId}")
+    public ResponseEntity<ResponseDto> updateReportStatus(
+            @PathVariable Long reportId,
+            @RequestParam ReportStatus status) {
+
+        reportService.updateReportStatus(status, reportId);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Report status updated successfully.")
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+
+}

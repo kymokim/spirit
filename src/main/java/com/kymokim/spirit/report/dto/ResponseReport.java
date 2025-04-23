@@ -16,18 +16,6 @@ public class ResponseReport {
 
     @Getter
     @Builder
-    public static class CreateReportRsDto {
-        private Long id;
-
-        public static ResponseReport.CreateReportRsDto toDto(Report report) {
-            return ResponseReport.CreateReportRsDto.builder()
-                    .id(report.getId())
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
     public static class StoreReportListDto {
         private Long id;
         private LocalDateTime reportedAt;
@@ -39,7 +27,7 @@ public class ResponseReport {
         private Long reporterId;
         private String reporterNickname;
 
-        public static StoreReportListDto toDto(Report report, Store store, Auth auth) {
+        public static StoreReportListDto toDto(Report report, Store store) {
             return StoreReportListDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
@@ -48,8 +36,8 @@ public class ResponseReport {
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())
-                    .reporterId(auth.getId())
-                    .reporterNickname(auth.getNickname())
+                    .reporterId(report.getReporter().getId())
+                    .reporterNickname(report.getReporter().getNickname())
                     .build();
         }
 
@@ -71,7 +59,7 @@ public class ResponseReport {
         private Long writerId;
         private String writerNickname;
 
-        public static ReviewReportListDto toDto(Report report, Review review, Store store, Auth auth) {
+        public static ReviewReportListDto toDto(Report report, Review review, Store store) {
             return ReviewReportListDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
@@ -81,8 +69,7 @@ public class ResponseReport {
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())
-                    .reporterId(auth.getId())
-                    .reporterNickname(auth.getNickname())
+                    .reporterId(report.getReporter().getId())
                     .writerId(review.getWriter().getId())
                     .writerNickname(review.getWriter().getNickname())
                     .build();

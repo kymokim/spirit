@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class ReportController {
     private final Logger LOGGER = LoggerFactory.getLogger(ReportController.class);
 
     @PostMapping(value = "/create")
-    public ResponseEntity<ResponseDto> createReport(@RequestBody RequestReport.CreateReportRqDto createReportRqDto) throws IOException {
+    public ResponseEntity<ResponseDto> createReport(@RequestBody RequestReport.CreateReportRqDto createReportRqDto){
         LOGGER.info("Report/createReport API called.");
         reportService.createReport(createReportRqDto);
         ResponseDto responseDto = ResponseDto.builder()
@@ -45,9 +46,9 @@ public class ReportController {
 
     @Operation(summary = "신고된 가게 리스트 조회")
     @GetMapping("/store")
-    public ResponseEntity<ResponseDto> getStoreReports(
-            @PageableDefault(size = 10) Pageable pageable, @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Store Report /getStoreReports API called.");
+    public ResponseEntity<ResponseDto> getStoreReports(@PageableDefault(size = 10) Pageable pageable,
+                                                       @RequestParam(value = "status") ReportStatus reportStatus) {
+        LOGGER.info("Report/getStoreReports API called.");
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported store list retrieved successfully.")
@@ -56,26 +57,24 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "우선 신고 사유가 있는 가게 신고 조회")
+    @Operation(summary = "우선 신고 사유가 있는 가게 신고 리스트 조회")
     @GetMapping("/store/priority")
-    public ResponseEntity<ResponseDto> getPriorityStoreReports(
-            @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Store Report /getPriorityStoreReports API called.");
+    public ResponseEntity<ResponseDto> getPriorityStoreReports(@PageableDefault(size = 10) Pageable pageable,
+                                                               @RequestParam(value = "status") ReportStatus reportStatus) {
+        LOGGER.info("Report/getPriorityStoreReports API called.");
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getPriorityStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported priority store list retrieved successfully.")
                 .data(dtoPage)
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @Operation(summary = "신고된 리뷰 리스트 조회")
     @GetMapping("/review")
-    public ResponseEntity<ResponseDto> getReviewReports(
-            @PageableDefault(size = 10) Pageable pageable,  @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Store Report /getReviewReports API called.");
+    public ResponseEntity<ResponseDto> getReviewReports(@PageableDefault(size = 10) Pageable pageable,
+                                                        @RequestParam(value = "status") ReportStatus reportStatus) {
+        LOGGER.info("Report/getReviewReports API called.");
         Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getReviewReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported review list retrieved successfully.")
@@ -84,29 +83,25 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "우선 신고 사유가 있는 리뷰 신고 조회")
+    @Operation(summary = "우선 신고 사유가 있는 리뷰 신고 리스트 조회")
     @GetMapping("/review/priority")
-    public ResponseEntity<ResponseDto> getPriorityReviewReports(
-            @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Review Report /getPriorityReviewReports API called.");
+    public ResponseEntity<ResponseDto> getPriorityReviewReports(@PageableDefault(size = 10) Pageable pageable,
+                                                                @RequestParam(value = "status") ReportStatus reportStatus) {
+        LOGGER.info("Report/getPriorityReviewReports API called.");
         Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getPriorityReviewReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported priority review list retrieved successfully.")
                 .data(dtoPage)
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "신고 상태 변경")
-    @PatchMapping("status/{reportId}")
-    public ResponseEntity<ResponseDto> updateReportStatus(
-            @PathVariable Long reportId,
-            @RequestParam ReportStatus status) {
-
-        reportService.handleReport(status, reportId);
-
+    @PatchMapping("handle/{reportId}")
+    public ResponseEntity<ResponseDto> handleReport(@PathVariable Long reportId, @RequestParam ReportStatus reportStatus) {
+        LOGGER.info("Report/handleReport API called.");
+        reportService.handleReport(reportStatus, reportId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report status updated successfully.")
                 .build();

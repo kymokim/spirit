@@ -64,8 +64,6 @@ public class ReportService {
         Auth reporter = resolveUser();
         Report report = createReportRqDto.toEntity(reporter);
         reportRepository.save(report);
-
-
     }
 
     @Transactional
@@ -104,16 +102,13 @@ public class ReportService {
 
     @Transactional
     public Page<ResponseReport.ReviewReportListDto> getReviewReports(Pageable pageable, ReportStatus reportStatus) {
-
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
                         ReportTarget.REVIEW, reportStatus, pageable);
             return reportPage.map(report ->
                     ResponseReport.ReviewReportListDto.toDto(
                             report,
-                            resolveReview(report.getTargetId()),
-                            resolveReview(report.getTargetId()).getStore()
-
+                            resolveReview(report.getTargetId())
                     )
             );
         }, 3);
@@ -133,9 +128,7 @@ public class ReportService {
             return reportPage.map(report ->
                     ResponseReport.ReviewReportListDto.toDto(
                             report,
-                            resolveReview(report.getTargetId()),
-                            resolveReview(report.getTargetId()).getStore()
-
+                            resolveReview(report.getTargetId())
                     )
             );
         }, 3);
@@ -143,8 +136,7 @@ public class ReportService {
 
     @Transactional
     public void handleReport(ReportStatus reportStatus, Long reportId) {
-        Report report = resolveReport(reportId); // 예외 처리 포함된 리졸버
+        Report report = resolveReport(reportId);
         report.handleReport(reportStatus);
     }
-
 }

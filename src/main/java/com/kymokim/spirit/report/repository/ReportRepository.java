@@ -11,9 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-    Page<Report> findAllByReportTargetOrderByReportedAtAsc(ReportTarget reportTarget, Pageable pageable);
     Page<Report> findAllByReportTargetAndReportStatusOrderByReportedAtAsc(ReportTarget reportTarget, ReportStatus reportStatus, Pageable pageable);
-
     Page<Report> findAllByReportTargetAndReportStatusAndReportReasonInOrderByReportedAtAsc(
             ReportTarget reportTarget,
             ReportStatus reportStatus,

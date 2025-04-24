@@ -59,13 +59,13 @@ public class ResponseReport {
         private Long writerId;
         private String writerNickname;
 
-        public static ReviewReportListDto toDto(Report report, Review review, Store store) {
+        public static ReviewReportListDto toDto(Report report, Review review) {
             return ReviewReportListDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
                     .reviewId(review.getId())
-                    .storeId(store.getId())
-                    .storeName(store.getName())
+                    .storeId(review.getStore().getId())
+                    .storeName(review.getStore().getName())
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())

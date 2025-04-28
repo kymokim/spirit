@@ -172,7 +172,7 @@ jobs:
       # EC2 인스턴스에 SSH로 접속하여 Docker 이미지 풀 및 실행(prod)
       - name: Deploy to EC2 via SSH
         if: ${{ env.PROFILE == 'prod' }}
-        uses: appleboy/ssh-action@v0.1.5
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -192,19 +192,29 @@ jobs:
             # Docker 컨테이너 실행
             docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
             ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
       - name: Deploy to MAC via SSH
         if: ${{ env.PROFILE == 'prod' }}
-        uses: appleboy/ssh-action@v0.1.5
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.OPM_HOST }}
           username: ${{ secrets.OPM_USERNAME }}
           password: ${{ secrets.OPM_PASSWORD }}
           port: ${{ secrets.MAC_PORT }}
           script: |
+            set -e
+            
+            mkdir -p ~/.aws
+            echo "[default]" > ~/.aws/credentials
+            echo "aws_access_key_id = ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+            echo "aws_secret_access_key = ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+            echo "[default]" > ~/.aws/config
+            echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
+            
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
   
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
@@ -212,16 +222,20 @@ jobs:
             
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
-            docker run -d --platform linux/arm64 \
+            docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
             ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
+            
+            rm -f ~/.aws/credentials
+            rm -f ~/.aws/config
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH
         if: ${{ env.PROFILE == 'dev' }}
-        uses: appleboy/ssh-action@v0.1.5
+        uses: appleboy/ssh-action@v1.2.2
         with:
           host: ${{ secrets.OPM_HOST }}
           username: ${{ secrets.OPM_USERNAME }}
@@ -244,6 +258,7 @@ jobs:
             # Docker 컨테이너 실행
             docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
             ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest

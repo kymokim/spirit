@@ -199,41 +199,37 @@ jobs:
 
       - name: Deploy to MAC via SSH
         if: ${{ env.PROFILE == 'prod' }}
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.OPM_HOST }}
-          username: ${{ secrets.OPM_USERNAME }}
-          password: ${{ secrets.OPM_PASSWORD }}
-          port: ${{ secrets.MAC_PORT }}
-          script: |
+        run: |
+          sshpass -p "${{ secrets.OPM_PASSWORD }}" ssh -o StrictHostKeyChecking=no -p ${{ secrets.MAC_PORT }} ${{ secrets.OPM_USERNAME }}@${{ secrets.OPM_HOST }} << 'EOF'
             set -e
             export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
             export DOCKER_CONFIG=/tmp/docker-config
             mkdir -p /tmp/docker-config
-            
+          
             mkdir -p ~/.aws
             echo "[default]" > ~/.aws/credentials
-            echo "aws_access_key_id = ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}" >> ~/.aws/credentials
-            echo "aws_secret_access_key = ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+            echo "aws_access_key_id = '${{ secrets.AWS_ECR_ACCESS_KEY_ID }}'" >> ~/.aws/credentials
+            echo "aws_secret_access_key = '${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}'" >> ~/.aws/credentials
             echo "[default]" > ~/.aws/config
-            echo "region = ${{ secrets.AWS_REGION }}" >> ~/.aws/config
-            
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  
-            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
-            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
-            
-            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
-
+            echo "region = '${{ secrets.AWS_REGION }}'" >> ~/.aws/config
+          
+            aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
+      
+            docker stop '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
+            docker rm '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
+      
+            docker pull '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
+      
             docker run -d \
-            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
-            --restart unless-stopped \
-            -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
-            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
-            
+              --name '${{ env.SERVICE }}-${{ env.PROFILE }}' \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -e SPRING_PROFILES_ACTIVE='${{ env.PROFILE }}' \
+              '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
+      
             rm -f ~/.aws/credentials
             rm -f ~/.aws/config
+          EOF
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH

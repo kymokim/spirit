@@ -205,23 +205,13 @@ jobs:
           password: ${{ secrets.OPM_PASSWORD }}
           port: ${{ secrets.MAC_PORT }}
           script: |
-            export PATH="/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
-            export DOCKER_HOST="unix:///Users/${{ secrets.OPM_USERNAME }}/Library/Containers/com.docker.docker/Data/docker-cli.sock"
-            
-            # AWS CLI로 ECR 로그인
-            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
-            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
-            export AWS_REGION=${{ secrets.AWS_REGION }}
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker --config /tmp/.docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-            
-            # 기존 컨테이너가 있다면 종료하고 삭제
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             
-            # ECR에서 Docker 이미지 풀
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
-            # Docker 컨테이너 실행
             docker run -d --platform linux/arm64 \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
             -p 8080:8080 \

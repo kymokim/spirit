@@ -206,8 +206,10 @@ jobs:
           password: ${{ secrets.OPM_PASSWORD }}
           port: ${{ secrets.MAC_PORT }}
           script: |
-            export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
             set -e
+            export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+            export DOCKER_CONFIG=/tmp/docker-config
+            mkdir -p /tmp/docker-config
             
             mkdir -p ~/.aws
             echo "[default]" > ~/.aws/credentials

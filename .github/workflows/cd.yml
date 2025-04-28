@@ -206,6 +206,7 @@ jobs:
           password: ${{ secrets.OPM_PASSWORD }}
           port: ${{ secrets.MAC_PORT }}
           script: |
+            export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
             set -e
             
             mkdir -p ~/.aws

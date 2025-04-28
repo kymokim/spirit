@@ -205,7 +205,7 @@ jobs:
           password: ${{ secrets.OPM_PASSWORD }}
           port: ${{ secrets.MAC_PORT }}
           script: |
-            export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+            export PATH="/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
             export DOCKER_HOST="unix:///Users/${{ secrets.OPM_USERNAME }}/Library/Containers/com.docker.docker/Data/docker-cli.sock"
             
             # AWS CLI로 ECR 로그인

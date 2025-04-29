@@ -23,6 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Tag(name = "Report API")
 @Controller
@@ -57,6 +58,18 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "가게 신고 상세 조회")
+    @GetMapping("/store/{storeId}")
+    public ResponseEntity<ResponseDto> getReportsByStoreId(@PathVariable Long storeId) {
+        LOGGER.info("Report/getReportsByStoreId API called.");
+        List<ResponseReport.StoreReportDto> dtoList = reportService.getReportsByStoreId(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported by storeId list retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "우선 신고 사유가 있는 가게 신고 리스트 조회")
     @GetMapping("/store/priority")
     public ResponseEntity<ResponseDto> getPriorityStoreReports(@PageableDefault(size = 10) Pageable pageable,
@@ -69,6 +82,9 @@ public class ReportController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+
+
 
     @Operation(summary = "신고된 리뷰 리스트 조회")
     @GetMapping("/review")
@@ -83,18 +99,6 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "우선 신고 사유가 있는 리뷰 신고 리스트 조회")
-    @GetMapping("/review/priority")
-    public ResponseEntity<ResponseDto> getPriorityReviewReports(@PageableDefault(size = 10) Pageable pageable,
-                                                                @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Report/getPriorityReviewReports API called.");
-        Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getPriorityReviewReports(pageable, reportStatus);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported priority review list retrieved successfully.")
-                .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "신고 상태 변경")

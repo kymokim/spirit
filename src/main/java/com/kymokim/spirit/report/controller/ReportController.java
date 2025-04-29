@@ -58,8 +58,8 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "신고 상세 조회")
-    @GetMapping("/{targetId}")
+    @Operation(summary = "특정 타겟(store, review) 신고 전체 리스트 조회")
+    @GetMapping("/get-by/target/{targetId}")
     public ResponseEntity<ResponseDto> getReportsByTargetId(@RequestParam(value = "target")ReportTarget reportTarget, @PathVariable Long targetId) {
         LOGGER.info("Report/getReportsByTargetId API called.");
         List<ResponseReport.ReportDto> dtoList = reportService.getReportsByTargetId(reportTarget, targetId);

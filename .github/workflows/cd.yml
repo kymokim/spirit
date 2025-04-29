@@ -170,17 +170,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-buildx-
 
-      - name: Build and Push Docker image (multi-platform)
+      - name: Build Gradle project
         run: |
           ./gradlew build
 
+      - name: Build and Push Docker image (multi-platform)
+        run: |
           docker buildx create --use --name mybuilder --driver docker-container --driver-opt network=host || docker buildx use mybuilder
 
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
-            -t ${{ env.SERVICE }}:${{ env.PROFILE }}-latest \
             -t ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest \
             --push .
 

@@ -199,37 +199,29 @@ jobs:
 
       - name: Deploy to MAC via SSH
         if: ${{ env.PROFILE == 'prod' }}
-        run: |
-          sshpass -p "${{ secrets.OPM_PASSWORD }}" ssh -tt -o StrictHostKeyChecking=no -p ${{ secrets.MAC_PORT }} ${{ secrets.OPM_USERNAME }}@${{ secrets.OPM_HOST }} << 'EOF'
-            set -e
-            export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
-            export DOCKER_CONFIG=/tmp/docker-config
-            mkdir -p /tmp/docker-config
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.OPM_HOST }}
+          username: ${{ secrets.OPM_USERNAME }}
+          password: ${{ secrets.OPM_PASSWORD }}
+          port: ${{ secrets.MAC_PORT }}
+          script: |
+            aws configure set aws_access_key_id ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
+            aws configure set aws_secret_access_key ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
+            aws configure set default.region ${{ secrets.AWS_REGION }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            
+            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            
+            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
-            mkdir -p /tmp/aws
-            export AWS_SHARED_CREDENTIALS_FILE=/tmp/aws/credentials
-            export AWS_CONFIG_FILE=/tmp/aws/config
-
-            export AWS_ACCESS_KEY_ID='${{ secrets.AWS_ECR_ACCESS_KEY_ID }}'
-            export AWS_SECRET_ACCESS_KEY='${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}'
-            export AWS_REGION='${{ secrets.AWS_REGION }}'
-            aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
-      
-            docker stop '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
-            docker rm '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
-      
-            docker pull '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
-      
             docker run -d \
-              --name '${{ env.SERVICE }}-${{ env.PROFILE }}' \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              -e SPRING_PROFILES_ACTIVE='${{ env.PROFILE }}' \
-              '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
-      
-            rm -f ~/.aws/credentials
-            rm -f ~/.aws/config
-          EOF
+            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH

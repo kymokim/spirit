@@ -5,8 +5,8 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.report.dto.RequestReport;
 import com.kymokim.spirit.report.dto.ResponseReport;
 import com.kymokim.spirit.report.entity.ReportStatus;
+import com.kymokim.spirit.report.entity.ReportTarget;
 import com.kymokim.spirit.report.service.ReportService;
-import io.jsonwebtoken.io.IOException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -58,13 +58,13 @@ public class ReportController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "가게 신고 상세 조회")
-    @GetMapping("/store/{storeId}")
-    public ResponseEntity<ResponseDto> getReportsByStoreId(@PathVariable Long storeId) {
-        LOGGER.info("Report/getReportsByStoreId API called.");
-        List<ResponseReport.StoreReportDto> dtoList = reportService.getReportsByStoreId(storeId);
+    @Operation(summary = "신고 상세 조회")
+    @GetMapping("/{targetId}")
+    public ResponseEntity<ResponseDto> getReportsByTargetId(@RequestParam(value = "target")ReportTarget reportTarget, @PathVariable Long targetId) {
+        LOGGER.info("Report/getReportsByTargetId API called.");
+        List<ResponseReport.ReportDto> dtoList = reportService.getReportsByTargetId(reportTarget, targetId);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported by storeId list retrieved successfully.")
+                .message("Reported by target list retrieved successfully.")
                 .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

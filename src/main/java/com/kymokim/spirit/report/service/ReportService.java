@@ -5,7 +5,6 @@ import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
-import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.report.dto.RequestReport;
 import com.kymokim.spirit.report.dto.ResponseReport;
 import com.kymokim.spirit.report.entity.Report;
@@ -104,16 +103,6 @@ public class ReportService {
         }, 3);
     }
 
-    @Transactional(readOnly = true)
-    public List<ResponseReport.StoreReportDto> getReportsByStoreId(Long storeId) {
-        List<Report> reports = reportRepository.findAllByReportTargetAndTargetId(ReportTarget.STORE, storeId);
-
-        List<ResponseReport.StoreReportDto> reportList = new ArrayList<>();
-        reports.forEach(report -> reportList.add(ResponseReport.StoreReportDto.toDto(report)));
-
-        return reportList;
-
-    }
 
     @Transactional(readOnly = true)
     public Page<ResponseReport.ReviewReportListDto> getReviewReports(Pageable pageable, ReportStatus reportStatus) {
@@ -127,6 +116,18 @@ public class ReportService {
                     )
             );
         }, 3);
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<ResponseReport.ReportDto> getReportsByTargetId(ReportTarget reportTarget, Long targetId) {
+        List<Report> reports = reportRepository.findAllByReportTargetAndTargetIdAndReportStatus(reportTarget, targetId, ReportStatus.PENDING);
+
+        List<ResponseReport.ReportDto> reportList = new ArrayList<>();
+        reports.forEach(report -> reportList.add(ResponseReport.ReportDto.toDto(report)));
+
+        return reportList;
+
     }
 
 

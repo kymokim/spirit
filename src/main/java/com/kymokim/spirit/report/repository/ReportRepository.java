@@ -19,4 +19,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             Pageable pageable
     );
 
+    List<Report> findAllByReportTargetAndTargetIdAndReportStatus(
+            ReportTarget reportTarget,
+            Long targetId,
+            ReportStatus reportStatus
+    );
+
 }

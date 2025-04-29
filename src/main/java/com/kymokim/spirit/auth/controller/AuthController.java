@@ -73,6 +73,18 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Hidden
+    @PostMapping("/login-admin")
+    public ResponseEntity<ResponseDto> loginAdmin(@Valid @RequestBody RequestAuth.LoginUserRqDto loginUserRqDto) {
+        LOGGER.info("Auth/loginAdmin API called.");
+        ResponseAuth.LoginUserRsDto loginUserRsDto = authService.loginAdmin(loginUserRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Admin logged in successfully.")
+                .data(loginUserRsDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Profile("!prod")
     @Hidden
     @PostMapping("/login-dev")

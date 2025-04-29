@@ -205,7 +205,7 @@ jobs:
             export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
             export DOCKER_CONFIG=/tmp/docker-config
             mkdir -p /tmp/docker-config
-#
+
 #            mkdir -p ~/.aws
 #            echo "[default]" > ~/.aws/credentials
 #            echo "aws_access_key_id = '${{ secrets.AWS_ECR_ACCESS_KEY_ID }}'" >> ~/.aws/credentials

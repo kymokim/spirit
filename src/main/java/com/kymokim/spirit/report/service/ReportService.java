@@ -19,13 +19,15 @@ import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -66,7 +68,7 @@ public class ReportService {
         reportRepository.save(report);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Page<ResponseReport.StoreReportListDto> getStoreReports(Pageable pageable, ReportStatus reportStatus) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
@@ -80,7 +82,8 @@ public class ReportService {
         }, 3);
     }
 
-    @Transactional
+
+    @Transactional(readOnly = true)
     public Page<ResponseReport.StoreReportListDto> getPriorityStoreReports(Pageable pageable, ReportStatus reportStatus) {
         List<ReportReason> priorityReasons = List.of(
                 ReportReason.INAPPROPRIATE_LANGUAGE,
@@ -100,7 +103,8 @@ public class ReportService {
         }, 3);
     }
 
-    @Transactional
+
+    @Transactional(readOnly = true)
     public Page<ResponseReport.ReviewReportListDto> getReviewReports(Pageable pageable, ReportStatus reportStatus) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
@@ -114,25 +118,18 @@ public class ReportService {
         }, 3);
     }
 
-    @Transactional
-    public Page<ResponseReport.ReviewReportListDto> getPriorityReviewReports(Pageable pageable, ReportStatus reportStatus) {
-        List<ReportReason> priorityReasons = List.of(
-                ReportReason.INAPPROPRIATE_LANGUAGE,
-                ReportReason.INAPPROPRIATE_PHOTO,
-                ReportReason.VIOLATION_OF_GUIDELINES
-        );
-        return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusAndReportReasonInOrderByReportedAtAsc(
-                    ReportTarget.REVIEW, reportStatus, priorityReasons, pageable);
 
-            return reportPage.map(report ->
-                    ResponseReport.ReviewReportListDto.toDto(
-                            report,
-                            resolveReview(report.getTargetId())
-                    )
-            );
-        }, 3);
+    @Transactional(readOnly = true)
+    public List<ResponseReport.ReportDto> getReportsByTargetId(ReportTarget reportTarget, Long targetId) {
+        List<Report> reports = reportRepository.findAllByReportTargetAndTargetIdAndReportStatus(reportTarget, targetId, ReportStatus.PENDING);
+
+        List<ResponseReport.ReportDto> reportList = new ArrayList<>();
+        reports.forEach(report -> reportList.add(ResponseReport.ReportDto.toDto(report)));
+
+        return reportList;
+
     }
+
 
     @Transactional
     public void handleReport(ReportStatus reportStatus, Long reportId) {

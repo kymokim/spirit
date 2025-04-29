@@ -133,33 +133,63 @@ jobs:
           echo "security.aes.key=${{ secrets.AES_KEY }}" >> ${APP_CONFIG_FILE}
           echo "security.aes.iv=${{ secrets.AES_IV }}" >> ${APP_CONFIG_FILE}
 
-      # 3. Gradle 빌드 및 Docker 이미지 생성
-      - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
-
-      - name: Build Docker image
-        run: |
-          # Gradle 빌드 명령어 실행
-          ./gradlew build
-          # Docker 이미지 빌드
-          docker build -t ${{ env.SERVICE }}:${{ env.PROFILE }}-latest .
-      # 4. AWS 자격증명
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      # 5. DockerHub / ECR 로그인
+
       - name: Login to AWS ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-      # 6. Docker 이미지 ECR에 푸시
-      - name: Push Docker image to ECR
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Build Gradle project
         run: |
-          docker tag ${{ env.SERVICE }}:${{ env.PROFILE }}-latest ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
-          docker push ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
+          ./gradlew build
+
+      - name: Build and Push Docker image (multi-platform)
+        run: |
+          docker buildx create --use --name mybuilder --driver docker-container --driver-opt network=host || docker buildx use mybuilder
+
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            -t ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest \
+            --push .
+
+      - name: Move new cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
   deploy:
     runs-on: ubuntu-latest
     needs:
@@ -185,6 +215,7 @@ jobs:
             # 기존 컨테이너가 있다면 종료하고 삭제
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
             
             # ECR에서 Docker 이미지 풀
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
@@ -199,37 +230,33 @@ jobs:
 
       - name: Deploy to MAC via SSH
         if: ${{ env.PROFILE == 'prod' }}
-        run: |
-          sshpass -p "${{ secrets.OPM_PASSWORD }}" ssh -tt -o StrictHostKeyChecking=no -p ${{ secrets.MAC_PORT }} ${{ secrets.OPM_USERNAME }}@${{ secrets.OPM_HOST }} << 'EOF'
-            set -e
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.OPM_HOST }}
+          username: ${{ secrets.OPM_USERNAME }}
+          password: ${{ secrets.OPM_PASSWORD }}
+          port: ${{ secrets.MAC_PORT }}
+          script: |
             export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
-            export DOCKER_CONFIG=/tmp/docker-config
-            mkdir -p /tmp/docker-config
-          
-            mkdir -p ~/.aws
-            echo "[default]" > ~/.aws/credentials
-            echo "aws_access_key_id = '${{ secrets.AWS_ECR_ACCESS_KEY_ID }}'" >> ~/.aws/credentials
-            echo "aws_secret_access_key = '${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}'" >> ~/.aws/credentials
-            echo "[default]" > ~/.aws/config
-            echo "region = '${{ secrets.AWS_REGION }}'" >> ~/.aws/config
-          
-            aws ecr get-login-password --region '${{ secrets.AWS_REGION }}' | docker login --username AWS --password-stdin '${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com'
-      
-            docker stop '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
-            docker rm '${{ env.SERVICE }}-${{ env.PROFILE }}' || true
-      
-            docker pull '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
-      
+            set -e
+            
+            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ECR_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_ECR_SECRET_ACCESS_KEY }}
+            export AWS_REGION=${{ secrets.AWS_REGION }}
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+            
+            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
+            
+            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
+
             docker run -d \
-              --name '${{ env.SERVICE }}-${{ env.PROFILE }}' \
-              --restart unless-stopped \
-              -p 8080:8080 \
-              -e SPRING_PROFILES_ACTIVE='${{ env.PROFILE }}' \
-              '${{ env.ECR_URI }}:${{ env.PROFILE }}-latest'
-      
-            rm -f ~/.aws/credentials
-            rm -f ~/.aws/config
-          EOF
+            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH
@@ -250,6 +277,7 @@ jobs:
             # 기존 컨테이너가 있다면 종료하고 삭제
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
             
             # ECR에서 Docker 이미지 풀
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest

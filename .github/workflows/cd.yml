@@ -215,6 +215,7 @@ jobs:
             # 기존 컨테이너가 있다면 종료하고 삭제
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
             
             # ECR에서 Docker 이미지 풀
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
@@ -246,6 +247,7 @@ jobs:
             
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
             
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
@@ -275,6 +277,7 @@ jobs:
             # 기존 컨테이너가 있다면 종료하고 삭제
             docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
             docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
+            docker image prune -f
             
             # ECR에서 Docker 이미지 풀
             docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest

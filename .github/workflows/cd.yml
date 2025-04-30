@@ -92,6 +92,15 @@ jobs:
             echo "    enabled: false" >> ${APP_CONFIG_FILE}
           fi
 
+      - name: Create application-mac.yml dynamically
+        if: ${{ env.PROFILE == 'prod' }}
+        env:
+          APP_CONFIG_FILE: src/main/resources/application-mac.yml
+        run: |
+          echo "spring:" >> ${APP_CONFIG_FILE}
+          echo "  datasource:" >> ${APP_CONFIG_FILE}
+          echo "    url: ${{ secrets.DB_URL_MAC }}" >> ${APP_CONFIG_FILE}
+
       # application-S3.properties 생성
       - name: Create application-s3.properties
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
@@ -255,7 +264,7 @@ jobs:
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
             --restart unless-stopped \
             -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }},mac \
             ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
       # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)

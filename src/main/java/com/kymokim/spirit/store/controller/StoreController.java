@@ -35,7 +35,7 @@ public class StoreController {
     private final Logger LOGGER = LoggerFactory.getLogger(StoreController.class);
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = true) MultipartFile[] files,
+    public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                    @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) throws IOException {
         LOGGER.info("Store/createStore API called.");
         ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);

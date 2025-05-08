@@ -1,5 +1,6 @@
 package com.kymokim.spirit.report.service;
 
+import com.kymokim.spirit.archive.service.ArchiveService;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class ReportService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
     private final AuthRepository authRepository;
-
+    private final ArchiveService archiveService;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -130,10 +132,27 @@ public class ReportService {
 
     }
 
+    @Transactional
+    public void completeReport(Long reportId) {
+        Report report = resolveReport(reportId);
+        report.handleReport(ReportStatus.COMPLETED);
+    }
 
     @Transactional
-    public void handleReport(ReportStatus reportStatus, Long reportId) {
+    public void archiveReport(Long reportId, RequestReport.ArchiveReportDto archiveReportDto){
         Report report = resolveReport(reportId);
-        report.handleReport(reportStatus);
+        if (report.getReportTarget().equals(ReportTarget.REVIEW)){
+            Review reportedReview = resolveReview(report.getTargetId());
+            archiveService.archiveReport(report, reportedReview.getContent(), reportedReview.getWriter(), archiveReportDto.getHandleResult());
+        }
+        else if (report.getReportTarget().equals(ReportTarget.STORE)){
+            if (Objects.equals(archiveReportDto.getTargetContent(), null) || archiveReportDto.getTargetContent().isEmpty())
+                throw new CustomException(ReportErrorCode.REPORT_TARGET_CONTENT_EMPTY);
+            Store reportedStore = resolveStore(report.getTargetId());
+            Auth owner = authRepository.findById(reportedStore.getId())
+                    .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+            archiveService.archiveReport(report, archiveReportDto.getTargetContent(), owner, archiveReportDto.getHandleResult());
+        }
+        report.handleReport(ReportStatus.ARCHIVED);
     }
 }

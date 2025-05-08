@@ -1,6 +1,7 @@
 package com.kymokim.spirit.review.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
@@ -146,12 +147,13 @@ public class ReviewService {
         reviewRepository.save(updatedReview);
     }
 
-    //TODO 관리자도 삭제 가능하게 권한 처리 추가 필요
     @Transactional
     public void deleteReview(Long reviewId) {
         Long userId = resolveUserId();
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
         Review review = resolveReview(reviewId);
-        if(!Objects.equals(review.getWriter().getId(), userId)) {
+        if(!Objects.equals(review.getWriter().getId(), userId) && !user.getRoles().contains(Role.ADMIN)) {
             throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
         }
         if (!Objects.equals(review.getImgUrlList(), null) && !review.getImgUrlList().isEmpty()) {
@@ -170,6 +172,5 @@ public class ReviewService {
             store.setTotalRate(totalRate);
         }
         storeRepository.save(store);
-
     }
 }

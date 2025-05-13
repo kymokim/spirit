@@ -1,11 +1,11 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.menu.entity.Menu;
-import com.kymokim.spirit.store.entity.Category;
-import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.*;
 import lombok.Builder;
 import lombok.Getter;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -552,4 +552,90 @@ public class ResponseStore {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class OwnershipListDto {
+        private Long id;
+        private LocalDateTime reportedAt;
+        private Boolean isVerifiedStore;
+        private Long storeId;
+        private String originalStoreName;
+        private String receivedStoreName;
+        private String requesterNickname;
+
+        public static OwnershipListDto toDto(OwnershipRequest ownershipRequest) {
+            return OwnershipListDto.builder()
+                    .id(ownershipRequest.getId())
+                    .reportedAt(ownershipRequest.getRequestedAt())
+                    .isVerifiedStore(ownershipRequest.getStore().getOwnerId() != null)
+                    .storeId(ownershipRequest.getStore().getId())
+                    .originalStoreName(ownershipRequest.getStore().getName())
+                    .receivedStoreName(ownershipRequest.getReceivedStoreName())
+                    .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class OwnershipDto {
+        private Long id;
+        private LocalDateTime reportedAt;
+        private Boolean isVerifiedStore;
+        private Long storeId;
+        private String originalStoreName;
+        private String receivedStoreName;
+        private String requesterNickname;
+        private String receivedStoreContact;
+        private String receivedUserContact;
+        private String businessRegistrationNumber;
+        private List<RepresentativeInfo> representativeInfoList;
+        private String openingDate;
+        private String liquorReportNo;
+        private Location business_location;
+        private String businessRegistrationCertificateImgUrl;
+        private List<OwnershipListDto> ownershipList;
+
+        public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto) {
+            return OwnershipDto.builder()
+                    .id(ownershipRequest.getId())
+                    .reportedAt(ownershipRequest.getRequestedAt())
+                    .isVerifiedStore(ownershipRequest.getStore().getOwnerId() != null)
+                    .storeId(ownershipRequest.getStore().getId())
+                    .originalStoreName(ownershipRequest.getStore().getName())
+                    .receivedStoreName(ownershipRequest.getReceivedStoreName())
+                    .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .receivedStoreContact(ownershipRequest.getReceivedStoreContact())
+                    .receivedUserContact(ownershipRequest.getReceivedUserContact())
+                    .businessRegistrationNumber(ownershipRequest.getBusinessRegistrationNumber())
+                    .representativeInfoList(ownershipRequest.getRepresentativeInfoList())
+                    .openingDate(ownershipRequest.getOpeningDate())
+                    .liquorReportNo(ownershipRequest.getLiquorReportNo())
+                    .business_location(ownershipRequest.getBusiness_location())
+                    .businessRegistrationCertificateImgUrl(ownershipRequest.getBusinessRegistrationCertificateImgUrl())
+                    .ownershipList(ownershipListDto)
+                    .build();
+        }
+
+    }
+
+    @Getter
+    @Builder
+    public static class ManagedStoreListDto {
+        private Long id;
+        private Long storeId;
+        private String storeName;
+        private LocalDateTime approvedAt;
+
+        public static ManagedStoreListDto toDto(ManagedStore managedStore, Store store) {
+            return ManagedStoreListDto.builder()
+                    .id(managedStore.getId())
+                    .storeId(store.getId())
+                    .storeName(store.getName())
+                    .approvedAt(managedStore.getApprovedAt())
+                    .build();
+        }
+    }
+
 }

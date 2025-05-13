@@ -1,6 +1,8 @@
 package com.kymokim.spirit.store.entity;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -54,6 +56,9 @@ public class OwnershipRequest {
     @Column(name = "opening_date")
     private String openingDate;
 
+    @Column(name = "liquorReportNo")
+    private String liquorReportNo;
+
     @Embedded
     @Column(name = "business_location")
     private Location business_location;
@@ -63,16 +68,64 @@ public class OwnershipRequest {
 
     @Builder
     public OwnershipRequest(Store store, Auth requester, String receivedStoreName, String receivedStoreContact, String receivedUserContact, String businessRegistrationNumber,
-                            List<RepresentativeInfo> representativeInfoList, String openingDate, Location business_location, String businessRegistrationCertificateImgUrl){
+                            List<RepresentativeInfo> representativeInfoList, String openingDate, String liquorReportNo, Location business_location, String businessRegistrationCertificateImgUrl){
         this.store = store;
         this.requester = requester;
-        this.receivedStoreName = receivedStoreName;
-        this.receivedStoreContact = receivedStoreContact;
-        this.receivedUserContact = receivedUserContact;
-        this.businessRegistrationNumber = businessRegistrationNumber;
+        setReceivedStoreName(receivedStoreName);
+        setReceivedStoreContact(receivedStoreContact);
+        setReceivedUserContact(receivedUserContact);
+        setBusinessRegistrationNumber(businessRegistrationNumber);
         this.representativeInfoList = representativeInfoList;
-        this.openingDate = openingDate;
+        setOpeningDate(openingDate);
+        setLiquorReportNo(liquorReportNo);
         this.business_location = business_location;
         this.businessRegistrationCertificateImgUrl = businessRegistrationCertificateImgUrl;
     }
+
+    public void setReceivedStoreName(String receivedStoreName) {
+        if(receivedStoreName == null || receivedStoreName.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_STORE_NAME_EMPTY);
+        }
+        this.receivedStoreName = receivedStoreName;
+    }
+
+    public void setReceivedStoreContact(String receivedStoreContact) {
+        if(receivedStoreContact == null || receivedStoreContact.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_STORE_CONTACT_EMPTY);
+        }
+        this.receivedStoreContact = receivedStoreContact;
+    }
+
+    public void setReceivedUserContact(String receivedUserContact) {
+        if(receivedUserContact == null || receivedUserContact.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_USER_CONTACT_EMPTY);
+        }
+        this.receivedUserContact = receivedUserContact;
+    }
+
+    public void setBusinessRegistrationNumber(String businessRegistrationNumber) {
+        if(businessRegistrationNumber == null || businessRegistrationNumber.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_BUSINESS_NUMBER_EMPTY);
+        }
+        this.businessRegistrationNumber = businessRegistrationNumber;
+    }
+
+
+    public void setOpeningDate(String openingDate) {
+        if(openingDate == null || openingDate.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_OPENING_DATE_EMPTY);
+        }
+        this.openingDate = openingDate;
+    }
+
+
+    public void setLiquorReportNo(String liquorReportNo) {
+        if(liquorReportNo == null || liquorReportNo.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_LIQUOR_REPORT_EMPTY);
+        }
+        this.liquorReportNo = liquorReportNo;
+    }
+
+
+
 }

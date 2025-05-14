@@ -2,7 +2,6 @@ package com.kymokim.spirit.store.service;
 
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
-import com.kymokim.spirit.report.dto.ResponseReport;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.QueryStore;
@@ -10,13 +9,13 @@ import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
-import com.kymokim.spirit.store.entity.ManagedStore;
+import com.kymokim.spirit.store.entity.StoreManager;
 import com.kymokim.spirit.store.entity.OwnershipRequest;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
-import com.kymokim.spirit.store.repository.ManagedStoreRepository;
-import com.kymokim.spirit.store.repository.StoreOwnershipRqRepository;
+import com.kymokim.spirit.store.repository.StoreManagerRepository;
+import com.kymokim.spirit.store.repository.StoreOwnershipRequestRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,8 +36,8 @@ public class StoreQueryService {
     private final StoreRepository storeRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final ReviewRepository reviewRepository;
-    private final StoreOwnershipRqRepository storeOwnershipRqRepository;
-    private final ManagedStoreRepository managedStoreRepository;
+    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final StoreManagerRepository storeManagerRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -51,7 +50,7 @@ public class StoreQueryService {
     }
 
     private OwnershipRequest resolveOwnership(Long ownershipId) {
-        return storeOwnershipRqRepository.findById(ownershipId)
+        return storeOwnershipRequestRepository.findById(ownershipId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
@@ -182,7 +181,7 @@ public class StoreQueryService {
     @Transactional(readOnly = true)
     public Page<ResponseStore.OwnershipListDto> getOwnershipList(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<OwnershipRequest> ownershipRequestPage = storeOwnershipRqRepository.findAllByOrderByRequestedAtAsc(pageable);
+            Page<OwnershipRequest> ownershipRequestPage = storeOwnershipRequestRepository.findAllByOrderByRequestedAtAsc(pageable);
             return ownershipRequestPage.map(ResponseStore.OwnershipListDto::toDto);
         }, 3);
     }
@@ -191,7 +190,7 @@ public class StoreQueryService {
     public ResponseStore.OwnershipDto getOwnership(Long ownershipId) {
         OwnershipRequest receviedOwnershipRequest = resolveOwnership(ownershipId);
 
-        List<OwnershipRequest> ownershipRequests = storeOwnershipRqRepository.findAllByStore(receviedOwnershipRequest.getStore());
+        List<OwnershipRequest> ownershipRequests = storeOwnershipRequestRepository.findAllByStore(receviedOwnershipRequest.getStore());
         List<ResponseStore.OwnershipListDto> ownershipList = new ArrayList<>();
         ownershipRequests.forEach(ownershipRequest -> ownershipList.add(ResponseStore.OwnershipListDto.toDto(ownershipRequest)));
 
@@ -203,8 +202,8 @@ public class StoreQueryService {
     public Page<ResponseStore.ManagedStoreListDto> getManagedStoreList(Pageable pageable) {
 
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<ManagedStore> managedStorePage = managedStoreRepository.findByUserIdOrderByApprovedAtDesc(resolveUserId(), pageable);
-            return managedStorePage.map(managedStore ->
+            Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(resolveUserId(), pageable);
+            return storeManagerPage.map(managedStore ->
                     ResponseStore.ManagedStoreListDto.toDto(
                             managedStore,
                             resolveStore(managedStore.getStoreId())

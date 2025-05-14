@@ -98,13 +98,13 @@ public class RequestStore {
         private String openingDate;
         @Schema(description = "주류판매신고번호")
         @NotEmpty(message = "주류판매신고번호가 비었습니다.")
-        private String liquorReportNo;
+        private String liquorReportNumber;
         @Schema(description = "대표자")
         @NotEmpty(message = "대표자가 비었습니다.")
         private List<RepresentativeInfo> representativeInfoList;
         @Schema(description = "주소")
         @NotEmpty(message = "주소가 비었습니다.")
-        private Location business_location;
+        private Location businessLocation;
 
         public OwnershipRequest toEntity(Store store, Auth requester) {
             return OwnershipRequest.builder()
@@ -116,8 +116,8 @@ public class RequestStore {
                     .businessRegistrationNumber(this.businessRegistrationNumber)
                     .representativeInfoList(this.representativeInfoList)
                     .openingDate(this.openingDate)
-                    .liquorReportNo(this.liquorReportNo)
-                    .business_location(this.business_location)
+                    .liquorReportNumber(this.liquorReportNumber)
+                    .businessLocation(this.businessLocation)
                     .build();
         }
 

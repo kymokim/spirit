@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-public interface StoreOwnershipRqRepository extends JpaRepository <OwnershipRequest, Long> {
+public interface StoreOwnershipRequestRepository extends JpaRepository <OwnershipRequest, Long> {
     boolean existsByRequesterAndStore(Auth requester, Store store);
     Page<OwnershipRequest> findAllByOrderByRequestedAtAsc(Pageable pageable);
     List<OwnershipRequest> findAllByStore(Store store);

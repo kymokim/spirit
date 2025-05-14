@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -11,18 +10,18 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 
-@Table(name = "managedStore")
+@Table(name = "storeManager")
 @Entity
 @Getter
 @NoArgsConstructor
 @Data
-public class ManagedStore {
+public class StoreManager {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "store", nullable = false)
+    @Column(name = "store_id", nullable = false)
     private Long storeId;
 
     @Column(name = "user_id", nullable = false)
@@ -33,7 +32,7 @@ public class ManagedStore {
     private LocalDateTime approvedAt;
 
     @Builder
-    public ManagedStore(Long storeId, Long userId){
+    public StoreManager(Long storeId, Long userId){
         this.storeId = storeId;
         this.userId = userId;
     }

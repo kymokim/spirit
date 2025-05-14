@@ -51,8 +51,6 @@ public class StoreController {
     }
 
 
-
-
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
         LOGGER.info("Store/updateStore API called.");
@@ -108,8 +106,8 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping(value = "/create/ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file", required = false) MultipartFile file,
+    @PostMapping(value = "/ownership/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file") MultipartFile file,
                                                        @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) throws IOException {
         LOGGER.info("Store/createOwnership Store API called.");
 
@@ -120,6 +118,8 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/ownership/approve/{ownershipId}")
     public ResponseEntity<ResponseDto> approveOwnership(@PathVariable("ownershipId") Long ownershipId) {
         LOGGER.info("Store/approve ownership API called.");
@@ -131,6 +131,7 @@ public class StoreController {
     }
 
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/ownership/reject/{ownershipId}")
     public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId) {
         LOGGER.info("Store/reject ownership API called.");

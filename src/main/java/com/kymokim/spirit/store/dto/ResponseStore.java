@@ -557,7 +557,7 @@ public class ResponseStore {
     @Builder
     public static class OwnershipListDto {
         private Long id;
-        private LocalDateTime reportedAt;
+        private LocalDateTime requestedAt;
         private Boolean isVerifiedStore;
         private Long storeId;
         private String originalStoreName;
@@ -567,7 +567,7 @@ public class ResponseStore {
         public static OwnershipListDto toDto(OwnershipRequest ownershipRequest) {
             return OwnershipListDto.builder()
                     .id(ownershipRequest.getId())
-                    .reportedAt(ownershipRequest.getRequestedAt())
+                    .requestedAt(ownershipRequest.getRequestedAt())
                     .isVerifiedStore(ownershipRequest.getStore().getOwnerId() != null)
                     .storeId(ownershipRequest.getStore().getId())
                     .originalStoreName(ownershipRequest.getStore().getName())
@@ -581,7 +581,7 @@ public class ResponseStore {
     @Builder
     public static class OwnershipDto {
         private Long id;
-        private LocalDateTime reportedAt;
+        private LocalDateTime requestedAt;
         private Boolean isVerifiedStore;
         private Long storeId;
         private String originalStoreName;
@@ -592,7 +592,7 @@ public class ResponseStore {
         private String businessRegistrationNumber;
         private List<RepresentativeInfo> representativeInfoList;
         private String openingDate;
-        private String liquorReportNo;
+        private String liquorReportNumber;
         private Location business_location;
         private String businessRegistrationCertificateImgUrl;
         private List<OwnershipListDto> ownershipList;
@@ -600,7 +600,7 @@ public class ResponseStore {
         public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto) {
             return OwnershipDto.builder()
                     .id(ownershipRequest.getId())
-                    .reportedAt(ownershipRequest.getRequestedAt())
+                    .requestedAt(ownershipRequest.getRequestedAt())
                     .isVerifiedStore(ownershipRequest.getStore().getOwnerId() != null)
                     .storeId(ownershipRequest.getStore().getId())
                     .originalStoreName(ownershipRequest.getStore().getName())
@@ -611,8 +611,8 @@ public class ResponseStore {
                     .businessRegistrationNumber(ownershipRequest.getBusinessRegistrationNumber())
                     .representativeInfoList(ownershipRequest.getRepresentativeInfoList())
                     .openingDate(ownershipRequest.getOpeningDate())
-                    .liquorReportNo(ownershipRequest.getLiquorReportNo())
-                    .business_location(ownershipRequest.getBusiness_location())
+                    .liquorReportNumber(ownershipRequest.getLiquorReportNumber())
+                    .business_location(ownershipRequest.getBusinessLocation())
                     .businessRegistrationCertificateImgUrl(ownershipRequest.getBusinessRegistrationCertificateImgUrl())
                     .ownershipList(ownershipListDto)
                     .build();
@@ -628,12 +628,12 @@ public class ResponseStore {
         private String storeName;
         private LocalDateTime approvedAt;
 
-        public static ManagedStoreListDto toDto(ManagedStore managedStore, Store store) {
+        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store) {
             return ManagedStoreListDto.builder()
-                    .id(managedStore.getId())
+                    .id(storeManager.getId())
                     .storeId(store.getId())
                     .storeName(store.getName())
-                    .approvedAt(managedStore.getApprovedAt())
+                    .approvedAt(storeManager.getApprovedAt())
                     .build();
         }
     }

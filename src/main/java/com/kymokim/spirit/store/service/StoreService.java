@@ -6,7 +6,6 @@ import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
-import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -14,12 +13,10 @@ import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.data.domain.Page;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -34,8 +31,8 @@ public class StoreService {
     private final S3Service s3Service;
     private final OperationInfoRepository operationInfoRepository;
     private final AuthRepository authRepository;
-    private final StoreOwnershipRqRepository storeOwnershipRqRepository;
-    private final ManagedStoreRepository managedStoreRepository;
+    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final StoreManagerRepository storeManagerRepository;
     private final BusinessRegistrationValidator businessRegistrationValidator;
 
     private Long resolveUserId() {
@@ -55,7 +52,7 @@ public class StoreService {
     }
 
     private OwnershipRequest resolveOwnership(Long ownershipId) {
-        return storeOwnershipRqRepository.findById(ownershipId)
+        return storeOwnershipRequestRepository.findById(ownershipId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
@@ -241,6 +238,12 @@ public class StoreService {
         if (!hasMainRep) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_MAIN_REPRESENTATIVE_MISSING);
         }
+        boolean isNameMatched = reps.stream()
+                .map(RepresentativeInfo::getName)
+                .anyMatch(name -> name.equals(requester.getPersonalInfo().getName()));
+        if (!isNameMatched) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_REQUESTER_NAME_NOT_MATCHED);
+        }
 
         boolean validated = businessRegistrationValidator.validateBusiness(
                 createOwnershipRqDto.getBusinessRegistrationNumber(),
@@ -254,8 +257,11 @@ public class StoreService {
             throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_VALIDATION_FAILED);
         }
 
+// 대표자 목록 중 신청자 이름이 있는지 검사
+
+
         OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester);
-        storeOwnershipRqRepository.save(ownershipRequest);
+        storeOwnershipRequestRepository.save(ownershipRequest);
         if (file != null && !file.isEmpty()) {
             String imageUrl = s3Service.upload(file, "store/ownership/" + ownershipRequest.getId());
             ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
@@ -265,20 +271,18 @@ public class StoreService {
     @Transactional
     public void approveOwnership(Long ownershipId) {
         OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
-        ManagedStore managedStore = managedStoreRepository.findByUserIdAndStoreId(ownershipRequest.getRequester().getId(), ownershipRequest.getStore().getId());
-        if (ownershipRequest.getStore().getOwnerId() != null) {
+        StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(ownershipRequest.getRequester().getId(), ownershipRequest.getStore().getId());
+        if (ownershipRequest.getStore().getOwnerId() != null || storeManager != null) {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
-        if (managedStore != null) {
-            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_APPROVE);
-        }
+
         ownershipRequest.getStore().setOwnerId(ownershipRequest.getRequester().getId());
 
         ownershipRequest.getRequester().getRoles().add(Role.MANAGER);
-        storeOwnershipRqRepository.delete(ownershipRequest);
+        storeOwnershipRequestRepository.delete(ownershipRequest);
 
-        managedStore = ManagedStore.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
-        managedStoreRepository.save(managedStore);
+        storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
+        storeManagerRepository.save(storeManager);
 
         //TODO 신청자에게 승인 알림 기능 추가
     }
@@ -292,7 +296,7 @@ public class StoreService {
             s3Service.deleteFile(certImageUrl);
         }
 
-        storeOwnershipRqRepository.delete(ownershipRequest);
+        storeOwnershipRequestRepository.delete(ownershipRequest);
 
         //TODO 신청자에게 거절 알림 기능 추가
 

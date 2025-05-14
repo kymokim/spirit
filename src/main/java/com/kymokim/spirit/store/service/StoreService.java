@@ -5,6 +5,7 @@ import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
@@ -34,6 +35,7 @@ public class StoreService {
     private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final BusinessRegistrationValidator businessRegistrationValidator;
+    private final AESUtil aesUtil;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -240,7 +242,7 @@ public class StoreService {
         }
         boolean isNameMatched = reps.stream()
                 .map(RepresentativeInfo::getName)
-                .anyMatch(name -> name.equals(requester.getPersonalInfo().getName()));
+                .anyMatch(name -> name.equals(aesUtil.decrypt(requester.getPersonalInfo().getName())));
         if (!isNameMatched) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_REQUESTER_NAME_NOT_MATCHED);
         }

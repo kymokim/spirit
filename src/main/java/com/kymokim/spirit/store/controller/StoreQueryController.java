@@ -229,7 +229,7 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PreAuthorize("hasRole('ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 조회")
     @GetMapping("/ownership/{ownershipId}")
     public ResponseEntity<ResponseDto> getOwnership(@PathVariable("ownershipId") Long ownershipId) {

@@ -4,6 +4,7 @@ import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.*;
 import lombok.Builder;
 import lombok.Getter;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,9 +16,10 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    public static class CreateStoreRsDto{
+    public static class CreateStoreRsDto {
         private Long id;
-        public static CreateStoreRsDto toDto(Store store){
+
+        public static CreateStoreRsDto toDto(Store store) {
             return CreateStoreRsDto.builder()
                     .id(store.getId())
                     .build();
@@ -26,9 +28,10 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    public static class ImageListDto{
+    public static class ImageListDto {
         private List<String> imgUrlList;
-        public static ImageListDto toDto(List<String> urlList){
+
+        public static ImageListDto toDto(List<String> urlList) {
             return ImageListDto.builder()
                     .imgUrlList(urlList)
                     .build();
@@ -39,6 +42,7 @@ public class ResponseStore {
     @Builder
     public static class GetStoreDto {
         private Long id;
+        private Boolean isOwner;
         private String mainImgUrl;
         private String name;
         private String contact;
@@ -57,25 +61,26 @@ public class ResponseStore {
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
 
-        public static GetStoreDto toDto(Store store, Double storeRate, Boolean isStoreLiked) {
+        public static GetStoreDto toDto(Store store, Boolean isOwner, Double storeRate, Boolean isStoreLiked) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()){
+            if (!store.getMainDrinks().isEmpty()) {
                 store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
             }
 
             List<String> imgUrlList = new ArrayList<>();
-            if(!store.getImgUrlList().isEmpty()) {
+            if (!store.getImgUrlList().isEmpty()) {
                 store.getImgUrlList().forEach(storeImage -> imgUrlList.add(storeImage.getUrl()));
             }
 
             return GetStoreDto.builder()
                     .id(store.getId())
+                    .isOwner(isOwner)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .contact(store.getContact())
@@ -101,6 +106,7 @@ public class ResponseStore {
     @Builder
     public static class SearchStoreDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private String contact;
@@ -112,15 +118,15 @@ public class ResponseStore {
         private Double storeRate;
         private Long reviewCount;
 
-        public static SearchStoreDto toDto(Store store, Double storeRate){
+        public static SearchStoreDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()){
+            if (!store.getMainDrinks().isEmpty()) {
                 store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -133,6 +139,7 @@ public class ResponseStore {
 
             return SearchStoreDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .contact(store.getContact())
@@ -151,6 +158,7 @@ public class ResponseStore {
     @Builder
     public static class SearchAllStoreDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private String contact;
@@ -159,10 +167,10 @@ public class ResponseStore {
         private Set<Category> categories;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
-        public static SearchAllStoreDto toDto(Store store){
+        public static SearchAllStoreDto toDto(Store store) {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -175,6 +183,7 @@ public class ResponseStore {
 
             return SearchAllStoreDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .contact(store.getContact())
@@ -190,6 +199,7 @@ public class ResponseStore {
     @Builder
     public static class GetByDistanceDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -199,10 +209,10 @@ public class ResponseStore {
         private Double storeRate;
         private Long reviewCount;
 
-        public static GetByDistanceDto toDto(Store store, Double storeRate){
+        public static GetByDistanceDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -215,6 +225,7 @@ public class ResponseStore {
 
             return GetByDistanceDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -231,6 +242,7 @@ public class ResponseStore {
     @Builder
     public static class GetByCategoryDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -242,15 +254,15 @@ public class ResponseStore {
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
 
-        public static GetByCategoryDto toDto(Store store, Double storeRate){
+        public static GetByCategoryDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()){
+            if (!store.getMainDrinks().isEmpty()) {
                 store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -262,7 +274,7 @@ public class ResponseStore {
             }
 
             List<MenuListDto> menuList = new ArrayList<>();
-            if (!store.getMenuList().isEmpty()){
+            if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
                     if (menu.getIsMain()) {
                         menuList.add(MenuListDto.toDto(menu));
@@ -272,6 +284,7 @@ public class ResponseStore {
 
             return GetByCategoryDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -288,12 +301,12 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    private static class MenuListDto{
+    private static class MenuListDto {
         private String name;
         private String price;
         private String imgUrl;
 
-        private static MenuListDto toDto(Menu menu){
+        private static MenuListDto toDto(Menu menu) {
             return MenuListDto.builder()
                     .name(menu.getName())
                     .price(menu.getPrice())
@@ -306,6 +319,7 @@ public class ResponseStore {
     @Builder
     public static class GetByBusinessHoursDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -314,15 +328,15 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
-        public static GetByBusinessHoursDto toDto(Store store){
+        public static GetByBusinessHoursDto toDto(Store store) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()){
+            if (!store.getMainDrinks().isEmpty()) {
                 store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -335,6 +349,7 @@ public class ResponseStore {
 
             return GetByBusinessHoursDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -350,6 +365,7 @@ public class ResponseStore {
     @Builder
     public static class GetByRadiusDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -361,15 +377,15 @@ public class ResponseStore {
         private Long reviewCount;
         private List<MenuListDto> menuList;
 
-        public static GetByRadiusDto toDto(Store store, Double storeRate){
+        public static GetByRadiusDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()){
+            if (!store.getMainDrinks().isEmpty()) {
                 store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -381,7 +397,7 @@ public class ResponseStore {
             }
 
             List<MenuListDto> menuList = new ArrayList<>();
-            if (!store.getMenuList().isEmpty()){
+            if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
                     if (menu.getIsMain()) {
                         menuList.add(MenuListDto.toDto(menu));
@@ -391,6 +407,7 @@ public class ResponseStore {
 
             return GetByRadiusDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -409,6 +426,7 @@ public class ResponseStore {
     @Builder
     public static class GetLikedStoreDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -428,7 +446,7 @@ public class ResponseStore {
             }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -450,6 +468,7 @@ public class ResponseStore {
 
             return GetLikedStoreDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -468,6 +487,7 @@ public class ResponseStore {
     @Builder
     public static class GetRecentStoreDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Boolean isAlwaysOpen;
@@ -478,10 +498,10 @@ public class ResponseStore {
         private Double storeRate;
         private Long reviewCount;
 
-        public static GetRecentStoreDto toDto(Store store, Double storeRate){
+        public static GetRecentStoreDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()){
+            if (!store.getOperationInfos().isEmpty()) {
                 LocalDate today = LocalDate.now();
                 store.getOperationInfos().forEach(operationInfo -> {
                     if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
@@ -494,6 +514,7 @@ public class ResponseStore {
 
             return GetRecentStoreDto.builder()
                     .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
@@ -509,14 +530,14 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    public static class GetMainBannerDto{
+    public static class GetMainBannerDto {
         private Category category;
         private List<MainBannerStoreDto> mainBannerStoreDtoList;
 
-        public static GetMainBannerDto toDto(Category category, List<Store> storeList){
+        public static GetMainBannerDto toDto(Category category, List<Store> storeList) {
 
             List<MainBannerStoreDto> storeDtoList = new ArrayList<>();
-            if (!storeList.isEmpty()){
+            if (!storeList.isEmpty()) {
                 storeList.forEach(store -> {
                     storeDtoList.add(MainBannerStoreDto.toDto(store));
                 });
@@ -533,11 +554,12 @@ public class ResponseStore {
     @Builder
     public static class MainBannerStoreDto {
         private Long id;
+        private Boolean isCertified;
         private String mainImgUrl;
         private String name;
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
 
-        public static MainBannerStoreDto toDto(Store store){
+        public static MainBannerStoreDto toDto(Store store) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
             if (!store.getMainDrinks().isEmpty()) {
@@ -546,6 +568,8 @@ public class ResponseStore {
 
             return MainBannerStoreDto.builder()
                     .id(store.getId())
+
+                    .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .mainDrinkDtos(mainDrinkDtos)

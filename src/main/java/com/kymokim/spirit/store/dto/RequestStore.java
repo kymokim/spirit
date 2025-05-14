@@ -1,10 +1,8 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.exception.CustomException;
-import com.kymokim.spirit.store.entity.Category;
-import com.kymokim.spirit.store.entity.MainDrink;
-import com.kymokim.spirit.store.entity.OperationInfo;
-import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -20,6 +18,8 @@ import java.util.Set;
 
 
 public class RequestStore {
+
+
 
     @Data
     @Builder
@@ -58,18 +58,69 @@ public class RequestStore {
             if (!this.mainDrinkDtos.isEmpty()) {
                 this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
             }
-                return Store.builder()
-                        .name(this.name)
-                        .contact(this.contact)
-                        .description(this.description)
-                        .hasScreen(this.hasScreen)
-                        .isGroupAvailable(this.isGroupAvailable)
-                        .creatorId(creatorId)
-                        .location(this.locationDto.toEntity())
-                        .categories(this.categories)
-                        .mainDrinks(mainDrinks)
-                        .build();
+            return Store.builder()
+                    .name(this.name)
+                    .contact(this.contact)
+                    .description(this.description)
+                    .hasScreen(this.hasScreen)
+                    .isGroupAvailable(this.isGroupAvailable)
+                    .creatorId(creatorId)
+                    .location(this.locationDto.toEntity())
+                    .categories(this.categories)
+                    .mainDrinks(mainDrinks)
+                    .build();
         }
+    }
+
+    @Data
+    @Builder
+    public static class CreateOwnershipRqDto {
+
+        @Schema(description = "가게 번호")
+        @NotEmpty(message = "가게 번호가 비었습니다.")
+        private Long storeId;
+
+        @Schema(description = "매장 이름")
+        @NotEmpty(message = "매장 이름이 비었습니다.")
+        private String receivedStoreName;
+        @Schema(description = "매장 연락처")
+        @NotEmpty(message = "매장 연락처가 비었습니다.")
+        private String receivedStoreContact;
+        @Schema(description = "신청자 연락처")
+        @NotEmpty(message = "신청자 연락처가 비었습니다.")
+        private String receivedUserContact;
+
+        @Schema(description = "사업자등록번호")
+        @NotEmpty(message = "사업자등록번호가 비었습니다.")
+        private String businessRegistrationNumber;
+        @Schema(description = "개업연월일")
+        @NotEmpty(message = "개업일이 비었습니다.")
+        private String openingDate;
+        @Schema(description = "주류판매신고번호")
+        @NotEmpty(message = "주류판매신고번호가 비었습니다.")
+        private String liquorReportNumber;
+        @Schema(description = "대표자")
+        @NotEmpty(message = "대표자가 비었습니다.")
+        private List<RepresentativeInfo> representativeInfoList;
+        @Schema(description = "주소")
+        @NotEmpty(message = "주소가 비었습니다.")
+        private Location businessLocation;
+
+        public OwnershipRequest toEntity(Store store, Auth requester) {
+            return OwnershipRequest.builder()
+                    .store(store)
+                    .requester(requester)
+                    .receivedStoreName(this.receivedStoreName)
+                    .receivedStoreContact(this.receivedStoreContact)
+                    .receivedUserContact(this.receivedUserContact)
+                    .businessRegistrationNumber(this.businessRegistrationNumber)
+                    .representativeInfoList(this.representativeInfoList)
+                    .openingDate(this.openingDate)
+                    .liquorReportNumber(this.liquorReportNumber)
+                    .businessLocation(this.businessLocation)
+                    .build();
+        }
+
     }
 
     @Data

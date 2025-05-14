@@ -222,13 +222,14 @@ public class StoreService {
         Store store = resolveStore(createOwnershipRqDto.getStoreId());
         Auth requester = resolveUser();
 
+        if(store.getOwnerId() != null) {
+            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
+        }
 
-        //TODO 이미 인증된 매장 신청 불가 기능 추가
-        //TODO 중복 신청 방지 기능 활성화 예정
-//        if (storeOwnershipRqRepository
-//                .existsByRequesterAndStore(requester, store)) {
-//            throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
-//        }
+        if (storeOwnershipRequestRepository
+                .existsByRequesterAndStore(requester, store)) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
+        }
 
         List<RepresentativeInfo> reps = createOwnershipRqDto.getRepresentativeInfoList();
 

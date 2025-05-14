@@ -57,18 +57,18 @@ public class OwnershipRequest {
     private String openingDate;
 
     @Column(name = "liquorReportNo")
-    private String liquorReportNo;
+    private String liquorReportNumber;
 
     @Embedded
     @Column(name = "business_location")
-    private Location business_location;
+    private Location businessLocation;
 
     @Column(name = "business_registration_certificate_img_url")
     private String businessRegistrationCertificateImgUrl;
 
     @Builder
     public OwnershipRequest(Store store, Auth requester, String receivedStoreName, String receivedStoreContact, String receivedUserContact, String businessRegistrationNumber,
-                            List<RepresentativeInfo> representativeInfoList, String openingDate, String liquorReportNo, Location business_location, String businessRegistrationCertificateImgUrl){
+                            List<RepresentativeInfo> representativeInfoList, String openingDate, String liquorReportNumber, Location businessLocation, String businessRegistrationCertificateImgUrl){
         this.store = store;
         this.requester = requester;
         setReceivedStoreName(receivedStoreName);
@@ -77,8 +77,8 @@ public class OwnershipRequest {
         setBusinessRegistrationNumber(businessRegistrationNumber);
         this.representativeInfoList = representativeInfoList;
         setOpeningDate(openingDate);
-        setLiquorReportNo(liquorReportNo);
-        this.business_location = business_location;
+        setLiquorReportNumber(liquorReportNumber);
+        this.businessLocation = businessLocation;
         this.businessRegistrationCertificateImgUrl = businessRegistrationCertificateImgUrl;
     }
 
@@ -119,11 +119,11 @@ public class OwnershipRequest {
     }
 
 
-    public void setLiquorReportNo(String liquorReportNo) {
-        if(liquorReportNo == null || liquorReportNo.isEmpty()) {
+    public void setLiquorReportNumber(String liquorReportNumber) {
+        if(liquorReportNumber == null || liquorReportNumber.isEmpty()) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_LIQUOR_REPORT_EMPTY);
         }
-        this.liquorReportNo = liquorReportNo;
+        this.liquorReportNumber = liquorReportNumber;
     }
 
 

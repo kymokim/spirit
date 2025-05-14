@@ -203,10 +203,12 @@ public class StoreQueryController {
     }
 
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 리스트 조회")
     @GetMapping("/ownership/list")
     public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10)Pageable pageable) {
-        LOGGER.info("Store/getOwnershipList PI called.");
+        LOGGER.info("Store/getOwnershipList API called.");
         Page<ResponseStore.OwnershipListDto> dtoPage = storeQueryService.getOwnershipList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -219,7 +221,7 @@ public class StoreQueryController {
     @Operation(summary = "관리 중인 매장 리스트 조회")
     @GetMapping("/managed")
     public ResponseEntity<ResponseDto> getManagedStoreList(@PageableDefault(size = 10)Pageable pageable) {
-        LOGGER.info("Store/getManagedStoreList PI called.");
+        LOGGER.info("Store/getManagedStoreList API called.");
         Page<ResponseStore.ManagedStoreListDto> dtoPage = storeQueryService.getManagedStoreList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -232,6 +234,8 @@ public class StoreQueryController {
 
 
 
+
+    @PreAuthorize("hasRole('ADMIN)")
     @Operation(summary = "매장 권한 등록 조회")
     @GetMapping("/ownership/{ownershipId}")
     public ResponseEntity<ResponseDto> getOwnership(@PathVariable("ownershipId") Long ownershipId) {

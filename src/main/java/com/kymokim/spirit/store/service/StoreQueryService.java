@@ -9,9 +9,13 @@ import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.LikedStore;
+import com.kymokim.spirit.store.entity.StoreManager;
+import com.kymokim.spirit.store.entity.OwnershipRequest;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
+import com.kymokim.spirit.store.repository.StoreManagerRepository;
+import com.kymokim.spirit.store.repository.StoreOwnershipRequestRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,17 +36,25 @@ public class StoreQueryService {
     private final StoreRepository storeRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final ReviewRepository reviewRepository;
+    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final StoreManagerRepository storeManagerRepository;
 
-    private Long resolveUserId(){
+    private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
-    private Store resolveStore(Long storeId){
+
+    private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
     }
 
-    private double calculateRate(Store store){
+    private OwnershipRequest resolveOwnership(Long ownershipId) {
+        return storeOwnershipRequestRepository.findById(ownershipId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
+    }
+
+    private double calculateRate(Store store) {
         double rateAvg = store.getTotalRate() / store.getReviewCount();
         return Math.round(rateAvg * 100.0) / 100.0;
     }
@@ -61,7 +73,7 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseStore.SearchStoreDto> searchStore(LocationCriteria criteria, String searchKeyword, Pageable pageable){
+    public Page<ResponseStore.SearchStoreDto> searchStore(LocationCriteria criteria, String searchKeyword, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByNameAndMenu(criteria, searchKeyword, pageable);
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
@@ -69,7 +81,7 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseStore.SearchAllStoreDto> searchAllStore(String searchKeyword, Pageable pageable){
+    public Page<ResponseStore.SearchAllStoreDto> searchAllStore(String searchKeyword, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByName(searchKeyword, pageable);
             return storePage.map(ResponseStore.SearchAllStoreDto::toDto);
@@ -77,7 +89,7 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseStore.GetByDistanceDto> getByDistance(LocationCriteria criteria, Pageable pageable){
+    public Page<ResponseStore.GetByDistanceDto> getByDistance(LocationCriteria criteria, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByDistance(criteria, pageable);
             return storePage.map(store -> ResponseStore.GetByDistanceDto.toDto(store, calculateRate(store)));
@@ -101,17 +113,17 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria){
+    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             List<Store> storeList = storeRepository.findByRadius(criteria);
             List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
             storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
-        return dtoList;
+            return dtoList;
         }, 3);
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseStore.GetLikedStoreDto> getLikedStore(Pageable pageable){
+    public Page<ResponseStore.GetLikedStoreDto> getLikedStore(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Long userId = resolveUserId();
             Page<LikedStore> likedStorePage = likedStoreRepository.findAllByUserIdOrderByIdDesc(userId, pageable);
@@ -151,7 +163,7 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable){
+    public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
@@ -159,10 +171,46 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseStore.GetMainBannerDto getMainBanner(LocationCriteria criteria){
+    public ResponseStore.GetMainBannerDto getMainBanner(LocationCriteria criteria) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             QueryStore.CategoryStoreListGroup categoryStoreListGroup = storeRepository.findByRadiusAndCategory(criteria);
             return ResponseStore.GetMainBannerDto.toDto(categoryStoreListGroup.category(), categoryStoreListGroup.storeList());
         }, 3);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ResponseStore.OwnershipListDto> getOwnershipList(Pageable pageable) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<OwnershipRequest> ownershipRequestPage = storeOwnershipRequestRepository.findAllByOrderByRequestedAtAsc(pageable);
+            return ownershipRequestPage.map(ResponseStore.OwnershipListDto::toDto);
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseStore.OwnershipDto getOwnership(Long ownershipId) {
+        OwnershipRequest receviedOwnershipRequest = resolveOwnership(ownershipId);
+
+        List<OwnershipRequest> ownershipRequests = storeOwnershipRequestRepository.findAllByStore(receviedOwnershipRequest.getStore());
+        List<ResponseStore.OwnershipListDto> ownershipList = new ArrayList<>();
+        ownershipRequests.forEach(ownershipRequest -> ownershipList.add(ResponseStore.OwnershipListDto.toDto(ownershipRequest)));
+
+        return ResponseStore.OwnershipDto.toDto(receviedOwnershipRequest, ownershipList);
+
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResponseStore.ManagedStoreListDto> getManagedStoreList(Pageable pageable) {
+
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(resolveUserId(), pageable);
+            return storeManagerPage.map(managedStore ->
+                    ResponseStore.ManagedStoreListDto.toDto(
+                            managedStore,
+                            resolveStore(managedStore.getStoreId())
+                    )
+            );
+        }, 3);
+
+    }
+
 }

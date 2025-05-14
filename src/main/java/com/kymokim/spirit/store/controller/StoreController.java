@@ -118,11 +118,10 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/ownership/approve/{ownershipId}")
     public ResponseEntity<ResponseDto> approveOwnership(@PathVariable("ownershipId") Long ownershipId) {
-        LOGGER.info("Store/approve ownership API called.");
+        LOGGER.info("Store/approveOwnership API called.");
         storeService.approveOwnership(ownershipId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Ownership approved successfully.")
@@ -130,11 +129,10 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/ownership/reject/{ownershipId}")
     public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId) {
-        LOGGER.info("Store/reject ownership API called.");
+        LOGGER.info("Store/rejectOwnership API called.");
         storeService.rejectOwnership(ownershipId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Ownership deleted successfully.")

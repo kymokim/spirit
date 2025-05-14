@@ -202,8 +202,6 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
-
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 리스트 조회")
     @GetMapping("/ownership/list")
@@ -230,10 +228,6 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
-
-
-
-
 
     @PreAuthorize("hasRole('ADMIN)")
     @Operation(summary = "매장 권한 등록 조회")

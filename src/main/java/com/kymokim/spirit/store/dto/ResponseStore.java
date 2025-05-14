@@ -587,13 +587,14 @@ public class ResponseStore {
         private String originalStoreName;
         private String receivedStoreName;
         private String requesterNickname;
+        private String originalStoreContact;
         private String receivedStoreContact;
         private String receivedUserContact;
         private String businessRegistrationNumber;
         private List<RepresentativeInfo> representativeInfoList;
         private String openingDate;
         private String liquorReportNumber;
-        private Location business_location;
+        private Location businessLocation;
         private String businessRegistrationCertificateImgUrl;
         private List<OwnershipListDto> ownershipList;
 
@@ -606,13 +607,14 @@ public class ResponseStore {
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .originalStoreContact(ownershipRequest.getStore().getContact())
                     .receivedStoreContact(ownershipRequest.getReceivedStoreContact())
                     .receivedUserContact(ownershipRequest.getReceivedUserContact())
                     .businessRegistrationNumber(ownershipRequest.getBusinessRegistrationNumber())
                     .representativeInfoList(ownershipRequest.getRepresentativeInfoList())
                     .openingDate(ownershipRequest.getOpeningDate())
                     .liquorReportNumber(ownershipRequest.getLiquorReportNumber())
-                    .business_location(ownershipRequest.getBusinessLocation())
+                    .businessLocation(ownershipRequest.getBusinessLocation())
                     .businessRegistrationCertificateImgUrl(ownershipRequest.getBusinessRegistrationCertificateImgUrl())
                     .ownershipList(ownershipListDto)
                     .build();

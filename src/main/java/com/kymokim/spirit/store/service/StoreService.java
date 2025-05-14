@@ -226,8 +226,7 @@ public class StoreService {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
 
-        if (storeOwnershipRequestRepository
-                .existsByRequesterAndStore(requester, store)) {
+        if (storeOwnershipRequestRepository.existsByRequesterAndStore(requester, store)) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
         }
 
@@ -257,9 +256,6 @@ public class StoreService {
         if (!validated) {
             throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_VALIDATION_FAILED);
         }
-
-// 대표자 목록 중 신청자 이름이 있는지 검사
-
 
         OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester);
         storeOwnershipRequestRepository.save(ownershipRequest);

@@ -56,7 +56,7 @@ public class OwnershipRequest {
     @Column(name = "opening_date")
     private String openingDate;
 
-    @Column(name = "liquorReportNo")
+    @Column(name = "liquor_report_number")
     private String liquorReportNumber;
 
     @Embedded

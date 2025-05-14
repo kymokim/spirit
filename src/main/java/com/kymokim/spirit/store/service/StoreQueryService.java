@@ -68,7 +68,16 @@ public class StoreQueryService {
             if (likedStore != null) {
                 isStoreLiked = true;
             }
-            return ResponseStore.GetStoreDto.toDto(store, calculateRate(store), isStoreLiked);
+            Boolean isOwner;
+            Long ownerId = store.getOwnerId();
+            StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(resolveUserId(), storeId);
+
+            if (ownerId == null) {
+                isOwner = null;
+            } else {
+                isOwner = (storeManager != null);
+            }
+            return ResponseStore.GetStoreDto.toDto(store, isOwner, calculateRate(store), isStoreLiked);
         }, 3);
     }
 

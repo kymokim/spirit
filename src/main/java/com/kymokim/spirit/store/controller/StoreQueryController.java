@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -200,4 +201,47 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 권한 등록 리스트 조회")
+    @GetMapping("/ownership/list")
+    public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10)Pageable pageable) {
+        LOGGER.info("Store/getOwnershipList API called.");
+        Page<ResponseStore.OwnershipListDto> dtoPage = storeQueryService.getOwnershipList(pageable);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store get ownership list successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "관리 중인 매장 리스트 조회")
+    @GetMapping("/managed")
+    public ResponseEntity<ResponseDto> getManagedStoreList(@PageableDefault(size = 10)Pageable pageable) {
+        LOGGER.info("Store/getManagedStoreList API called.");
+        Page<ResponseStore.ManagedStoreListDto> dtoPage = storeQueryService.getManagedStoreList(pageable);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Managed store list get successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 권한 등록 조회")
+    @GetMapping("/ownership/{ownershipId}")
+    public ResponseEntity<ResponseDto> getOwnership(@PathVariable("ownershipId") Long ownershipId) {
+        LOGGER.info("Store/getOwnership API called.");
+        ResponseStore.OwnershipDto getOwnershipDto = storeQueryService.getOwnership(ownershipId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store get ownership list successfully.")
+                .data(getOwnershipDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+
+
 }

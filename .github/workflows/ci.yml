@@ -57,6 +57,8 @@ jobs:
         run: |
           mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
           echo "kakao.rest.key=${{ secrets.KAKAO_REST_KEY }}" >> ${APP_CONFIG_FILE}
+          echo "odcloud.encodingKey=${{ secrets.ODCLOUD_ENCODING_KEY }}" >> ${APP_CONFIG_FILE}
+          echo "odcloud.decodingKey=${{ secrets.ODCLOUD_DECODING_KEY }}" >> ${APP_CONFIG_FILE}
 
       # jwt key 생성
       - name: Create jwt-secret-keys.properties

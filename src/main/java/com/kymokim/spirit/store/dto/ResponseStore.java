@@ -1,9 +1,12 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,7 +14,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@RequiredArgsConstructor
 public class ResponseStore {
+
+    private static AESUtil aesUtil;
 
     @Getter
     @Builder
@@ -563,6 +569,7 @@ public class ResponseStore {
         private String originalStoreName;
         private String receivedStoreName;
         private String requesterNickname;
+        private String requesterName;
 
         public static OwnershipListDto toDto(OwnershipRequest ownershipRequest) {
             return OwnershipListDto.builder()
@@ -573,6 +580,7 @@ public class ResponseStore {
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .requesterName(aesUtil.decrypt(ownershipRequest.getRequester().getPersonalInfo().getName()))
                     .build();
         }
     }
@@ -587,6 +595,7 @@ public class ResponseStore {
         private String originalStoreName;
         private String receivedStoreName;
         private String requesterNickname;
+        private String requesterName;
         private String originalStoreContact;
         private String receivedStoreContact;
         private String receivedUserContact;
@@ -607,6 +616,7 @@ public class ResponseStore {
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .requesterName(aesUtil.decrypt(ownershipRequest.getRequester().getPersonalInfo().getName()))
                     .originalStoreContact(ownershipRequest.getStore().getContact())
                     .receivedStoreContact(ownershipRequest.getReceivedStoreContact())
                     .receivedUserContact(ownershipRequest.getReceivedUserContact())

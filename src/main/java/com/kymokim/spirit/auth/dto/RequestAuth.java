@@ -50,7 +50,7 @@ public class RequestAuth {
         @NotEmpty
         private String ci = "OTMyNjI3NzM0NDU0MzE0NjY1NjQwNjAwNzYwNzAwNzQwNzEwNzQxNzA3NTMwNzQxNzE0";
         @NotEmpty
-        private String name = "홍길동";
+        private String name = "윤준서";
         @NotEmpty
         private String birth_date = "19900101";
         @NotEmpty

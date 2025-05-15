@@ -101,17 +101,26 @@ public class ReportController {
 
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "신고 상태 변경")
-    @PatchMapping("handle/{reportId}")
-    public ResponseEntity<ResponseDto> handleReport(@PathVariable Long reportId, @RequestParam ReportStatus reportStatus) {
-        LOGGER.info("Report/handleReport API called.");
-        reportService.handleReport(reportStatus, reportId);
+    @Operation(summary = "신고 처리 완료")
+    @PatchMapping("complete/{reportId}")
+    public ResponseEntity<ResponseDto> completeReport(@PathVariable Long reportId) {
+        LOGGER.info("Report/completeReport API called.");
+        reportService.completeReport(reportId);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Report status updated successfully.")
+                .message("Report completed successfully.")
                 .build();
-
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "신고 보관")
+    @PostMapping("archive/{reportId}")
+    public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId, @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
+        LOGGER.info("Report/archiveReport API called.");
+        reportService.archiveReport(reportId, archiveReportDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Report archived successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

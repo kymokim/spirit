@@ -24,7 +24,7 @@ public class Report {
     private Long id;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "reported_at", nullable = false)
     private LocalDateTime reportedAt;
 
     @Enumerated(EnumType.STRING)

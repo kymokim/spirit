@@ -36,4 +36,12 @@ public class RequestReport {
                     .build();
         }
     }
+
+    @Data
+    @Builder
+    public static class ArchiveReportDto{
+        @NotEmpty
+        private String handleResult;
+        private String targetContent;
+    }
 }

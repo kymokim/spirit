@@ -1,16 +1,18 @@
 package com.kymokim.spirit.store.service;
 
+import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Role;
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
-import com.kymokim.spirit.store.repository.LikedStoreRepository;
-import com.kymokim.spirit.store.repository.OperationInfoRepository;
-import com.kymokim.spirit.store.repository.StoreImageRepository;
-import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,14 +31,31 @@ public class StoreService {
     private final LikedStoreRepository likedStoreRepository;
     private final S3Service s3Service;
     private final OperationInfoRepository operationInfoRepository;
+    private final AuthRepository authRepository;
+    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final StoreManagerRepository storeManagerRepository;
+    private final BusinessRegistrationValidator businessRegistrationValidator;
+    private final AESUtil aesUtil;
 
-    private Long resolveUserId(){
+    private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
-    private Store resolveStore(Long storeId){
+    private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
+    }
+
+    private Auth resolveUser() {
+        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+        Auth user = authRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+        return user;
+    }
+
+    private OwnershipRequest resolveOwnership(Long ownershipId) {
+        return storeOwnershipRequestRepository.findById(ownershipId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
     @Transactional
@@ -47,7 +66,7 @@ public class StoreService {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
             store.setMainImgUrl(imageUrls.getFirst());
-            for (String url : imageUrls){
+            for (String url : imageUrls) {
                 StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
                 storeImageRepository.save(storeImage);
                 store.addImgUrlList(storeImage);
@@ -56,7 +75,7 @@ public class StoreService {
         }
         setIsAlwaysOpenAndOperationInfos(store, createStoreRqDto.getIsAlwaysOpen(), createStoreRqDto.getOperationInfoDtos());
         Store updatedStore = resolveStore(store.getId());
-        if(updatedStore.getIsAlwaysOpen() == null && (updatedStore.getOperationInfos() == null || updatedStore.getOperationInfos().isEmpty()))
+        if (updatedStore.getIsAlwaysOpen() == null && (updatedStore.getOperationInfos() == null || updatedStore.getOperationInfos().isEmpty()))
             throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
 
         return ResponseStore.CreateStoreRsDto.toDto(store);
@@ -78,8 +97,8 @@ public class StoreService {
             Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
             store.setMainDrinks(mainDrinks);
         });
-        if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)){
-            if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)){
+        if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)) {
+            if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)) {
                 setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), null);
             } else {
                 setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), updateStoreDto.getOperationInfoDtos());
@@ -97,9 +116,9 @@ public class StoreService {
         }
     }
 
-    private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos){
-        if (isAlwaysOpen != null){
-            if (Objects.equals(isAlwaysOpen, false) && (!Objects.equals(operationInfoDtos, null) && !operationInfoDtos.isEmpty())){
+    private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos) {
+        if (isAlwaysOpen != null) {
+            if (Objects.equals(isAlwaysOpen, false) && (!Objects.equals(operationInfoDtos, null) && !operationInfoDtos.isEmpty())) {
                 if (store.getOperationInfos() != null && !store.getOperationInfos().isEmpty()) {
                     Set<OperationInfo> currentOperationInfos = new HashSet<>(store.getOperationInfos());
                     operationInfoRepository.deleteAll(currentOperationInfos);
@@ -113,7 +132,7 @@ public class StoreService {
                 });
                 storeRepository.save(store);
             } else if (Objects.equals(isAlwaysOpen, true) && (Objects.equals(operationInfoDtos, null))) {
-                if (store.getOperationInfos() != null && !store.getOperationInfos().isEmpty()){
+                if (store.getOperationInfos() != null && !store.getOperationInfos().isEmpty()) {
                     Set<OperationInfo> currentOperationInfos = new HashSet<>(store.getOperationInfos());
                     operationInfoRepository.deleteAll(currentOperationInfos);
                     store.getOperationInfos().clear();
@@ -130,7 +149,7 @@ public class StoreService {
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
-            for (String url : imageUrls){
+            for (String url : imageUrls) {
                 StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
                 storeImageRepository.save(storeImage);
                 store.addImgUrlList(storeImage);
@@ -146,7 +165,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void likeStore(Long storeId){
+    public void likeStore(Long storeId) {
         Store store = resolveStore(storeId);
         Long userId = resolveUserId();
         LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, store.getId());
@@ -162,11 +181,11 @@ public class StoreService {
     }
 
     @Transactional
-    public ResponseStore.ImageListDto deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId){
+    public ResponseStore.ImageListDto deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             StoreImage storeImage = storeImageRepository.findByUrl(imgUrl)
-                            .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_ORIGIN_IMG_URL_EMPTY));
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_ORIGIN_IMG_URL_EMPTY));
             if (Objects.equals(store.getMainImgUrl(), imgUrl)) {
                 store.setMainImgUrl(null);
             }
@@ -193,9 +212,96 @@ public class StoreService {
         }
         store.delete();
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByStoreId(storeId);
-        if (likedStoreList != null){
+        if (likedStoreList != null) {
             likedStoreList.forEach(likedStoreRepository::delete);
         }
         storeRepository.save(store);
     }
+
+
+    @Transactional
+    public void createOwnership(MultipartFile file, RequestStore.CreateOwnershipRqDto createOwnershipRqDto) {
+        Store store = resolveStore(createOwnershipRqDto.getStoreId());
+        Auth requester = resolveUser();
+
+        if(store.getOwnerId() != null) {
+            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
+        }
+
+        if (storeOwnershipRequestRepository.existsByRequesterAndStore(requester, store)) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
+        }
+
+        List<RepresentativeInfo> reps = createOwnershipRqDto.getRepresentativeInfoList();
+
+        boolean hasMainRep = reps != null && reps.stream()
+                .anyMatch(rep -> Boolean.TRUE.equals(rep.getIsMainRep()));
+
+        if (!hasMainRep) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_MAIN_REPRESENTATIVE_MISSING);
+        }
+        boolean isNameMatched = reps.stream()
+                .map(RepresentativeInfo::getName)
+                .anyMatch(name -> name.equals(aesUtil.decrypt(requester.getPersonalInfo().getName())));
+        if (!isNameMatched) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_REQUESTER_NAME_NOT_MATCHED);
+        }
+
+        boolean validated = businessRegistrationValidator.validateBusiness(
+                createOwnershipRqDto.getBusinessRegistrationNumber(),
+                reps.stream().filter(rep -> Boolean.TRUE.equals(rep.getIsMainRep()))
+                        .findFirst()
+                        .map(RepresentativeInfo::getName)
+                        .orElse(null), // 대표자 이름이 없을 수도 있으니 null 처리
+                createOwnershipRqDto.getOpeningDate()
+        );
+        if (!validated) {
+            throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_VALIDATION_FAILED);
+        }
+
+        OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester);
+        storeOwnershipRequestRepository.save(ownershipRequest);
+        if (file != null && !file.isEmpty()) {
+            String imageUrl = s3Service.upload(file, "store/ownership/" + ownershipRequest.getId());
+            ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
+        }
+    }
+
+    @Transactional
+    public void approveOwnership(Long ownershipId) {
+        OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
+        StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(ownershipRequest.getRequester().getId(), ownershipRequest.getStore().getId());
+        if (ownershipRequest.getStore().getOwnerId() != null || storeManager != null) {
+            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
+        }
+
+        ownershipRequest.getStore().setOwnerId(ownershipRequest.getRequester().getId());
+
+        ownershipRequest.getRequester().getRoles().add(Role.MANAGER);
+        storeOwnershipRequestRepository.delete(ownershipRequest);
+
+        storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
+        storeManagerRepository.save(storeManager);
+
+        //TODO 신청자에게 승인 알림 기능 추가
+    }
+
+    @Transactional
+    public void rejectOwnership(Long ownershipId) {
+        OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
+
+        String certImageUrl = ownershipRequest.getBusinessRegistrationCertificateImgUrl();
+        if (certImageUrl != null && !certImageUrl.isBlank()) {
+            s3Service.deleteFile(certImageUrl);
+        }
+
+        storeOwnershipRequestRepository.delete(ownershipRequest);
+
+        //TODO 신청자에게 거절 알림 기능 추가
+
+    }
+
+
+
+
 }

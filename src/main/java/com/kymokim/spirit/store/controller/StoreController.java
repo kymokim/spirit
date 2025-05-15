@@ -10,8 +10,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +39,7 @@ public class StoreController {
     private final Logger LOGGER = LoggerFactory.getLogger(StoreController.class);
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = true) MultipartFile[] files,
+    public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                    @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) throws IOException {
         LOGGER.info("Store/createStore API called.");
         ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);
@@ -45,6 +49,7 @@ public class StoreController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
 
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
@@ -69,7 +74,7 @@ public class StoreController {
     }
 
     @PostMapping("/like/{storeId}")
-    public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId){
+    public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId) {
         LOGGER.info("Store/likeStore API called.");
         storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
@@ -80,7 +85,7 @@ public class StoreController {
 
     @DeleteMapping("/delete-image/{storeId}")
     public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
-                                                   @PathVariable("storeId") Long storeId){
+                                                   @PathVariable("storeId") Long storeId) {
         LOGGER.info("Store/deleteImage API called.");
         ResponseStore.ImageListDto dto = storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
@@ -92,11 +97,45 @@ public class StoreController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{storeId}")
-    public ResponseEntity<ResponseDto> deleteStore(@PathVariable("storeId") Long storeId){
+    public ResponseEntity<ResponseDto> deleteStore(@PathVariable("storeId") Long storeId) {
         LOGGER.info("Store/deleteStore API called.");
         storeService.deleteStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/ownership/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file") MultipartFile file,
+                                                       @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) throws IOException {
+        LOGGER.info("Store/createOwnership Store API called.");
+
+        storeService.createOwnership(file, createOwnershipRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store ownership created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/ownership/approve/{ownershipId}")
+    public ResponseEntity<ResponseDto> approveOwnership(@PathVariable("ownershipId") Long ownershipId) {
+        LOGGER.info("Store/approveOwnership API called.");
+        storeService.approveOwnership(ownershipId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Ownership approved successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/ownership/reject/{ownershipId}")
+    public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId) {
+        LOGGER.info("Store/rejectOwnership API called.");
+        storeService.rejectOwnership(ownershipId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Ownership deleted successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

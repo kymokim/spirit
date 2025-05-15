@@ -1,6 +1,7 @@
 package com.kymokim.spirit.auth.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.entity.SocialInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -54,6 +55,8 @@ public class ResponseAuth {
         private String nickname;
         @Schema(description = "이미지")
         private String imgUrl;
+        @Schema(description = "사장 여부")
+        private Boolean isManager;
 
         public static GetUserDto toDto(Auth user){
             return GetUserDto.builder()
@@ -62,6 +65,7 @@ public class ResponseAuth {
                     .createdAt(user.getCreatedAt())
                     .nickname(user.getNickname())
                     .imgUrl(user.getImgUrl())
+                    .isManager(user.getRoles().contains(Role.MANAGER))
                     .build();
         }
     }

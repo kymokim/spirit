@@ -17,8 +17,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ResponseStore {
 
-    private static AESUtil aesUtil;
-
     @Getter
     @Builder
     public static class CreateStoreRsDto {
@@ -592,7 +590,6 @@ public class ResponseStore {
         private String originalStoreName;
         private String receivedStoreName;
         private String requesterNickname;
-        private String requesterName;
 
         public static OwnershipListDto toDto(OwnershipRequest ownershipRequest) {
             return OwnershipListDto.builder()
@@ -603,7 +600,6 @@ public class ResponseStore {
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
-                    .requesterName(aesUtil.decrypt(ownershipRequest.getRequester().getPersonalInfo().getName()))
                     .build();
         }
     }
@@ -630,7 +626,7 @@ public class ResponseStore {
         private String businessRegistrationCertificateImgUrl;
         private List<OwnershipListDto> ownershipList;
 
-        public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto) {
+        public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto, AESUtil aesUtil) {
             return OwnershipDto.builder()
                     .id(ownershipRequest.getId())
                     .requestedAt(ownershipRequest.getRequestedAt())

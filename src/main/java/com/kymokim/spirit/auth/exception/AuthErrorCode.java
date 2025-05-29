@@ -16,7 +16,8 @@ public enum AuthErrorCode implements ErrorCode {
     USER_SOCIAL_TYPE_EMPTY(HttpStatus.BAD_REQUEST, 21007, "USER_SOCIAL_TYPE_EMPTY"),
     USER_SOCIAL_ID_EMPTY(HttpStatus.BAD_REQUEST, 21008, "USER_SOCIAL_ID_EMPTY"),
     INVALID_SOCIAL_TOKEN(HttpStatus.BAD_REQUEST, 21009, "INVALID_SOCIAL_TOKEN"),
-    ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, 21010, "ADMIN_NOT_FOUND");
+    ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, 21010, "ADMIN_NOT_FOUND"),
+    PERSONAL_INFO_EMPTY(HttpStatus.BAD_REQUEST, 21011, "PERSONAL_INFO_EMPTY");
 
     private final HttpStatus httpStatus;
     private final Integer code;

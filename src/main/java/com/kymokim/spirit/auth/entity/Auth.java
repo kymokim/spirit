@@ -15,10 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -37,8 +34,8 @@ public class Auth implements UserDetails {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Embedded
-    private SocialInfo socialInfo;
+    @OneToMany(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<SocialInfo> socialInfoList = new ArrayList<>();
 
     @Embedded
     private PersonalInfo personalInfo;
@@ -60,8 +57,7 @@ public class Auth implements UserDetails {
     private UserStatus userStatus;
 
     @Builder
-    public Auth(SocialInfo socialInfo, PersonalInfo personalInfo, String nickname){
-        this.socialInfo = socialInfo;
+    public Auth(PersonalInfo personalInfo, String nickname){
         this.personalInfo = personalInfo;
         setNickname(nickname);
         this.roles.add(Role.USER);
@@ -70,11 +66,18 @@ public class Auth implements UserDetails {
 
     public void withdraw(){
         this.nickname = "탈퇴한 사용자";
-        this.socialInfo.withdraw();
         this.personalInfo.withdraw();
         this.imgUrl = null;
         this.refreshToken = null;
         this.userStatus = UserStatus.WITHDREW;
+        this.roles.clear();
+    }
+
+    public void addSocialInfo(SocialInfo socialInfo) {
+        if (!this.socialInfoList.contains(socialInfo)) {
+            socialInfo.setAuth(this);
+            this.socialInfoList.add(socialInfo);
+        }
     }
 
     public void setNickname(String nickname) {

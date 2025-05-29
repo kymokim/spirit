@@ -11,21 +11,21 @@ public class CommonAuth {
     @Builder
     public static class SocialInfoDto{
         @Schema(description = "소셜 로그인 종류")
-        private SocialType type;
+        private SocialType socialType;
         @Schema(description = "소셜 로그인 ID")
-        private String id;
+        private String socialId;
 
         public static SocialInfoDto toDto(SocialInfo socialInfo){
             return SocialInfoDto.builder()
-                    .type(socialInfo.getType())
-                    .id(socialInfo.getId())
+                    .socialType(socialInfo.getSocialType())
+                    .socialId(socialInfo.getSocialId())
                     .build();
         }
 
         public SocialInfo toEntity(){
             return SocialInfo.builder()
-                    .type(this.type)
-                    .id(this.id)
+                    .socialType(this.socialType)
+                    .socialId(this.socialId)
                     .build();
         }
     }

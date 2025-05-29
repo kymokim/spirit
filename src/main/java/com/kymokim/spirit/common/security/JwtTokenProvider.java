@@ -31,36 +31,12 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final long accessTokenValidMillisecond = 1000L * 60 * 60; // 1시간
-    private final long refreshTokenValidMillisecond = 1000L * 60 * 60 * 24 * 30; // 30일
-    private final long millisecondBeforeExpiry = 1000L * 60 * 60 * 24 * 7; // 7일
-
     private Key signingKey;
 
     @PostConstruct
     protected void init() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    public String createAccessToken(Long id) {
-        Date now = new Date();
-        return Jwts.builder()
-                .setSubject(String.valueOf(id))
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + accessTokenValidMillisecond))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
-                .compact();
-    }
-
-    public String createRefreshToken(Long id) {
-        Date now = new Date();
-        return Jwts.builder()
-                .setSubject(String.valueOf(id))
-                .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime() + refreshTokenValidMillisecond))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
-                .compact();
     }
 
     public boolean validateToken(String token) {
@@ -98,14 +74,5 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest request) {
         return request.getHeader("x-auth-token");
-    }
-
-    public Boolean checkExpiry(String token) {
-        Date now = new Date();
-        Jws<Claims> claims = Jwts.parserBuilder()
-                .setSigningKey(signingKey)
-                .build()
-                .parseClaimsJws(token);
-        return claims.getBody().getExpiration().before(new Date(now.getTime() + millisecondBeforeExpiry));
     }
 }

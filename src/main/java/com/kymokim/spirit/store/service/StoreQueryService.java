@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.service;
 
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
@@ -38,6 +39,7 @@ public class StoreQueryService {
     private final ReviewRepository reviewRepository;
     private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
+    private final AESUtil aesUtil;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -203,7 +205,7 @@ public class StoreQueryService {
         List<ResponseStore.OwnershipListDto> ownershipList = new ArrayList<>();
         ownershipRequests.forEach(ownershipRequest -> ownershipList.add(ResponseStore.OwnershipListDto.toDto(ownershipRequest)));
 
-        return ResponseStore.OwnershipDto.toDto(receviedOwnershipRequest, ownershipList);
+        return ResponseStore.OwnershipDto.toDto(receviedOwnershipRequest, ownershipList, aesUtil);
 
     }
 

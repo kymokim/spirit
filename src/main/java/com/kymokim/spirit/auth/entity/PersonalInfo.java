@@ -1,13 +1,12 @@
 package com.kymokim.spirit.auth.entity;
 
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.common.exception.CustomException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.*;
-
-import javax.validation.constraints.NotEmpty;
-import java.time.LocalDateTime;
 
 @Getter
 @Embeddable
@@ -25,9 +24,11 @@ public class PersonalInfo {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    // 안 들어왔을 때 CustomException 추가 필수
     @Builder
     public PersonalInfo(String ci, String name, String birthDate, Gender gender, String phoneNumber){
+        if (ci == null || ci.isEmpty() || name == null || name.isEmpty() || birthDate == null || birthDate.isEmpty() || gender == null || phoneNumber == null || phoneNumber.isEmpty()){
+            throw new CustomException(AuthErrorCode.PERSONAL_INFO_EMPTY);
+        }
         this.ci = ci;
         this.name = name;
         this.birthDate = birthDate;

@@ -28,6 +28,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	//webflux
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
 	// AWS SDK 최신 버전 추가 (BOM 관리)
 	implementation platform('software.amazon.awssdk:bom:2.20.81') // AWS SDK 2.x BOM 추가
 	implementation 'software.amazon.awssdk:s3'

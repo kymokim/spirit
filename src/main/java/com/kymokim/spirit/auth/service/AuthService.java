@@ -9,6 +9,7 @@ import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.entity.SocialInfo;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.auth.repository.NotificationConsentRepository;
 import com.kymokim.spirit.auth.repository.SocialInfoRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.security.JwtTokenProvider;
@@ -40,6 +41,7 @@ public class AuthService {
     private final LikedStoreRepository likedStoreRepository;
     private final StoreRepository storeRepository;
     private final SocialInfoRepository socialInfoRepository;
+    private final NotificationConsentRepository notificationConsentRepository;
 
     private Auth resolveUser() {
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -92,6 +94,9 @@ public class AuthService {
         }
         if (!Objects.equals(user.getPersonalInfo().getCi(), null)) {
             archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
+        }
+        if (user.getNotificationConsent() != null) {
+            notificationConsentRepository.delete(user.getNotificationConsent());
         }
         user.withdraw();
         authRepository.save(user);

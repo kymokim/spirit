@@ -70,17 +70,17 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+
 //        config.addAllowedOrigin("*");
 //        config.setAllowCredentials(false);
+
         config.setAllowedOriginPatterns(List.of(
-                "https://teamspirit19.netlify.app",
-                "https://dev.team-spirit.click",
-                "https://team-spirit.click"
+                "https://teamspirit19.netlify.app"
         ));
         config.setAllowCredentials(true);
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

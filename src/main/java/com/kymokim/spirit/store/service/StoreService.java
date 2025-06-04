@@ -7,6 +7,9 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -224,7 +227,7 @@ public class StoreService {
         Store store = resolveStore(createOwnershipRqDto.getStoreId());
         Auth requester = resolveUser();
 
-        if(store.getOwnerId() != null) {
+        if (store.getOwnerId() != null) {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
 
@@ -283,11 +286,11 @@ public class StoreService {
         storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
         storeManagerRepository.save(storeManager);
 
-        //TODO 신청자에게 승인 알림 기능 추가
+        NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore()));
     }
 
     @Transactional
-    public void rejectOwnership(Long ownershipId) {
+    public void rejectOwnership(Long ownershipId, String rejectionReason) {
         OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
 
         String certImageUrl = ownershipRequest.getBusinessRegistrationCertificateImgUrl();
@@ -297,11 +300,8 @@ public class StoreService {
 
         storeOwnershipRequestRepository.delete(ownershipRequest);
 
-        //TODO 신청자에게 거절 알림 기능 추가
-
+        NotificationEvent.raise(new StoreOwnershipRejectedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore(), rejectionReason));
     }
-
-
 
 
 }

@@ -131,9 +131,10 @@ public class StoreController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/ownership/reject/{ownershipId}")
-    public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId) {
+    public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId,
+                                                       @Valid @RequestParam String rejectionReason) {
         LOGGER.info("Store/rejectOwnership API called.");
-        storeService.rejectOwnership(ownershipId);
+        storeService.rejectOwnership(ownershipId, rejectionReason);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Ownership deleted successfully.")
                 .build();

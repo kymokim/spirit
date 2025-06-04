@@ -73,6 +73,7 @@ public class AuthService {
         withdraw(user);
     }
 
+    //TODO 매장권한등록신청 및 권한 등록된 가게 있는 경우 철회
     private void withdraw(Auth user){
         if (!Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty()) {
             s3Service.deleteFile(user.getImgUrl());

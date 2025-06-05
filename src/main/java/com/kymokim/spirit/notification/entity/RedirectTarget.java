@@ -15,6 +15,9 @@ public class RedirectTarget {
 
     private Long redirectId;
 
+    protected RedirectTarget() {
+    }
+
     @Builder
     public RedirectTarget(RedirectType redirectType, Long redirectId) {
         this.redirectType = redirectType;

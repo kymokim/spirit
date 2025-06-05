@@ -34,6 +34,7 @@ public class StoreNotificationEventHandler {
                 .notificationBody(body)
                 .redirectTarget(redirectTarget)
                 .build();
+        user.addNotification(notification);
         notification = notificationRepository.save(notification);
         if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())){
             fcmNotificationService.pushAlarmToToken(notification);
@@ -55,6 +56,7 @@ public class StoreNotificationEventHandler {
                 .notificationBody(body)
                 .redirectTarget(redirectTarget)
                 .build();
+        user.addNotification(notification);
         notification = notificationRepository.save(notification);
         if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())){
             fcmNotificationService.pushAlarmToToken(notification);

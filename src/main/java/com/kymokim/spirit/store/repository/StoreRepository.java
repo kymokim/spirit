@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface StoreRepository extends JpaRepository<Store, Long>, StoreRepositoryCustom {
     List<Store> findByIdIn(List<Long> ids);
+    List<Store> findByOwnerId(Long ownerId);
 }

@@ -15,10 +15,14 @@ import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.security.JwtTokenProvider;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.notification.repository.NotificationRepository;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.StoreManager;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
+import com.kymokim.spirit.store.repository.OwnershipRequestRepository;
+import com.kymokim.spirit.store.repository.StoreManagerRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,13 +39,15 @@ import java.util.Objects;
 public class AuthService {
 
     private final AuthRepository authRepository;
-
     private final S3Service s3Service;
     private final ArchiveService archiveService;
     private final LikedStoreRepository likedStoreRepository;
     private final StoreRepository storeRepository;
     private final SocialInfoRepository socialInfoRepository;
     private final NotificationConsentRepository notificationConsentRepository;
+    private final NotificationRepository notificationRepository;
+    private final StoreManagerRepository storeManagerRepository;
+    private final OwnershipRequestRepository ownershipRequestRepository;
 
     private Auth resolveUser() {
         Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -73,7 +79,7 @@ public class AuthService {
         withdraw(user);
     }
 
-    //TODO 매장권한등록신청 및 권한 등록된 가게 있는 경우 철회
+    @Transactional
     private void withdraw(Auth user){
         if (!Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty()) {
             s3Service.deleteFile(user.getImgUrl());
@@ -99,6 +105,21 @@ public class AuthService {
         if (user.getNotificationConsent() != null) {
             notificationConsentRepository.delete(user.getNotificationConsent());
         }
+        notificationRepository.deleteAllByAuthId(user.getId());
+
+        List<Store> ownedStores = storeRepository.findByOwnerId(user.getId());
+        for (Store store : ownedStores) {
+            List<StoreManager> managers = storeManagerRepository.findByStoreIdOrderByApprovedAtAsc(store.getId());
+            if (!managers.isEmpty()) {
+                store.setOwnerId(managers.getFirst().getUserId());
+            } else {
+                store.setOwnerId(null);
+            }
+        }
+
+        storeManagerRepository.deleteAllByUserId(user.getId());
+        ownershipRequestRepository.deleteAllByRequesterId(user.getId());
+
         user.withdraw();
         authRepository.save(user);
     }

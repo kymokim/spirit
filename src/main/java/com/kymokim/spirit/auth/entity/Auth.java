@@ -3,6 +3,7 @@ package com.kymokim.spirit.auth.entity;
 
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.notification.entity.Notification;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -39,6 +40,9 @@ public class Auth implements UserDetails {
 
     @OneToOne(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private NotificationConsent notificationConsent;
+
+    @OneToMany(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Notification> notificationList = new ArrayList<>();
 
     @Embedded
     private PersonalInfo personalInfo;

@@ -25,4 +25,10 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             ReportStatus reportStatus
     );
 
+    Long countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
+            ReportTarget reportTarget,
+            Long targetId,
+            ReportStatus reportStatus,
+            List<ReportReason> reportReasons
+    );
 }

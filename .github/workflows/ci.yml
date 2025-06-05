@@ -78,6 +78,13 @@ jobs:
           echo "security.aes.key=${{ secrets.AES_KEY }}" >> ${APP_CONFIG_FILE}
           echo "security.aes.iv=${{ secrets.AES_IV }}" >> ${APP_CONFIG_FILE}
 
+      - name: create firebase-adminsdk.json
+        uses: jsdaniell/create-json@1.1.2
+        with:
+          name: "drinktoday-d0f50-firebase-adminsdk-fbsvc-70665ba25a.json"
+          json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          dir: './src/main/resources/secret'
+
       # 4. Gradle 빌드 및 테스트 실행
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew

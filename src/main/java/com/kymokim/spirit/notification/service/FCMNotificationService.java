@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -43,23 +44,24 @@ public class FCMNotificationService {
         }
     }
 
-    public void pushAlarmToToken(NotificationType notificationType, String body, String token, RedirectTarget redirectTarget) {
-        if (token == null || token.isEmpty()) {
+    public void pushAlarmToToken(com.kymokim.spirit.notification.entity.Notification notification) {
+        if (Objects.equals(notification.getAuth().getFcmToken(), null) || notification.getAuth().getFcmToken().isEmpty()) {
             return;
         }
-        Notification notification = Notification.builder()
-                .setTitle(notificationType.getTitle())
-                .setBody(body)
+        Notification fcmNotification = Notification.builder()
+                .setTitle(notification.getNotificationType().getTitle())
+                .setBody(notification.getNotificationBody())
                 .build();
         Message message = Message.builder()
-                .setToken(token)
-                .setNotification(notification)
-                .putData("notificationType", notificationType.toString())
-                .putData("redirectType", redirectTarget.getRedirectType().toString())
-                .putData("redirectId", redirectTarget.getRedirectId().toString())
+                .setToken(notification.getAuth().getFcmToken())
+                .setNotification(fcmNotification)
+                .putData("notificationType", notification.getNotificationType().toString())
+                .putData("notificationId", notification.getId().toString())
+                .putData("redirectType", notification.getRedirectTarget().getRedirectType().toString())
+                .putData("redirectId", notification.getRedirectTarget().getRedirectId().toString())
                 .build();
         sendMessage(message);
-        log.info("fcm content : {}", body);
+        log.info("fcm content : {}", notification.getNotificationBody());
     }
 
     public void sendMessage(Message message) {

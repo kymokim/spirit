@@ -47,6 +47,7 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/auth/merge").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/api/store/share/{storeId}", "/link/store/{storeId}", "/ul/store/{storeId}").permitAll()
                         .requestMatchers("**exception**").permitAll()
                 )
 

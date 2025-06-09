@@ -26,12 +26,10 @@ import javax.validation.Valid;
 public class AuthController {
 
     private final AuthService authService;
-    private final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     @Operation(summary = "회원 통합")
     @PostMapping("/merge")
     public ResponseEntity<ResponseDto> mergeUser(@Valid @RequestBody RequestAuth.MergeUserDto mergeUserDto) {
-        LOGGER.info("Auth/mergeUser API called.");
         authService.mergeUser(mergeUserDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User merged successfully.")
@@ -49,7 +47,6 @@ public class AuthController {
     })
     @DeleteMapping("/withdraw")
     public ResponseEntity<ResponseDto> withdrawUser(){
-        LOGGER.info("Auth/withdrawUser API called.");
         authService.withdrawUser();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User withdrew successfully.")

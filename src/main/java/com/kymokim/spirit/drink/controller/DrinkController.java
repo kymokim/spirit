@@ -26,12 +26,10 @@ import java.util.List;
 public class DrinkController {
     @Autowired
     private final DrinkService drinkService;
-    private final Logger LOGGER = LoggerFactory.getLogger(DrinkController.class);
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createDrink(@RequestPart(value = "file", required = false) MultipartFile file,
                                                   @RequestPart(value = "createDrinkDto") RequestDrink.CreateDrinkDto createDrinkDto) {
-        LOGGER.info("Drink/createDrink API called.");
         drinkService.createDrink(file, createDrinkDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink created successfully.")
@@ -42,7 +40,6 @@ public class DrinkController {
     @PostMapping(value = "/update-image/{drinkId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> updateDrinkImage(@RequestPart(value = "file", required = true) MultipartFile file,
                                                        @PathVariable("drinkId") Long drinkId){
-        LOGGER.info("Drink/updateDrinkImage API called.");
         drinkService.updateImage(file, drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image updated successfully.")
@@ -52,7 +49,6 @@ public class DrinkController {
 
     @DeleteMapping("delete-image/{drinkId}")
     public ResponseEntity<ResponseDto> deleteImage(@PathVariable("drinkId") Long drinkId){
-        LOGGER.info("Drink/deleteImage API called.");
         drinkService.deleteImage(drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -62,7 +58,6 @@ public class DrinkController {
 
     @GetMapping("/get-by/store/{storeId}")
     public ResponseEntity<ResponseDto> getByStore(@PathVariable("storeId") Long storeId) {
-        LOGGER.info("Drink/getByStore API called.");
         List<ResponseDrink.DrinkListDto> response = drinkService.getByStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink retrieved successfully.")
@@ -73,7 +68,6 @@ public class DrinkController {
 
     @GetMapping("/get-by/{drinkId}")
     public ResponseEntity<ResponseDto> getDrink(@PathVariable("drinkId") Long drinkId) {
-        LOGGER.info("Drink/getDrink API called.");
         ResponseDrink.GetDrinkDto response = drinkService.getDrink(drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink retrieved successfully.")
@@ -84,7 +78,6 @@ public class DrinkController {
 
     @PutMapping("/update/{drinkId}")
     public ResponseEntity<ResponseDto> updateDrink(@PathVariable("drinkId") Long drinkId, @RequestBody RequestDrink.UpdateDrinkDto updateDrinkDto) {
-        LOGGER.info("Drink/updateDrink API called.");
         drinkService.updateDrink(drinkId, updateDrinkDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink updated successfully.")
@@ -94,7 +87,6 @@ public class DrinkController {
 
     @DeleteMapping("/delete/{drinkId}")
     public ResponseEntity<ResponseDto> deleteDrink(@PathVariable("drinkId") Long drinkId) {
-        LOGGER.info("Drink/deleteDrink API called.");
         drinkService.deleteDrink(drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink deleted successfully.")

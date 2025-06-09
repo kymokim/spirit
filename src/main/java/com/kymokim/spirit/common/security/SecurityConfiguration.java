@@ -47,10 +47,6 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/auth/merge").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
-                        .requestMatchers("/api/location/get-address", "/api/location/get-coordinate").permitAll()
-                        .requestMatchers("/api/store/get-by/keyword/**", "/api/store/get-by/distance", "/api/store/get-by/category/**").permitAll()
-                        .requestMatchers("/api/store/get-by/business-hours", "/api/store/get-by/radius", "/api/store/get-by/condition-search").permitAll()
-                        .requestMatchers("/api/store/get-by/main-banner").permitAll()
                         .requestMatchers("**exception**").permitAll()
                 )
 

@@ -19,9 +19,9 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 public class StoreShareController {
 
-
     private final StoreShareService shareService;
 
+    record ShareLinkResponse(String url) { }
 
     @GetMapping("/api/store/share/{storeId}")
     public ResponseEntity<ShareLinkResponse> createShareLink(@PathVariable Long storeId) {
@@ -29,13 +29,10 @@ public class StoreShareController {
         return ResponseEntity.ok(new ShareLinkResponse(url));
     }
 
-    record ShareLinkResponse(String url) { }
-
     @GetMapping("/link/store/{storeId}")
     public ResponseEntity<Void> redirectByOS(
             @PathVariable Long storeId,
             @RequestHeader(value = "User-Agent", required = false) String ua) {
-
         String target = shareService.getRedirectTarget(storeId, ua);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, target)

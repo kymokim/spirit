@@ -2,11 +2,8 @@ package com.kymokim.spirit.auth.service;
 
 import com.kymokim.spirit.archive.entity.ArchiveType;
 import com.kymokim.spirit.archive.service.ArchiveService;
-import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.*;
 import com.kymokim.spirit.auth.dto.RequestAuth;
-import com.kymokim.spirit.auth.entity.PersonalInfo;
-import com.kymokim.spirit.auth.entity.Role;
-import com.kymokim.spirit.auth.entity.SocialInfo;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.auth.repository.NotificationConsentRepository;
@@ -103,7 +100,9 @@ public class AuthService {
             archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
         }
         if (user.getNotificationConsent() != null) {
-            notificationConsentRepository.delete(user.getNotificationConsent());
+            NotificationConsent notificationConsent = user.getNotificationConsent();
+            user.initNotificationConsent(null);
+            notificationConsentRepository.delete(notificationConsent);
         }
         notificationRepository.deleteAllByAuthId(user.getId());
 

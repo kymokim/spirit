@@ -81,7 +81,6 @@ public class Auth implements UserDetails {
         this.refreshToken = null;
         this.userStatus = UserStatus.WITHDREW;
         this.roles.clear();
-        this.notificationConsent = null;
         this.notificationList.clear();
     }
 

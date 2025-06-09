@@ -21,11 +21,9 @@ import org.springframework.web.bind.annotation.*;
 public class NotificationController {
 
     private final NotificationService notificationService;
-    private final Logger LOGGER = LoggerFactory.getLogger(NotificationController.class);
 
     @PatchMapping("/read/{notificationId}")
     public ResponseEntity<ResponseDto> readNotification(@PathVariable("notificationId") Long notificationId) {
-        LOGGER.info("Notification/readNotification API called.");
         notificationService.readNotification(notificationId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Notification read successfully.")
@@ -35,7 +33,6 @@ public class NotificationController {
 
     @PatchMapping("/read/all")
     public ResponseEntity<ResponseDto> readAllNotification() {
-        LOGGER.info("Notification/readAllNotification API called.");
         notificationService.readAllNotification();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("All notification read successfully.")
@@ -45,7 +42,6 @@ public class NotificationController {
 
     @GetMapping("/get-received")
     public ResponseEntity<ResponseDto> getReceivedNotification(@PageableDefault(size = 20) Pageable pageable) {
-        LOGGER.info("Notification/getReceivedNotification API called.");
         Page<ResponseNotification.NotificationResponseDto> notificationResponseDtoPage = notificationService.getReceivedNotification(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Received notification fetched successfully.")

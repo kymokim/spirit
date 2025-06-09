@@ -36,12 +36,10 @@ import java.util.List;
 public class StoreController {
 
     private final StoreService storeService;
-    private final Logger LOGGER = LoggerFactory.getLogger(StoreController.class);
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) throws IOException {
-        LOGGER.info("Store/createStore API called.");
+                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
         ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
@@ -53,7 +51,6 @@ public class StoreController {
 
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
-        LOGGER.info("Store/updateStore API called.");
         storeService.updateStore(storeId, updateStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store updated successfully.")
@@ -64,7 +61,6 @@ public class StoreController {
     @PostMapping(value = "/upload-image/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
                                                    @PathVariable("storeId") Long storeId) {
-        LOGGER.info("Store/uploadImage API called.");
         ResponseStore.ImageListDto dto = storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
@@ -75,7 +71,6 @@ public class StoreController {
 
     @PostMapping("/like/{storeId}")
     public ResponseEntity<ResponseDto> likeStore(@PathVariable("storeId") Long storeId) {
-        LOGGER.info("Store/likeStore API called.");
         storeService.likeStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store like processed successfully.")
@@ -86,7 +81,6 @@ public class StoreController {
     @DeleteMapping("/delete-image/{storeId}")
     public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                    @PathVariable("storeId") Long storeId) {
-        LOGGER.info("Store/deleteImage API called.");
         ResponseStore.ImageListDto dto = storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -98,7 +92,6 @@ public class StoreController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{storeId}")
     public ResponseEntity<ResponseDto> deleteStore(@PathVariable("storeId") Long storeId) {
-        LOGGER.info("Store/deleteStore API called.");
         storeService.deleteStore(storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store deleted successfully.")
@@ -108,9 +101,7 @@ public class StoreController {
 
     @PostMapping(value = "/ownership/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file") MultipartFile file,
-                                                       @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) throws IOException {
-        LOGGER.info("Store/createOwnership Store API called.");
-
+                                                       @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) {
         storeService.createOwnership(file, createOwnershipRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store ownership created successfully.")
@@ -121,7 +112,6 @@ public class StoreController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/ownership/approve/{ownershipId}")
     public ResponseEntity<ResponseDto> approveOwnership(@PathVariable("ownershipId") Long ownershipId) {
-        LOGGER.info("Store/approveOwnership API called.");
         storeService.approveOwnership(ownershipId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Ownership approved successfully.")
@@ -133,7 +123,6 @@ public class StoreController {
     @DeleteMapping("/ownership/reject/{ownershipId}")
     public ResponseEntity<ResponseDto> rejectOwnership(@PathVariable("ownershipId") Long ownershipId,
                                                        @Valid @RequestParam String rejectionReason) {
-        LOGGER.info("Store/rejectOwnership API called.");
         storeService.rejectOwnership(ownershipId, rejectionReason);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Ownership deleted successfully.")

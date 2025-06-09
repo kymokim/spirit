@@ -33,11 +33,9 @@ import java.util.List;
 public class ReportController {
     @Autowired
     private final ReportService reportService;
-    private final Logger LOGGER = LoggerFactory.getLogger(ReportController.class);
 
     @PostMapping(value = "/create")
     public ResponseEntity<ResponseDto> createReport(@RequestBody RequestReport.CreateReportRqDto createReportRqDto){
-        LOGGER.info("Report/createReport API called.");
         reportService.createReport(createReportRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report created successfully.")
@@ -49,7 +47,6 @@ public class ReportController {
     @GetMapping("/store")
     public ResponseEntity<ResponseDto> getStoreReports(@PageableDefault(size = 10) Pageable pageable,
                                                        @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Report/getStoreReports API called.");
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported store list retrieved successfully.")
@@ -61,7 +58,6 @@ public class ReportController {
     @Operation(summary = "특정 타겟(store, review) 신고 전체 리스트 조회")
     @GetMapping("/get-by/target/{targetId}")
     public ResponseEntity<ResponseDto> getReportsByTargetId(@RequestParam(value = "target")ReportTarget reportTarget, @PathVariable Long targetId) {
-        LOGGER.info("Report/getReportsByTargetId API called.");
         List<ResponseReport.ReportDto> dtoList = reportService.getReportsByTargetId(reportTarget, targetId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported by target list retrieved successfully.")
@@ -74,7 +70,6 @@ public class ReportController {
     @GetMapping("/store/priority")
     public ResponseEntity<ResponseDto> getPriorityStoreReports(@PageableDefault(size = 10) Pageable pageable,
                                                                @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Report/getPriorityStoreReports API called.");
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getPriorityStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported priority store list retrieved successfully.")
@@ -90,7 +85,6 @@ public class ReportController {
     @GetMapping("/review")
     public ResponseEntity<ResponseDto> getReviewReports(@PageableDefault(size = 10) Pageable pageable,
                                                         @RequestParam(value = "status") ReportStatus reportStatus) {
-        LOGGER.info("Report/getReviewReports API called.");
         Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getReviewReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reported review list retrieved successfully.")
@@ -104,7 +98,6 @@ public class ReportController {
     @Operation(summary = "신고 처리 완료")
     @PatchMapping("complete/{reportId}")
     public ResponseEntity<ResponseDto> completeReport(@PathVariable Long reportId) {
-        LOGGER.info("Report/completeReport API called.");
         reportService.completeReport(reportId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report completed successfully.")
@@ -116,7 +109,6 @@ public class ReportController {
     @Operation(summary = "신고 보관")
     @PostMapping("archive/{reportId}")
     public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId, @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
-        LOGGER.info("Report/archiveReport API called.");
         reportService.archiveReport(reportId, archiveReportDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report archived successfully.")

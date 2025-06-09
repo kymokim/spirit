@@ -4,6 +4,7 @@ import com.kymokim.spirit.auth.entity.Auth;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "notification")
 @Entity
 @Getter
+@NoArgsConstructor
 public class Notification {
 
     @Id

@@ -33,12 +33,10 @@ import java.util.Optional;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final Logger LOGGER = LoggerFactory.getLogger(ReviewController.class);
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createReview(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                     @RequestPart(value = "createReviewDto") RequestReview.CreateReviewDto createReviewDto) {
-        LOGGER.info("Review/createReview API called.");
         reviewService.createReview(files, createReviewDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review created successfully.")
@@ -49,7 +47,6 @@ public class ReviewController {
     @PostMapping(value = "/upload-image/{reviewId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> uploadReviewImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
                                                          @PathVariable("reviewId") Long reviewId) {
-        LOGGER.info("Review/uploadReviewImage API called.");
         reviewService.uploadImage(files, reviewId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
@@ -60,7 +57,6 @@ public class ReviewController {
     @DeleteMapping("/delete-image/{reviewId}")
     public ResponseEntity<ResponseDto> deleteReviewImage(@RequestBody RequestReview.DeleteImageDto deleteImageDto,
                                                          @PathVariable("reviewId") Long reviewId) {
-        LOGGER.info("Review/deleteReviewImage API called.");
         reviewService.deleteImage(deleteImageDto, reviewId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -70,7 +66,6 @@ public class ReviewController {
 
     @GetMapping("/get-by/{reviewId}")
     public ResponseEntity<ResponseDto> getReview(@PathVariable("reviewId") Long reviewId) {
-        LOGGER.info("Review/getReview API called.");
         ResponseReview.GetReviewDto response = reviewService.getReview(reviewId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review retrieved successfully.")
@@ -79,11 +74,9 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    //토큰 받아서 본인이 작성자인지 알려주는 boolean 값 리턴 필요
     @GetMapping("/get-by/store/{storeId}")
     public ResponseEntity<ResponseDto> getReviewByStore(@PathVariable("storeId") Long storeId,
                                                         @PageableDefault(size = 10) Pageable pageable) {
-        LOGGER.info("Review/getReviewByStore API called.");
         Page<ResponseReview.ReviewListDto> response = reviewService.getReviewByStore(storeId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review list retrieved successfully.")
@@ -94,7 +87,6 @@ public class ReviewController {
 
     @GetMapping("/get-by/recent")
     public ResponseEntity<ResponseDto> getRecentReview(@PageableDefault(size = 10) Pageable pageable) {
-        LOGGER.info("Review/getRecentReview API called.");
         Page<ResponseReview.GetRecentReviewDto> response = reviewService.getRecentReview(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review list retrieved successfully.")
@@ -107,7 +99,6 @@ public class ReviewController {
     @PutMapping("/update/{reviewId}")
     public ResponseEntity<ResponseDto> updateReview(@PathVariable("reviewId") Long reviewId,
                                                     @RequestBody RequestReview.UpdateReviewDto updateReviewDto) {
-        LOGGER.info("Review/updateReview API called.");
         reviewService.updateReview(reviewId, updateReviewDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review updated successfully.")
@@ -117,7 +108,6 @@ public class ReviewController {
 
     @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<ResponseDto> deleteReview(@PathVariable("reviewId") Long reviewId) {
-        LOGGER.info("Review/deleteReview API called.");
         reviewService.deleteReview(reviewId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review deleted successfully.")

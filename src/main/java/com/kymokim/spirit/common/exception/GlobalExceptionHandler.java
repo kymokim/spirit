@@ -23,7 +23,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
-        System.out.println("Custom exception occurred. Code : " + e.getErrorCode() + ". Message : " + e.getExtraMessage());
+        System.out.println("Custom exception occurred.\n" +
+                "Code : " + e.getErrorCode() + "\n" +
+                "Message : " + e.getExtraMessage());
         return ErrorResponse.toResponseEntity(e.getErrorCode(), e.getExtraMessage());
     }
 

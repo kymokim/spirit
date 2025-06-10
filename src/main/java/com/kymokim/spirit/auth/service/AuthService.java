@@ -114,6 +114,7 @@ public class AuthService {
             } else {
                 store.setOwnerId(null);
             }
+            storeRepository.save(store);
         }
 
         storeManagerRepository.deleteAllByUserId(user.getId());

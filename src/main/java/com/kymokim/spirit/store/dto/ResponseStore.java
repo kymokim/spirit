@@ -656,17 +656,32 @@ public class ResponseStore {
     public static class ManagedStoreListDto {
         private Long id;
         private Long storeId;
+        private String mainImgUrl;
         private String storeName;
         private LocalDateTime approvedAt;
+        private Set<Category> categories;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long likeCount;
+        private CommonStore.LocationDto locationDto;
+        private Long normalReportCount;
+        private Long priorityReportCount;
 
-        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store) {
+        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store, Double storeRate, Long normalReportCount, Long priorityReportCount) {
             return ManagedStoreListDto.builder()
                     .id(storeManager.getId())
                     .storeId(store.getId())
                     .storeName(store.getName())
+                    .mainImgUrl(store.getMainImgUrl())
                     .approvedAt(storeManager.getApprovedAt())
+                    .categories(store.getCategories())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .likeCount(store.getLikeCount())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .normalReportCount(normalReportCount)
+                    .priorityReportCount(priorityReportCount)
                     .build();
         }
     }
-
 }

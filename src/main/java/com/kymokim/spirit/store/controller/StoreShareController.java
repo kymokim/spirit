@@ -58,7 +58,7 @@ public class StoreShareController {
                       "namespace": "android_app",
                       "package_name": "com.spiritfront",
                       "sha256_cert_fingerprints": [
-                        "F1:55:DB:49:4D:C6:CE:04:97:42:1E:AC:F0:88:61:90:6C:3E:90:0D:AE:26:72:C1:4B:D7:D8:3D:37:C1:4B:88"
+                        "FD:D5:B2:A3:27:63:F3:94:19:D7:6D:A2:02:A6:74:AF:FD:31:28:C8:DD:D5:AB:11:D7:87:7E:5A:AC:30:44:9B"
                       ]
                     }
                   }

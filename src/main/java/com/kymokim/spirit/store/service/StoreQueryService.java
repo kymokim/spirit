@@ -3,6 +3,10 @@ package com.kymokim.spirit.store.service;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.report.entity.ReportReason;
+import com.kymokim.spirit.report.entity.ReportStatus;
+import com.kymokim.spirit.report.entity.ReportTarget;
+import com.kymokim.spirit.report.repository.ReportRepository;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.QueryStore;
@@ -16,7 +20,7 @@ import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.LikedStoreRepository;
 import com.kymokim.spirit.store.repository.StoreManagerRepository;
-import com.kymokim.spirit.store.repository.StoreOwnershipRequestRepository;
+import com.kymokim.spirit.store.repository.OwnershipRequestRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,9 +41,10 @@ public class StoreQueryService {
     private final StoreRepository storeRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final ReviewRepository reviewRepository;
-    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final OwnershipRequestRepository ownershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final AESUtil aesUtil;
+    private final ReportRepository reportRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -52,7 +57,7 @@ public class StoreQueryService {
     }
 
     private OwnershipRequest resolveOwnership(Long ownershipId) {
-        return storeOwnershipRequestRepository.findById(ownershipId)
+        return ownershipRequestRepository.findById(ownershipId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
@@ -192,7 +197,7 @@ public class StoreQueryService {
     @Transactional(readOnly = true)
     public Page<ResponseStore.OwnershipListDto> getOwnershipList(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<OwnershipRequest> ownershipRequestPage = storeOwnershipRequestRepository.findAllByOrderByRequestedAtAsc(pageable);
+            Page<OwnershipRequest> ownershipRequestPage = ownershipRequestRepository.findAllByOrderByRequestedAtAsc(pageable);
             return ownershipRequestPage.map(ResponseStore.OwnershipListDto::toDto);
         }, 3);
     }
@@ -201,7 +206,7 @@ public class StoreQueryService {
     public ResponseStore.OwnershipDto getOwnership(Long ownershipId) {
         OwnershipRequest receviedOwnershipRequest = resolveOwnership(ownershipId);
 
-        List<OwnershipRequest> ownershipRequests = storeOwnershipRequestRepository.findAllByStore(receviedOwnershipRequest.getStore());
+        List<OwnershipRequest> ownershipRequests = ownershipRequestRepository.findAllByStore(receviedOwnershipRequest.getStore());
         List<ResponseStore.OwnershipListDto> ownershipList = new ArrayList<>();
         ownershipRequests.forEach(ownershipRequest -> ownershipList.add(ResponseStore.OwnershipListDto.toDto(ownershipRequest)));
 
@@ -211,17 +216,33 @@ public class StoreQueryService {
 
     @Transactional(readOnly = true)
     public Page<ResponseStore.ManagedStoreListDto> getManagedStoreList(Pageable pageable) {
-
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(resolveUserId(), pageable);
-            return storeManagerPage.map(managedStore ->
-                    ResponseStore.ManagedStoreListDto.toDto(
-                            managedStore,
-                            resolveStore(managedStore.getStoreId())
-                    )
+            List<ReportReason> normalReasons = List.of(
+                    ReportReason.INCORRECT_STORE_INFO,
+                    ReportReason.INCORRECT_MENU_INFO,
+                    ReportReason.INCORRECT_DRINK_INFO,
+                    ReportReason.NON_EXISTENT_STORE,
+                    ReportReason.DUPLICATE_STORE,
+                    ReportReason.ETC
             );
+            List<ReportReason> priorityReasons = List.of(
+                    ReportReason.INAPPROPRIATE_LANGUAGE,
+                    ReportReason.INAPPROPRIATE_PHOTO,
+                    ReportReason.VIOLATION_OF_GUIDELINES
+            );
+            Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(resolveUserId(), pageable);
+
+            return storeManagerPage.map(managedStore -> {
+                Store store = resolveStore(managedStore.getStoreId());
+                Long normalReportCount = reportRepository.countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
+                        ReportTarget.STORE, store.getId(), ReportStatus.PENDING, normalReasons
+                );
+                Long priorityReportCount = reportRepository.countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
+                        ReportTarget.STORE, store.getId(), ReportStatus.PENDING, priorityReasons
+                );
+
+                return ResponseStore.ManagedStoreListDto.toDto(managedStore, store, calculateRate(store), normalReportCount, priorityReportCount);
+            });
         }, 3);
-
     }
-
 }

@@ -3,6 +3,7 @@ package com.kymokim.spirit.auth.entity;
 
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.notification.entity.Notification;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -37,6 +38,12 @@ public class Auth implements UserDetails {
     @OneToMany(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<SocialInfo> socialInfoList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private NotificationConsent notificationConsent;
+
+    @OneToMany(mappedBy = "auth", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Notification> notificationList = new ArrayList<>();
+
     @Embedded
     private PersonalInfo personalInfo;
 
@@ -52,6 +59,9 @@ public class Auth implements UserDetails {
 
     @Column(name = "refresh_token", length = 1000)
     private String refreshToken;
+
+    @Column(name = "fcm_token", length = 1000)
+    private String fcmToken;
 
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
@@ -71,6 +81,7 @@ public class Auth implements UserDetails {
         this.refreshToken = null;
         this.userStatus = UserStatus.WITHDREW;
         this.roles.clear();
+        this.notificationList.clear();
     }
 
     public void addSocialInfo(SocialInfo socialInfo) {
@@ -80,11 +91,27 @@ public class Auth implements UserDetails {
         }
     }
 
+    public void addNotification(Notification notification) {
+        this.notificationList.add(notification);
+    }
+
+    public void removeNotification(Notification notification) {
+        this.notificationList.remove(notification);
+    }
+
     public void setNickname(String nickname) {
         if (nickname == null || nickname.isEmpty()) {
             throw new CustomException(AuthErrorCode.USER_NICKNAME_EMPTY);
         }
         this.nickname = nickname;
+    }
+
+    public void initNotificationConsent(NotificationConsent notificationConsent) {
+        this.notificationConsent = notificationConsent;
+    }
+
+    public void updateFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 
     @Override

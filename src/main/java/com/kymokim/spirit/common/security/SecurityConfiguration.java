@@ -44,13 +44,11 @@ public class SecurityConfiguration{
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/login-dev", "/api/auth/login-admin", "/api/auth/check-nickname").permitAll()
+                        .requestMatchers("/api/auth/merge").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
-                        .requestMatchers("/api/location/get-address", "/api/location/get-coordinate").permitAll()
-                        .requestMatchers("/api/store/get-by/keyword/**", "/api/store/get-by/distance", "/api/store/get-by/category/**").permitAll()
-                        .requestMatchers("/api/store/get-by/business-hours", "/api/store/get-by/radius", "/api/store/get-by/condition-search").permitAll()
-                        .requestMatchers("/api/store/get-by/main-banner").permitAll()
+                        .requestMatchers("/api/store/share/{storeId}", "/link/store/{storeId}", "/ul/store/{storeId}").permitAll()
+                        .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("**exception**").permitAll()
                 )
 
@@ -70,17 +68,17 @@ public class SecurityConfiguration{
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("*");
-        config.setAllowCredentials(false);
-//        config.setAllowedOriginPatterns(List.of(
-//                "https://teamspirit19.netlify.app",
-//                "https://dev.team-spirit.click",
-//                "https://team-spirit.click"
-//        ));
-//        config.setAllowCredentials(true);
+
+//        config.addAllowedOrigin("*");
+//        config.setAllowCredentials(false);
+
+        config.setAllowedOriginPatterns(List.of(
+                "https://teamspirit19.netlify.app"
+        ));
+        config.setAllowCredentials(true);
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

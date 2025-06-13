@@ -7,6 +7,9 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -32,7 +35,7 @@ public class StoreService {
     private final S3Service s3Service;
     private final OperationInfoRepository operationInfoRepository;
     private final AuthRepository authRepository;
-    private final StoreOwnershipRequestRepository storeOwnershipRequestRepository;
+    private final OwnershipRequestRepository ownershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
@@ -54,7 +57,7 @@ public class StoreService {
     }
 
     private OwnershipRequest resolveOwnership(Long ownershipId) {
-        return storeOwnershipRequestRepository.findById(ownershipId)
+        return ownershipRequestRepository.findById(ownershipId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
@@ -224,11 +227,11 @@ public class StoreService {
         Store store = resolveStore(createOwnershipRqDto.getStoreId());
         Auth requester = resolveUser();
 
-        if(store.getOwnerId() != null) {
+        if (store.getOwnerId() != null) {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
 
-        if (storeOwnershipRequestRepository.existsByRequesterAndStore(requester, store)) {
+        if (ownershipRequestRepository.existsByRequesterAndStore(requester, store)) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
         }
 
@@ -260,7 +263,7 @@ public class StoreService {
         }
 
         OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester);
-        storeOwnershipRequestRepository.save(ownershipRequest);
+        ownershipRequestRepository.save(ownershipRequest);
         if (file != null && !file.isEmpty()) {
             String imageUrl = s3Service.upload(file, "store/ownership/" + ownershipRequest.getId());
             ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
@@ -278,16 +281,16 @@ public class StoreService {
         ownershipRequest.getStore().setOwnerId(ownershipRequest.getRequester().getId());
 
         ownershipRequest.getRequester().getRoles().add(Role.MANAGER);
-        storeOwnershipRequestRepository.delete(ownershipRequest);
+        ownershipRequestRepository.delete(ownershipRequest);
 
         storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
         storeManagerRepository.save(storeManager);
 
-        //TODO 신청자에게 승인 알림 기능 추가
+        NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore()));
     }
 
     @Transactional
-    public void rejectOwnership(Long ownershipId) {
+    public void rejectOwnership(Long ownershipId, String rejectionReason) {
         OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
 
         String certImageUrl = ownershipRequest.getBusinessRegistrationCertificateImgUrl();
@@ -295,13 +298,10 @@ public class StoreService {
             s3Service.deleteFile(certImageUrl);
         }
 
-        storeOwnershipRequestRepository.delete(ownershipRequest);
+        ownershipRequestRepository.delete(ownershipRequest);
 
-        //TODO 신청자에게 거절 알림 기능 추가
-
+        NotificationEvent.raise(new StoreOwnershipRejectedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore(), rejectionReason));
     }
-
-
 
 
 }

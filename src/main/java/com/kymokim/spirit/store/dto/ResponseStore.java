@@ -17,8 +17,6 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ResponseStore {
 
-    private static AESUtil aesUtil;
-
     @Getter
     @Builder
     public static class CreateStoreRsDto {
@@ -592,7 +590,6 @@ public class ResponseStore {
         private String originalStoreName;
         private String receivedStoreName;
         private String requesterNickname;
-        private String requesterName;
 
         public static OwnershipListDto toDto(OwnershipRequest ownershipRequest) {
             return OwnershipListDto.builder()
@@ -603,7 +600,6 @@ public class ResponseStore {
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
-                    .requesterName(aesUtil.decrypt(ownershipRequest.getRequester().getPersonalInfo().getName()))
                     .build();
         }
     }
@@ -630,7 +626,7 @@ public class ResponseStore {
         private String businessRegistrationCertificateImgUrl;
         private List<OwnershipListDto> ownershipList;
 
-        public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto) {
+        public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto, AESUtil aesUtil) {
             return OwnershipDto.builder()
                     .id(ownershipRequest.getId())
                     .requestedAt(ownershipRequest.getRequestedAt())
@@ -660,17 +656,32 @@ public class ResponseStore {
     public static class ManagedStoreListDto {
         private Long id;
         private Long storeId;
+        private String mainImgUrl;
         private String storeName;
         private LocalDateTime approvedAt;
+        private Set<Category> categories;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long likeCount;
+        private CommonStore.LocationDto locationDto;
+        private Long normalReportCount;
+        private Long priorityReportCount;
 
-        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store) {
+        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store, Double storeRate, Long normalReportCount, Long priorityReportCount) {
             return ManagedStoreListDto.builder()
                     .id(storeManager.getId())
                     .storeId(store.getId())
                     .storeName(store.getName())
+                    .mainImgUrl(store.getMainImgUrl())
                     .approvedAt(storeManager.getApprovedAt())
+                    .categories(store.getCategories())
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .likeCount(store.getLikeCount())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .normalReportCount(normalReportCount)
+                    .priorityReportCount(priorityReportCount)
                     .build();
         }
     }
-
 }

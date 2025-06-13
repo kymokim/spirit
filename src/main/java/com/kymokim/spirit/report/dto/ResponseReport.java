@@ -1,11 +1,9 @@
 package com.kymokim.spirit.report.dto;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.report.entity.Report;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
 import com.kymokim.spirit.review.entity.Review;
-import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,13 +17,14 @@ public class ResponseReport {
     public static class StoreReportListDto {
         private Long id;
         private LocalDateTime reportedAt;
-        private Long storeId; //== targetId
+        private Long storeId; //targetId
         private String storeName;
         private ReportReason reportReason;
         private String description;
         private ReportStatus reportStatus;
         private Long reporterId;
         private String reporterNickname;
+        private Boolean isCertified;
 
         public static StoreReportListDto toDto(Report report, Store store) {
             return StoreReportListDto.builder()
@@ -38,6 +37,7 @@ public class ResponseReport {
                     .reportStatus(report.getReportStatus())
                     .reporterId(report.getReporter().getId())
                     .reporterNickname(report.getReporter().getNickname())
+                    .isCertified(store.getOwnerId() != null)
                     .build();
         }
 
@@ -72,7 +72,7 @@ public class ResponseReport {
     public static class ReviewReportListDto {
         private Long id;
         private LocalDateTime reportedAt;
-        private Long reviewId; //== targetId
+        private Long reviewId; //targetId
         private Long storeId;
         private String storeName;
         private ReportReason reportReason;

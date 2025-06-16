@@ -105,7 +105,7 @@ public class AuthService {
             notificationConsentRepository.delete(notificationConsent);
         }
         notificationRepository.deleteAllByAuthId(user.getId());
-
+        storeManagerRepository.deleteAllByUserId(user.getId());
         List<Store> ownedStores = storeRepository.findByOwnerId(user.getId());
         for (Store store : ownedStores) {
             List<StoreManager> managers = storeManagerRepository.findByStoreIdOrderByApprovedAtAsc(store.getId());
@@ -115,8 +115,6 @@ public class AuthService {
                 store.setOwnerId(null);
             }
         }
-
-        storeManagerRepository.deleteAllByUserId(user.getId());
         ownershipRequestRepository.deleteAllByRequesterId(user.getId());
 
         user.withdraw();

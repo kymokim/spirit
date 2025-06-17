@@ -13,15 +13,9 @@ import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.dto.LocationCriteria;
-import com.kymokim.spirit.store.entity.LikedStore;
-import com.kymokim.spirit.store.entity.StoreManager;
-import com.kymokim.spirit.store.entity.OwnershipRequest;
-import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
-import com.kymokim.spirit.store.repository.LikedStoreRepository;
-import com.kymokim.spirit.store.repository.StoreManagerRepository;
-import com.kymokim.spirit.store.repository.OwnershipRequestRepository;
-import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +39,7 @@ public class StoreQueryService {
     private final StoreManagerRepository storeManagerRepository;
     private final AESUtil aesUtil;
     private final ReportRepository reportRepository;
+    private final StoreSuggestionRepository storeSuggestionRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -195,10 +190,42 @@ public class StoreQueryService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ResponseStore.StoreSuggestionListDto> getStoreSuggestionList(Pageable pageable) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Long> storeIdsWithOwnership = ownershipRequestRepository.findAllStoreIdsWithOwnershipRequest();
+            Page<StoreSuggestion> storeSuggestionPage = storeSuggestionRepository.findByStoreIdNotInOrderBySuggestedAtAsc(storeIdsWithOwnership, pageable);
+            return storeSuggestionPage.map(ResponseStore.StoreSuggestionListDto::toDto);
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
     public Page<ResponseStore.OwnershipListDto> getOwnershipList(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<OwnershipRequest> ownershipRequestPage = ownershipRequestRepository.findAllByOrderByRequestedAtAsc(pageable);
+            Page<OwnershipRequest> ownershipRequestPage = ownershipRequestRepository.findByStoreIsDeletedFalseOrderByRequestedAtAsc(pageable);
             return ownershipRequestPage.map(ResponseStore.OwnershipListDto::toDto);
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ResponseStore.GetOwnershipListWithStoreSuggestionDto> getOwnershipListWithStoreSuggestion(Pageable pageable) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Page<OwnershipRequest> ownershipRequestPage = ownershipRequestRepository.findByStoreIsDeletedTrueOrderByRequestedAtAsc(pageable);
+            return ownershipRequestPage.map(ownershipRequest -> {
+
+                ResponseStore.OwnershipListDto ownershipListDto = ResponseStore.OwnershipListDto.toDto(ownershipRequest);
+
+                StoreSuggestion storeSuggestion = storeSuggestionRepository.findByStoreId(ownershipRequest.getStore().getId());
+                ResponseStore.StoreSuggestionListDto storeSuggestionListDto = null;
+
+                if (storeSuggestion != null) {
+                    storeSuggestionListDto = ResponseStore.StoreSuggestionListDto.toDto(storeSuggestion);
+                }
+
+                return ResponseStore.GetOwnershipListWithStoreSuggestionDto.builder()
+                        .ownershipListDto(ownershipListDto)
+                        .storeSuggestionListDto(storeSuggestionListDto)
+                        .build();
+            });
         }, 3);
     }
 

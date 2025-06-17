@@ -39,10 +39,10 @@ public class Store {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "has_screen", nullable = false)
+    @Column(name = "has_screen")
     private Boolean hasScreen;
 
-    @Column(name = "is_group_available", nullable = false)
+    @Column(name = "is_group_available")
     private Boolean isGroupAvailable;
 
     @Column(name = "is_always_open")
@@ -61,7 +61,7 @@ public class Store {
     @CollectionTable(name = "categories", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = Category.class)
     @Enumerated(EnumType.STRING)
-    @Column(name = "categories", nullable = false)
+    @Column(name = "categories")
     private Set<Category> categories;
 
     @CollectionTable(name = "main_drinks", joinColumns = @JoinColumn(name = "store_id"))
@@ -99,6 +99,22 @@ public class Store {
         this.location = location;
         setCategories(categories);
         this.mainDrinks = mainDrinks;
+    }
+
+    public static Store fromSuggestion(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
+                                       Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
+        Store store = new Store();
+        store.setName(name);
+        store.contact = contact;
+        store.description = description;
+        store.hasScreen = hasScreen;
+        store.isGroupAvailable = isGroupAvailable;
+        store.historyInfo = new HistoryInfo(creatorId);
+        store.location = location;
+        store.categories = categories;
+        store.mainDrinks = mainDrinks;
+        store.delete();
+        return store;
     }
 
     public void setName(String name){

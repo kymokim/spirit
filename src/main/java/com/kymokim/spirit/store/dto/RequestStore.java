@@ -14,6 +14,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -74,10 +75,55 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class SuggestStoreDto {
+        @Schema(description = "이름")
+        @NotEmpty(message = "이름이 비었습니다.")
+        private String name;
+        @Schema(description = "연락처")
+        private String contact;
+        @Schema(description = "설명")
+        private String description;
+        @Schema(description = "스크린 보유 여부")
+        private Boolean hasScreen;
+        @Schema(description = "단체석 보유 여부")
+        private Boolean isGroupAvailable;
+        @Schema(description = "24시간 운영 여부")
+        private Boolean isAlwaysOpen;
+        @Schema(description = "위치 정보")
+        @NotEmpty(message = "위치 정보가 비었습니다.")
+        private CommonStore.LocationDto locationDto;
+        @Schema(description = "카테고리")
+        private Set<Category> categories;
+        @Schema(description = "대표 주종")
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        @Schema(description = "운영 정보")
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+
+        public Store toEntity(Long creatorId) {
+
+            Set<MainDrink> mainDrinks = new HashSet<>();
+            if (!Objects.equals(this.mainDrinkDtos, null) && !this.mainDrinkDtos.isEmpty()) {
+                this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
+            }
+            return Store.fromSuggestion(this.name, this.contact, this.description, this.hasScreen,
+                    this.isGroupAvailable, creatorId, this.locationDto.toEntity(), this.categories, mainDrinks);
+        }
+    }
+
+    @Data
+    @Builder
+    public static class CreateStoreWithOwnershipRqDto {
+        @NotEmpty
+        private CreateStoreRqDto createStoreRqDto;
+        @NotEmpty
+        private CreateOwnershipRqDto createOwnershipRqDto;
+    }
+
+    @Data
+    @Builder
     public static class CreateOwnershipRqDto {
 
-        @Schema(description = "가게 번호")
-        @NotEmpty(message = "가게 번호가 비었습니다.")
+        @Schema(description = "매장 id")
         private Long storeId;
 
         @Schema(description = "매장 이름")
@@ -104,7 +150,7 @@ public class RequestStore {
         private List<RepresentativeInfo> representativeInfoList;
         @Schema(description = "주소")
         @NotEmpty(message = "주소가 비었습니다.")
-        private Location businessLocation;
+        private CommonStore.LocationDto businessLocation;
 
         public OwnershipRequest toEntity(Store store, Auth requester) {
             return OwnershipRequest.builder()
@@ -117,10 +163,9 @@ public class RequestStore {
                     .representativeInfoList(this.representativeInfoList)
                     .openingDate(this.openingDate)
                     .liquorReportNumber(this.liquorReportNumber)
-                    .businessLocation(this.businessLocation)
+                    .businessLocation(this.businessLocation.toEntity())
                     .build();
         }
-
     }
 
     @Data

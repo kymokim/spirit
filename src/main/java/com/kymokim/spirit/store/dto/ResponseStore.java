@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.common.dto.ResponseLocationDto;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.entity.*;
@@ -582,6 +583,30 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class StoreSuggestionListDto {
+        private Long storeSuggestionId;
+        private LocalDateTime suggestedAt;
+        private Long storeId;
+        private String storeName;
+        private CommonStore.LocationDto locationDto;
+        private Long suggestedUserId;
+        private String suggestedUserNickname;
+
+        public static StoreSuggestionListDto toDto(StoreSuggestion storeSuggestion) {
+            return StoreSuggestionListDto.builder()
+                    .storeSuggestionId(storeSuggestion.getId())
+                    .suggestedAt(storeSuggestion.getSuggestedAt())
+                    .storeId(storeSuggestion.getStore().getId())
+                    .storeName(storeSuggestion.getStore().getName())
+                    .locationDto(CommonStore.LocationDto.toDto(storeSuggestion.getStore().getLocation()))
+                    .suggestedUserId(storeSuggestion.getSuggestedBy().getId())
+                    .suggestedUserNickname(storeSuggestion.getSuggestedBy().getNickname())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class OwnershipListDto {
         private Long id;
         private LocalDateTime requestedAt;
@@ -602,6 +627,13 @@ public class ResponseStore {
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    public static class GetOwnershipListWithStoreSuggestionDto {
+        private StoreSuggestionListDto storeSuggestionListDto;
+        private OwnershipListDto ownershipListDto;
     }
 
     @Getter

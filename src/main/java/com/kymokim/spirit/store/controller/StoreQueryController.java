@@ -191,6 +191,19 @@ public class StoreQueryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 제보 리스트 조회")
+    @GetMapping("/suggestion/list")
+    public ResponseEntity<ResponseDto> getStoreSuggestionList(@PageableDefault(size = 10)Pageable pageable) {
+        Page<ResponseStore.StoreSuggestionListDto> dtoPage = storeQueryService.getStoreSuggestionList(pageable);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion list successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 리스트 조회")
     @GetMapping("/ownership/list")
     public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10)Pageable pageable) {
@@ -198,6 +211,19 @@ public class StoreQueryController {
 
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store get ownership list successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 제보 & 권한 등록 동시 진행 리스트 조회")
+    @GetMapping("/ownership/with-suggestion")
+    public ResponseEntity<ResponseDto> getOwnershipListWithStoreSuggestion(@PageableDefault(size = 10)Pageable pageable) {
+        Page<ResponseStore.GetOwnershipListWithStoreSuggestionDto> dtoPage = storeQueryService.getOwnershipListWithStoreSuggestion(pageable);
+
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store get ownership with suggestion list successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

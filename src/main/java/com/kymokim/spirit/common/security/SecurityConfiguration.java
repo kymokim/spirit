@@ -70,13 +70,13 @@ public class SecurityConfiguration{
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOrigin("*");
-        config.setAllowCredentials(false);
+//        config.addAllowedOrigin("*");
+//        config.setAllowCredentials(false);
 
-//        config.setAllowedOriginPatterns(List.of(
-//                "https://teamspirit19.netlify.app"
-//        ));
-//        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(List.of(
+                "https://teamspirit19.netlify.app"
+        ));
+        config.setAllowCredentials(true);
 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");

@@ -47,6 +47,7 @@ public class ResponseStore {
     public static class GetStoreDto {
         private Long id;
         private Boolean isOwner;
+        private Boolean isUpdatable;
         private String mainImgUrl;
         private String name;
         private String contact;
@@ -65,7 +66,7 @@ public class ResponseStore {
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
 
-        public static GetStoreDto toDto(Store store, Boolean isOwner, Double storeRate, Boolean isStoreLiked) {
+        public static GetStoreDto toDto(Store store, Boolean isOwner, Boolean isUpdatable, Double storeRate, Boolean isStoreLiked) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
             if (!store.getMainDrinks().isEmpty()) {
@@ -85,6 +86,7 @@ public class ResponseStore {
             return GetStoreDto.builder()
                     .id(store.getId())
                     .isOwner(isOwner)
+                    .isUpdatable(isUpdatable)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .contact(store.getContact())

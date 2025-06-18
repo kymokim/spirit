@@ -78,18 +78,22 @@ public class StoreQueryService {
                 isStoreLiked = true;
             }
             Boolean isOwner;
+            Boolean isUpdatable = false;
             Long ownerId = store.getOwnerId();
             StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(user.getId(), storeId);
 
             if (user.getRoles().contains(Role.ADMIN)) {
-                isOwner = true;
-            } else if (ownerId == null) {
-                isOwner = null;
-            } else {
-                isOwner = storeManager != null;
+                isUpdatable = true;
             }
-
-            return ResponseStore.GetStoreDto.toDto(store, isOwner, calculateRate(store), isStoreLiked);
+            if (ownerId == null) {
+                isOwner = null;
+            } else if (storeManager != null) {
+                isOwner = true;
+                isUpdatable = true;
+            } else {
+                isOwner = false;
+            }
+            return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
         }, 3);
     }
 

@@ -1,5 +1,9 @@
 package com.kymokim.spirit.store.service;
 
+import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Role;
+import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
@@ -40,6 +44,7 @@ public class StoreQueryService {
     private final AESUtil aesUtil;
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
+    private final AuthRepository authRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -65,20 +70,25 @@ public class StoreQueryService {
     public ResponseStore.GetStoreDto getStore(Long storeId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Store store = resolveStore(storeId);
+            Auth user = authRepository.findById(resolveUserId())
+                    .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
             boolean isStoreLiked = false;
-            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(resolveUserId(), storeId);
+            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(user.getId(), storeId);
             if (likedStore != null) {
                 isStoreLiked = true;
             }
             Boolean isOwner;
             Long ownerId = store.getOwnerId();
-            StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(resolveUserId(), storeId);
+            StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(user.getId(), storeId);
 
-            if (ownerId == null) {
+            if (user.getRoles().contains(Role.ADMIN)) {
+                isOwner = true;
+            } else if (ownerId == null) {
                 isOwner = null;
             } else {
-                isOwner = (storeManager != null);
+                isOwner = storeManager != null;
             }
+
             return ResponseStore.GetStoreDto.toDto(store, isOwner, calculateRate(store), isStoreLiked);
         }, 3);
     }

@@ -74,7 +74,8 @@ public class SecurityConfiguration{
 //        config.setAllowCredentials(false);
 
         config.setAllowedOriginPatterns(List.of(
-                "https://teamspirit19.netlify.app"
+                "https://teamspirit19.netlify.app",
+                "https://dev.team-spirit.click"
         ));
         config.setAllowCredentials(true);
 

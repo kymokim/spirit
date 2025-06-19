@@ -1,6 +1,7 @@
 package com.kymokim.spirit.menu.dto;
 
 import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.menu.entity.MenuType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -15,7 +16,7 @@ public class ResponseMenu {
         private String price;
         private Long storeId;
         private String imgUrl;
-        private Boolean isMain;
+        private MenuType menuType;
 
         public static GetMenuDto toDto(Menu menu) {
             return GetMenuDto.builder()
@@ -25,7 +26,7 @@ public class ResponseMenu {
                     .price(menu.getPrice())
                     .storeId(menu.getStore().getId())
                     .imgUrl(menu.getImgUrl())
-                    .isMain(menu.getIsMain())
+                    .menuType(menu.getMenuType())
                     .build();
         }
     }
@@ -38,7 +39,7 @@ public class ResponseMenu {
         private String description;
         private String price;
         private String imgUrl;
-        private Boolean isMain;
+        private MenuType menuType;
 
         public static MenuListDto toDto(Menu menu) {
             return MenuListDto.builder()
@@ -47,7 +48,7 @@ public class ResponseMenu {
                     .description(menu.getDescription())
                     .price(menu.getPrice())
                     .imgUrl(menu.getImgUrl())
-                    .isMain(menu.getIsMain())
+                    .menuType(menu.getMenuType())
                     .build();
         }
     }

@@ -3,6 +3,7 @@ package com.kymokim.spirit.store.dto;
 import com.kymokim.spirit.common.dto.ResponseLocationDto;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -282,7 +283,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });
@@ -405,7 +406,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });
@@ -466,7 +467,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });

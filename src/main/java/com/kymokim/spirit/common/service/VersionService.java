@@ -10,9 +10,6 @@ public class VersionService {
     @Value("${app.version}")
     private String version;
 
-    @Value("${app.force-update}")
-    private Boolean forceUpdate;
-
     public ResponseVersionDto.CheckVersionDto checkVersion(String clientVersion) {
         int[] client = parseVersion(clientVersion);
         int[] server = parseVersion(version);

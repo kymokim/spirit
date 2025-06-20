@@ -9,7 +9,7 @@ public class ResponseLocationDto {
     public static class GetAddressDto {
         private String address;
 
-        public static GetAddressDto toDto(String address){
+        public static GetAddressDto toDto(String address) {
             return GetAddressDto.builder()
                     .address(address)
                     .build();
@@ -22,7 +22,7 @@ public class ResponseLocationDto {
         private Double latitude;
         private Double longitude;
 
-        public static GetCoordinateDto toDto(Double latitude, Double longitude){
+        public static GetCoordinateDto toDto(Double latitude, Double longitude) {
             return GetCoordinateDto.builder()
                     .latitude(latitude)
                     .longitude(longitude)
@@ -30,4 +30,17 @@ public class ResponseLocationDto {
         }
     }
 
+    @Builder
+    @Getter
+    public static class GetRoadAddressAndCoordinateDto {
+        private GetAddressDto getAddressDto;
+        private GetCoordinateDto getCoordinateDto;
+
+        public static GetRoadAddressAndCoordinateDto toDto(GetAddressDto getAddressDto, GetCoordinateDto getCoordinateDto) {
+            return GetRoadAddressAndCoordinateDto.builder()
+                    .getAddressDto(getAddressDto)
+                    .getCoordinateDto(getCoordinateDto)
+                    .build();
+        }
+    }
 }

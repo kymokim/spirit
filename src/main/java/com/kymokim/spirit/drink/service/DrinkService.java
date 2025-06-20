@@ -8,6 +8,9 @@ import com.kymokim.spirit.drink.dto.ResponseDrink;
 import com.kymokim.spirit.drink.exception.DrinkErrorCode;
 import com.kymokim.spirit.drink.repository.DrinkRepository;
 import com.kymokim.spirit.drink.entity.Drink;
+import com.kymokim.spirit.menu.dto.RequestMenu;
+import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.menu.exception.MenuErrorCode;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -45,7 +48,9 @@ public class DrinkService {
     @Transactional
     public void createDrink(MultipartFile file, RequestDrink.CreateDrinkDto createDrinkDto) {
         Store store = resolveStore(createDrinkDto.getStoreId());
-        Drink drink = createDrinkDto.toEntity(store, resolveUserId());
+
+        Integer maxOrder = drinkRepository.findMaxSortOrderByStoreId(store.getId()).orElse(-1);
+        Drink drink = createDrinkDto.toEntity(store, maxOrder + 1, resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "drink/" + String.valueOf(drink.getId()));
@@ -111,6 +116,25 @@ public class DrinkService {
         Drink updatedDrink = updateDrinkDto.toEntity(originalDrink);
         updatedDrink.getHistoryInfo().update(resolveUserId());
         drinkRepository.save(updatedDrink);
+    }
+
+    @Transactional
+    public void updateDrinkSortOrder(RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
+        List<Long> drinkIdInOrderList = updateDrinkSortOrderDto.getDrinkIdInOrderList();
+        List<Drink> drinks = drinkRepository.findAllById(drinkIdInOrderList);
+
+        for (int i = 0; i < drinkIdInOrderList.size(); i++) {
+            Long drinkId = drinkIdInOrderList.get(i);
+            Drink drink = drinks.stream()
+                    .filter(drink1 -> drink1.getId().equals(drinkId))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(DrinkErrorCode.DRINK_NOT_FOUND));
+
+            if (!drink.getStore().getId().equals(updateDrinkSortOrderDto.getStoreId())) {
+                throw new CustomException(DrinkErrorCode.INVALID_MENU_STORE_RELATION);
+            }
+            drink.setSortOrder(i);
+        }
     }
 
     @Transactional

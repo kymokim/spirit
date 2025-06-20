@@ -29,6 +29,8 @@ public class Drink {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "drink_type")
     private DrinkType type;
+    @Column(name = "sort_order")
+    private Integer sortOrder;
 
     @Embedded
     private HistoryInfo historyInfo;
@@ -38,13 +40,14 @@ public class Drink {
     private Store store;
 
     @Builder
-    public Drink(String name, String description, String price, DrinkType type, Long creatorId,  Store store) {
+    public Drink(String name, String description, String price, DrinkType type, Long creatorId,  Store store, Integer sortOrder) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.type = type;
         this.historyInfo = new HistoryInfo(creatorId);
         this.store = store;
+        this.sortOrder = sortOrder;
     }
 
     public void update(String name, String description, String price, DrinkType type) {

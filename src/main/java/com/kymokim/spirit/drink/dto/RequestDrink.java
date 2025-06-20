@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 public class RequestDrink {
 
@@ -23,13 +24,14 @@ public class RequestDrink {
         @NotEmpty
         private Long storeId;
 
-        public Drink toEntity(Store store, Long creatorId) {
+        public Drink toEntity(Store store, Integer sortOrder, Long creatorId) {
             return Drink.builder()
                     .name(this.name)
                     .description(this.description)
                     .price(this.price)
                     .type(this.type)
                     .creatorId(creatorId)
+                    .sortOrder(sortOrder)
                     .store(store)
                     .build();
         }
@@ -50,5 +52,14 @@ public class RequestDrink {
             drink.update(this.name, this.description, this.price, this.type);
             return drink;
         }
+    }
+
+    @Data
+    @Builder
+    public static class UpdateDrinkSortOrderDto{
+        @NotEmpty
+        private Long storeId;
+        @NotEmpty
+        private List<Long> drinkIdInOrderList;
     }
 }

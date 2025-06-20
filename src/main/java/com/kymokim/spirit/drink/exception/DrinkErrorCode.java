@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 public enum DrinkErrorCode implements ErrorCode {
     DRINK_NOT_FOUND(HttpStatus.NOT_FOUND, 24000, "DRINK_NOT_FOUND"),
     DRINK_ORIGIN_IMG_URL_EMPTY(HttpStatus.BAD_REQUEST, 24001, "DRINK_ORIGIN_IMG_URL_EMPTY"),
-    DRINK_IMG_FILE_EMPTY(HttpStatus.BAD_REQUEST, 24002, "DRINK_IMG_FILE_EMPTY");
+    DRINK_IMG_FILE_EMPTY(HttpStatus.BAD_REQUEST, 24002, "DRINK_IMG_FILE_EMPTY"),
+    INVALID_MENU_STORE_RELATION(HttpStatus.BAD_REQUEST, 24003, "INVALID_MENU_STORE_RELATION");
 
     private final HttpStatus httpStatus;
     private final Integer code;

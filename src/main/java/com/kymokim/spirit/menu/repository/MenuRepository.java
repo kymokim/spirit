@@ -12,5 +12,4 @@ import java.util.Optional;
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     @Query("SELECT MAX(m.sortOrder) FROM Menu m WHERE m.store.id = :storeId")
     Optional<Integer> findMaxSortOrderByStoreId(@Param("storeId") Long storeId);
-
 }

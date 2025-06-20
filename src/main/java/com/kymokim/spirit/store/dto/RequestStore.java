@@ -197,6 +197,15 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class UpdateStoreImageSortOrderDto{
+        @NotEmpty
+        private Long storeId;
+        @NotEmpty
+        private List<String> storeImageUrlInOrderList;
+    }
+
+    @Data
+    @Builder
     public static class DeleteImageDto {
         @NotEmpty
         private List<String> imgUrlList;

@@ -86,6 +86,7 @@ public class Store {
     private List<Menu> menuList = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder

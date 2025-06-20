@@ -75,4 +75,12 @@ public class LocationService {
         }
         return ResponseLocationDto.GetCoordinateDto.toDto(latitude, longitude);
     }
+
+    public ResponseLocationDto.GetRoadAddressAndCoordinateDto getRoadAddressAndCoordinate(double latitude, double longitude) {
+
+        ResponseLocationDto.GetAddressDto getAddressDto = getAddress(latitude, longitude);
+        ResponseLocationDto.GetCoordinateDto getCoordinateDto = getCoordinate(getAddressDto.getAddress());
+
+        return ResponseLocationDto.GetRoadAddressAndCoordinateDto.toDto(getAddressDto, getCoordinateDto);
+    }
 }

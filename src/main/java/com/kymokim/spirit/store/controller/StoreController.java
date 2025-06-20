@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.controller;
 
 import com.kymokim.spirit.common.dto.ResponseDto;
+import com.kymokim.spirit.menu.dto.RequestMenu;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.service.StoreService;
@@ -83,6 +84,15 @@ public class StoreController {
         storeService.updateStore(storeId, updateStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PutMapping("/update-image/sort-order")
+    public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+        storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store image sort order updated successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

@@ -70,8 +70,8 @@ public class StoreService {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
             store.setMainImgUrl(imageUrls.getFirst());
-            for (String url : imageUrls) {
-                StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
+            for (int i = 0; i < imageUrls.size(); i++) {
+                StoreImage storeImage = StoreImage.builder().url(imageUrls.get(i)).sortOrder(i).store(store).build();
                 storeImageRepository.save(storeImage);
                 store.addImgUrlList(storeImage);
             }
@@ -157,6 +157,25 @@ public class StoreService {
 
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
+    }
+
+    @Transactional
+    public void updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+        List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
+        List<StoreImage> images = storeImageRepository.findAllByUrlIn(storeImageUrlInOrderList);
+
+        for (int i = 0; i < storeImageUrlInOrderList.size(); i++) {
+            String imageUrl = storeImageUrlInOrderList.get(i);
+            StoreImage image = images.stream()
+                    .filter(img -> img.getUrl().equals(imageUrl))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_IMAGE_NOT_FOUND));
+
+            if (!image.getStore().getId().equals(updateStoreImageSortOrderDto.getStoreId())) {
+                throw new CustomException(StoreErrorCode.INVALID_STORE_IMAGE_RELATION);
+            }
+            image.setSortOrder(i);
+        }
     }
 
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {

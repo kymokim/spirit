@@ -20,13 +20,17 @@ public class StoreImage {
     @Column(name = "url", nullable = false)
     private String url;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @Builder
-    public StoreImage(String url, Store store) {
+    public StoreImage(String url, Store store, Integer sortOrder) {
         this.url = url;
         this.store = store;
+        this.sortOrder = sortOrder;
     }
 }

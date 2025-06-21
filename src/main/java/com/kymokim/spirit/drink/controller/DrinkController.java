@@ -85,6 +85,15 @@ public class DrinkController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PutMapping("/update/sort-order")
+    public ResponseEntity<ResponseDto> updateDrinkSortOrder(@RequestBody RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
+        drinkService.updateDrinkSortOrder(updateDrinkSortOrderDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Drink sort order updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @DeleteMapping("/delete/{drinkId}")
     public ResponseEntity<ResponseDto> deleteDrink(@PathVariable("drinkId") Long drinkId) {
         drinkService.deleteDrink(drinkId);

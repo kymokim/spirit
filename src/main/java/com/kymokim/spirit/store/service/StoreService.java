@@ -215,18 +215,22 @@ public class StoreService {
     @Transactional
     public ResponseStore.ImageListDto uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
-        if (files != null) {
-            List<MultipartFile> fileList = Arrays.asList(files);
-            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
-            for (String url : imageUrls) {
-                StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
-                storeImageRepository.save(storeImage);
-                store.addImgUrlList(storeImage);
-            }
-            store.getHistoryInfo().update(resolveUserId());
-        } else {
+
+        if (files == null || files.length == 0) {
             throw new CustomException(StoreErrorCode.STORE_IMG_FILE_EMPTY);
         }
+
+        List<MultipartFile> fileList = Arrays.asList(files);
+        List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
+        int maxOrder = storeImageRepository.findMaxSortOrderByStoreId(storeId).orElse(-1);
+        for (int i = 0; i < imageUrls.size(); i++) {
+            int sortOrder = maxOrder + i + 1;
+            StoreImage storeImage = StoreImage.builder().url(imageUrls.get(i)).store(store).sortOrder(sortOrder).build();
+            storeImageRepository.save(storeImage);
+            store.addImgUrlList(storeImage);
+        }
+        store.getHistoryInfo().update(resolveUserId());
+
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();

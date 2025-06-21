@@ -57,6 +57,8 @@ public class DrinkService {
             drink.setImgUrl(imageUrl);
         }
         drinkRepository.save(drink);
+        store.addDrinkList(drink);
+        storeRepository.save(store);
     }
 
     @Transactional
@@ -95,9 +97,10 @@ public class DrinkService {
     @Transactional(readOnly = true)
     public List<ResponseDrink.DrinkListDto> getByStore(Long storeId){
         return TransactionRetryUtil.executeWithRetry(() -> {
-            List<Drink> entityList = drinkRepository.findAllByStoreId(storeId);
+            Store store = resolveStore(storeId);
             List<ResponseDrink.DrinkListDto> dtoList = new ArrayList<>();
-            entityList.forEach(drink -> dtoList.add(ResponseDrink.DrinkListDto.toDto(drink)));
+            if (!store.getDrinkList().isEmpty())
+                store.getDrinkList().forEach(drink -> dtoList.add(ResponseDrink.DrinkListDto.toDto(drink)));
             return dtoList;
         }, 3);
     }
@@ -140,9 +143,12 @@ public class DrinkService {
     @Transactional
     public void deleteDrink(Long drinkId) {
         Drink drink = resolveDrink(drinkId);
+        Store store = resolveStore(drink.getStore().getId());
         if (!Objects.equals(drink.getImgUrl(), null) && !drink.getImgUrl().isEmpty()){
             s3Service.deleteFile(drink.getImgUrl());
         }
+        store.removeDrinkList(drink);
         drinkRepository.delete(drink);
+        storeRepository.save(store);
     }
 }

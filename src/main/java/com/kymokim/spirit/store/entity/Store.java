@@ -2,6 +2,7 @@ package com.kymokim.spirit.store.entity;
 
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import lombok.Builder;
@@ -87,6 +88,10 @@ public class Store {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("sortOrder ASC")
+    private List<Drink> drinkList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
     @Builder
@@ -154,6 +159,12 @@ public class Store {
     }
     public void removeMenuList(Menu menu){
         this.menuList.remove(menu);
+    }
+    public void addDrinkList(Drink drink) {
+        this.drinkList.add(drink);
+    }
+    public void removeDrinkList(Drink drink){
+        this.drinkList.remove(drink);
     }
     public void addImgUrlList(StoreImage storeImage){
         this.imgUrlList.add(storeImage);

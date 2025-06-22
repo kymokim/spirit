@@ -8,12 +8,10 @@ public class ResponseVersionDto {
     @Builder
     @Getter
     public static class CheckVersionDto {
-        private Boolean isVersionMatched;
         private Boolean isUpdateRequired;
 
-        public static CheckVersionDto toDto(Boolean isVersionMatched, Boolean isUpdateRequired) {
+        public static CheckVersionDto toDto(Boolean isUpdateRequired) {
             return CheckVersionDto.builder()
-                    .isVersionMatched(isVersionMatched)
                     .isUpdateRequired(isUpdateRequired)
                     .build();
         }

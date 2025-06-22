@@ -1,7 +1,9 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.common.dto.ResponseLocationDto;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,6 +48,7 @@ public class ResponseStore {
     public static class GetStoreDto {
         private Long id;
         private Boolean isOwner;
+        private Boolean isUpdatable;
         private String mainImgUrl;
         private String name;
         private String contact;
@@ -64,7 +67,7 @@ public class ResponseStore {
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
 
-        public static GetStoreDto toDto(Store store, Boolean isOwner, Double storeRate, Boolean isStoreLiked) {
+        public static GetStoreDto toDto(Store store, Boolean isOwner, Boolean isUpdatable, Double storeRate, Boolean isStoreLiked) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
             if (!store.getMainDrinks().isEmpty()) {
@@ -84,6 +87,7 @@ public class ResponseStore {
             return GetStoreDto.builder()
                     .id(store.getId())
                     .isOwner(isOwner)
+                    .isUpdatable(isUpdatable)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
                     .contact(store.getContact())
@@ -279,7 +283,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });
@@ -402,7 +406,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });
@@ -463,7 +467,7 @@ public class ResponseStore {
             List<MenuListDto> menuList = new ArrayList<>();
             if (!store.getMenuList().isEmpty()) {
                 store.getMenuList().forEach(menu -> {
-                    if (menu.getIsMain()) {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
                         menuList.add(MenuListDto.toDto(menu));
                     }
                 });
@@ -582,6 +586,30 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class StoreSuggestionListDto {
+        private Long storeSuggestionId;
+        private LocalDateTime suggestedAt;
+        private Long storeId;
+        private String storeName;
+        private CommonStore.LocationDto locationDto;
+        private Long suggestedUserId;
+        private String suggestedUserNickname;
+
+        public static StoreSuggestionListDto toDto(StoreSuggestion storeSuggestion) {
+            return StoreSuggestionListDto.builder()
+                    .storeSuggestionId(storeSuggestion.getId())
+                    .suggestedAt(storeSuggestion.getSuggestedAt())
+                    .storeId(storeSuggestion.getStore().getId())
+                    .storeName(storeSuggestion.getStore().getName())
+                    .locationDto(CommonStore.LocationDto.toDto(storeSuggestion.getStore().getLocation()))
+                    .suggestedUserId(storeSuggestion.getSuggestedBy().getId())
+                    .suggestedUserNickname(storeSuggestion.getSuggestedBy().getNickname())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class OwnershipListDto {
         private Long id;
         private LocalDateTime requestedAt;
@@ -602,6 +630,13 @@ public class ResponseStore {
                     .requesterNickname(ownershipRequest.getRequester().getNickname())
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    public static class GetOwnershipListWithStoreSuggestionDto {
+        private StoreSuggestionListDto storeSuggestionListDto;
+        private OwnershipListDto ownershipListDto;
     }
 
     @Getter

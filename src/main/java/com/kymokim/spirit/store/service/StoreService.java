@@ -39,6 +39,7 @@ public class StoreService {
     private final StoreManagerRepository storeManagerRepository;
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
+    private final StoreSuggestionRepository storeSuggestionRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -69,6 +70,29 @@ public class StoreService {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
             store.setMainImgUrl(imageUrls.getFirst());
+            for (int i = 0; i < imageUrls.size(); i++) {
+                StoreImage storeImage = StoreImage.builder().url(imageUrls.get(i)).sortOrder(i).store(store).build();
+                storeImageRepository.save(storeImage);
+                store.addImgUrlList(storeImage);
+            }
+            storeRepository.save(store);
+        }
+        if (createStoreRqDto.getIsAlwaysOpen() == null && (createStoreRqDto.getOperationInfoDtos() == null || createStoreRqDto.getOperationInfoDtos().isEmpty()))
+            throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
+        setIsAlwaysOpenAndOperationInfos(store, createStoreRqDto.getIsAlwaysOpen(), createStoreRqDto.getOperationInfoDtos());
+
+        return ResponseStore.CreateStoreRsDto.toDto(store);
+    }
+
+    @Transactional
+    public void suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
+        Auth user = resolveUser();
+        Store store = suggestStoreDto.toEntity(user.getId());
+        storeRepository.save(store);
+        if (files != null) {
+            List<MultipartFile> fileList = Arrays.asList(files);
+            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
+            store.setMainImgUrl(imageUrls.getFirst());
             for (String url : imageUrls) {
                 StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
                 storeImageRepository.save(storeImage);
@@ -76,12 +100,35 @@ public class StoreService {
             }
             storeRepository.save(store);
         }
-        setIsAlwaysOpenAndOperationInfos(store, createStoreRqDto.getIsAlwaysOpen(), createStoreRqDto.getOperationInfoDtos());
-        Store updatedStore = resolveStore(store.getId());
-        if (updatedStore.getIsAlwaysOpen() == null && (updatedStore.getOperationInfos() == null || updatedStore.getOperationInfos().isEmpty()))
-            throw new CustomException(StoreErrorCode.WRONG_OPERATION_INFO);
+        if (!(suggestStoreDto.getIsAlwaysOpen() == null && (suggestStoreDto.getOperationInfoDtos() == null || suggestStoreDto.getOperationInfoDtos().isEmpty())))
+            setIsAlwaysOpenAndOperationInfos(store, suggestStoreDto.getIsAlwaysOpen(), suggestStoreDto.getOperationInfoDtos());
 
-        return ResponseStore.CreateStoreRsDto.toDto(store);
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggestedBy(user).build();
+        storeSuggestionRepository.save(storeSuggestion);
+    }
+
+    @Transactional
+    public void approveStoreSuggestion(Long storeSuggestionId) {
+        StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
+        Store store = storeSuggestion.getStore();
+        store.setIsDeleted(false);
+        storeRepository.save(store);
+        storeSuggestionRepository.delete(storeSuggestion);
+    }
+
+    @Transactional
+    public void createStoreWithOwnership(MultipartFile[] storeImages, MultipartFile businessRegistrationCertificateImage, RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
+        RequestStore.CreateStoreRqDto createStoreRqDto = createStoreWithOwnershipRqDto.getCreateStoreRqDto();
+        Long storeId = createStore(storeImages, createStoreRqDto).getId();
+        Store store = resolveStore(storeId);
+        store.delete();
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggestedBy(resolveUser()).build();
+        storeSuggestionRepository.save(storeSuggestion);
+
+        RequestStore.CreateOwnershipRqDto createOwnershipRqDto = createStoreWithOwnershipRqDto.getCreateOwnershipRqDto();
+        createOwnershipRqDto.setStoreId(storeId);
+        createOwnership(businessRegistrationCertificateImage, createOwnershipRqDto);
     }
 
     @Transactional
@@ -110,6 +157,25 @@ public class StoreService {
 
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
+    }
+
+    @Transactional
+    public void updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+        List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
+        List<StoreImage> images = storeImageRepository.findAllByUrlIn(storeImageUrlInOrderList);
+
+        for (int i = 0; i < storeImageUrlInOrderList.size(); i++) {
+            String imageUrl = storeImageUrlInOrderList.get(i);
+            StoreImage image = images.stream()
+                    .filter(img -> img.getUrl().equals(imageUrl))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_IMAGE_NOT_FOUND));
+
+            if (!image.getStore().getId().equals(updateStoreImageSortOrderDto.getStoreId())) {
+                throw new CustomException(StoreErrorCode.INVALID_STORE_IMAGE_RELATION);
+            }
+            image.setSortOrder(i);
+        }
     }
 
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {
@@ -149,18 +215,22 @@ public class StoreService {
     @Transactional
     public ResponseStore.ImageListDto uploadImage(MultipartFile[] files, Long storeId) {
         Store store = resolveStore(storeId);
-        if (files != null) {
-            List<MultipartFile> fileList = Arrays.asList(files);
-            List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
-            for (String url : imageUrls) {
-                StoreImage storeImage = StoreImage.builder().url(url).store(store).build();
-                storeImageRepository.save(storeImage);
-                store.addImgUrlList(storeImage);
-            }
-            store.getHistoryInfo().update(resolveUserId());
-        } else {
+
+        if (files == null || files.length == 0) {
             throw new CustomException(StoreErrorCode.STORE_IMG_FILE_EMPTY);
         }
+
+        List<MultipartFile> fileList = Arrays.asList(files);
+        List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()));
+        int maxOrder = storeImageRepository.findMaxSortOrderByStoreId(storeId).orElse(-1);
+        for (int i = 0; i < imageUrls.size(); i++) {
+            int sortOrder = maxOrder + i + 1;
+            StoreImage storeImage = StoreImage.builder().url(imageUrls.get(i)).store(store).sortOrder(sortOrder).build();
+            storeImageRepository.save(storeImage);
+            store.addImgUrlList(storeImage);
+        }
+        store.getHistoryInfo().update(resolveUserId());
+
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();

@@ -26,8 +26,11 @@ public class Menu {
     private String price;
     @Column(name = "img_url")
     private String imgUrl;
-    @Column(name = "is_main")
-    private Boolean isMain;
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "menu_type")
+    private MenuType menuType;
+    @Column(name = "sort_order")
+    private Integer sortOrder;
 
     @Embedded
     private HistoryInfo historyInfo;
@@ -37,19 +40,20 @@ public class Menu {
     private Store store;
 
     @Builder
-    public Menu(String name, String description, String price, Store store, boolean isMain, Long creatorId) {
+    public Menu(String name, String description, String price, Store store, MenuType menuType, Integer sortOrder, Long creatorId) {
         this.name = name;
         this.description = description;
         this.price = price;
         this.store = store;
-        this.isMain = isMain;
+        this.menuType = menuType;
+        this.sortOrder = sortOrder;
         this.historyInfo = new HistoryInfo(creatorId);
     }
 
-    public void update(String name, String description, String price, boolean isMain) {
+    public void update(String name, String description, String price, MenuType menuType) {
         this.name = name;
         this.description = description;
         this.price = price;
-        this.isMain = isMain;
+        this.menuType = menuType;
     }
 }

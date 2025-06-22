@@ -30,6 +30,7 @@ public class SwaggerConfig {
 
 
         return new OpenAPI()
+                .addServersItem(new Server().url("https://team-spirit.click").description("Prod Server"))
                 .addServersItem(new Server().url("https://dev.team-spirit.click").description("Dev Server"))
                 .addServersItem(new Server().url("/").description("Local Host"))
                 .components(components)

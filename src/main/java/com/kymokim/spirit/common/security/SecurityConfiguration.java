@@ -47,6 +47,7 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/auth/merge").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/api/version/check").permitAll()
                         .requestMatchers("/api/store/share/{storeId}", "/link/store/{storeId}", "/ul/store/{storeId}").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("**exception**").permitAll()
@@ -73,7 +74,8 @@ public class SecurityConfiguration{
 //        config.setAllowCredentials(false);
 
         config.setAllowedOriginPatterns(List.of(
-                "https://teamspirit19.netlify.app"
+                "https://teamspirit19.netlify.app",
+                "https://dev.team-spirit.click"
         ));
         config.setAllowCredentials(true);
 

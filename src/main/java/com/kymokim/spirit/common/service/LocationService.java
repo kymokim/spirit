@@ -38,8 +38,14 @@ public class LocationService {
         String address = null;
         try {
             JsonNode root = new ObjectMapper().readTree(response.getBody());
-            if (root.get("documents").size() > 0) {
-                address = root.get("documents").get(0).get("address").get("address_name").asText();
+            if (!root.get("documents").isEmpty()) {
+                JsonNode document = root.get("documents").get(0);
+
+                if (document.has("road_address") && !document.get("road_address").isNull()) {
+                    address = document.get("road_address").get("address_name").asText();
+                } else {
+                    address = document.get("address").get("address_name").asText(); // 지번주소 fallback
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,7 +65,7 @@ public class LocationService {
         Double longitude = 0D;
         try {
             JsonNode root = new ObjectMapper().readTree(response.getBody());
-            if (root.get("documents").size() > 0) {
+            if (!root.get("documents").isEmpty()) {
                 JsonNode addressNode = root.get("documents").get(0).get("address");
                 latitude = addressNode.get("y").asDouble();
                 longitude = addressNode.get("x").asDouble();
@@ -68,5 +74,13 @@ public class LocationService {
             e.printStackTrace();
         }
         return ResponseLocationDto.GetCoordinateDto.toDto(latitude, longitude);
+    }
+
+    public ResponseLocationDto.GetRoadAddressAndCoordinateDto getRoadAddressAndCoordinate(double latitude, double longitude) {
+
+        ResponseLocationDto.GetAddressDto getAddressDto = getAddress(latitude, longitude);
+        ResponseLocationDto.GetCoordinateDto getCoordinateDto = getCoordinate(getAddressDto.getAddress());
+
+        return ResponseLocationDto.GetRoadAddressAndCoordinateDto.toDto(getAddressDto, getCoordinateDto);
     }
 }

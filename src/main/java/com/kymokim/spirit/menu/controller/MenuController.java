@@ -86,6 +86,15 @@ public class MenuController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PutMapping("/update/sort-order")
+    public ResponseEntity<ResponseDto> updateMenuSortOrder(@RequestBody RequestMenu.UpdateMenuSortOrderDto updateMenuSortOrderDto) {
+        menuService.updateMenuSortOrder(updateMenuSortOrderDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Menu sort order updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @DeleteMapping("/delete/{menuId}")
     public ResponseEntity<ResponseDto> deleteMenu(@PathVariable("menuId") Long menuId) {
         menuService.deleteMenu(menuId);

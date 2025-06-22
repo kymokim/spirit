@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.controller;
 
 import com.kymokim.spirit.common.dto.ResponseDto;
+import com.kymokim.spirit.menu.dto.RequestMenu;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.service.StoreService;
@@ -48,12 +49,50 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping(value = "/suggestion/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> suggestStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
+                                                    @RequestPart(value = "suggestStoreDto") RequestStore.SuggestStoreDto suggestStoreDto) {
+        storeService.suggestStore(files, suggestStoreDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggested successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/suggestion/approve")
+    public ResponseEntity<ResponseDto> approveStore(@RequestParam Long storeSuggestionId) {
+        storeService.approveStoreSuggestion(storeSuggestionId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion approved successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/create/with-ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createStoreWithOwnership(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
+                                                                @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
+                                                                @RequestPart(value = "createStoreWithOwnershipRqDto") RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
+        storeService.createStoreWithOwnership(storeImages, businessRegistrationCertificateImage, createStoreWithOwnershipRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion and Ownership request created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
         storeService.updateStore(storeId, updateStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store updated successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PutMapping("/update-image/sort-order")
+    public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+        storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store image sort order updated successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

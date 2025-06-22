@@ -41,4 +41,14 @@ public class LocationController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @GetMapping("/get-road")
+    public ResponseEntity<ResponseDto> getRoadAddressAndCoordinate(@RequestParam double latitude, @RequestParam double longitude) {
+        ResponseLocationDto.GetRoadAddressAndCoordinateDto response = locationService.getRoadAddressAndCoordinate(latitude, longitude);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Road address retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

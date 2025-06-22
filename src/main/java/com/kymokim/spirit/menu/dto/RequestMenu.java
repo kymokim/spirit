@@ -1,11 +1,13 @@
 package com.kymokim.spirit.menu.dto;
 
 import com.kymokim.spirit.menu.entity.Menu;
+import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 public class RequestMenu {
 
@@ -20,14 +22,15 @@ public class RequestMenu {
         @NotEmpty
         private Long storeId;
         @NotEmpty
-        private Boolean isMain;
+        private MenuType menuType;
 
-        public Menu toEntity(Store store, Long creatorId) {
+        public Menu toEntity(Store store, Integer sortOrder, Long creatorId) {
             return Menu.builder()
                     .name(this.name)
                     .description(this.description)
                     .price(this.price)
-                    .isMain(this.isMain)
+                    .menuType(this.menuType)
+                    .sortOrder(sortOrder)
                     .creatorId(creatorId)
                     .store(store)
                     .build();
@@ -43,11 +46,20 @@ public class RequestMenu {
         @NotEmpty
         private String price;
         @NotEmpty
-        private Boolean isMain;
+        private MenuType menuType;
 
         public Menu toEntity(Menu menu) {
-            menu.update(this.name, this.description, this.price, this.isMain);
+            menu.update(this.name, this.description, this.price, this.menuType);
             return menu;
         }
+    }
+
+    @Data
+    @Builder
+    public static class UpdateMenuSortOrderDto{
+        @NotEmpty
+        private Long storeId;
+        @NotEmpty
+        private List<Long> menuIdInOrderList;
     }
 }

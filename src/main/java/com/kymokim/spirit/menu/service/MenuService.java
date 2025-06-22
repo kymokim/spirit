@@ -45,7 +45,9 @@ public class MenuService {
     @Transactional
     public void createMenu(MultipartFile file, RequestMenu.CreateMenuDto createMenuDto) {
         Store store = resolveStore(createMenuDto.getStoreId());
-        Menu menu = createMenuDto.toEntity(store, resolveUserId());
+
+        Integer maxOrder = menuRepository.findMaxSortOrderByStoreId(store.getId()).orElse(-1);
+        Menu menu = createMenuDto.toEntity(store, maxOrder + 1, resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "menu/" + String.valueOf(menu.getId()));
@@ -114,6 +116,25 @@ public class MenuService {
         Menu updatedMenu = updateMenuDto.toEntity(originalMenu);
         updatedMenu.getHistoryInfo().update(resolveUserId());
         menuRepository.save(updatedMenu);
+    }
+
+    @Transactional
+    public void updateMenuSortOrder(RequestMenu.UpdateMenuSortOrderDto updateMenuSortOrderDto) {
+        List<Long> menuIdInOrderList = updateMenuSortOrderDto.getMenuIdInOrderList();
+        List<Menu> menus = menuRepository.findAllById(menuIdInOrderList);
+
+        for (int i = 0; i < menuIdInOrderList.size(); i++) {
+            Long menuId = menuIdInOrderList.get(i);
+            Menu menu = menus.stream()
+                    .filter(menu1 -> menu1.getId().equals(menuId))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(MenuErrorCode.MENU_NOT_FOUND));
+
+            if (!menu.getStore().getId().equals(updateMenuSortOrderDto.getStoreId())) {
+                throw new CustomException(MenuErrorCode.INVALID_MENU_STORE_RELATION);
+            }
+            menu.setSortOrder(i);
+        }
     }
 
     @Transactional

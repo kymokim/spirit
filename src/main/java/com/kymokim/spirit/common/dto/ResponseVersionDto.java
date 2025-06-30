@@ -9,10 +9,12 @@ public class ResponseVersionDto {
     @Getter
     public static class CheckVersionDto {
         private Boolean isUpdateRequired;
+        private Boolean isTestEnabled;
 
-        public static CheckVersionDto toDto(Boolean isUpdateRequired) {
+        public static CheckVersionDto toDto(Boolean isUpdateRequired, Boolean isTestEnabled) {
             return CheckVersionDto.builder()
                     .isUpdateRequired(isUpdateRequired)
+                    .isTestEnabled(isTestEnabled)
                     .build();
         }
     }

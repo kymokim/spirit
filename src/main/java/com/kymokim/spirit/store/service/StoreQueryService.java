@@ -207,7 +207,14 @@ public class StoreQueryService {
     public Page<ResponseStore.StoreSuggestionListDto> getStoreSuggestionList(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             List<Long> storeIdsWithOwnership = ownershipRequestRepository.findAllStoreIdsWithOwnershipRequest();
-            Page<StoreSuggestion> storeSuggestionPage = storeSuggestionRepository.findByStoreIdNotInOrderBySuggestedAtAsc(storeIdsWithOwnership, pageable);
+
+            Page<StoreSuggestion> storeSuggestionPage;
+            if (storeIdsWithOwnership.isEmpty()) {
+                storeSuggestionPage = storeSuggestionRepository.findAllByOrderBySuggestedAtAsc(pageable);
+            } else {
+                storeSuggestionPage = storeSuggestionRepository.findByStoreIdNotInOrderBySuggestedAtAsc(storeIdsWithOwnership, pageable);
+            }
+
             return storeSuggestionPage.map(ResponseStore.StoreSuggestionListDto::toDto);
         }, 3);
     }

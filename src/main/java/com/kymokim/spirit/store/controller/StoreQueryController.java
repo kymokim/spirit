@@ -197,7 +197,7 @@ public class StoreQueryController {
         Page<ResponseStore.StoreSuggestionListDto> dtoPage = storeQueryService.getStoreSuggestionList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Store suggestion list successfully.")
+                .message("Store suggestion list retrieved successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -210,7 +210,7 @@ public class StoreQueryController {
         Page<ResponseStore.OwnershipListDto> dtoPage = storeQueryService.getOwnershipList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Store get ownership list successfully.")
+                .message("Store get ownership list retrieved successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -223,7 +223,7 @@ public class StoreQueryController {
         Page<ResponseStore.GetOwnershipListWithStoreSuggestionDto> dtoPage = storeQueryService.getOwnershipListWithStoreSuggestion(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Store get ownership with suggestion list successfully.")
+                .message("Store get ownership with suggestion list retrieved successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -235,7 +235,7 @@ public class StoreQueryController {
         Page<ResponseStore.ManagedStoreListDto> dtoPage = storeQueryService.getManagedStoreList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Managed store list get successfully.")
+                .message("Managed store list retrieved successfully.")
                 .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
@@ -247,7 +247,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getOwnership(@PathVariable("ownershipId") Long ownershipId) {
         ResponseStore.OwnershipDto getOwnershipDto = storeQueryService.getOwnership(ownershipId);
         ResponseDto responseDto = ResponseDto.builder()
-                .message("Store get ownership list successfully.")
+                .message("Store get ownership list retrieved successfully.")
                 .data(getOwnershipDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

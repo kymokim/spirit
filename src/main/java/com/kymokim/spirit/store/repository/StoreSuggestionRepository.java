@@ -10,4 +10,5 @@ import java.util.List;
 public interface StoreSuggestionRepository extends JpaRepository<StoreSuggestion, Long> {
     Page<StoreSuggestion> findByStoreIdNotInOrderBySuggestedAtAsc(List<Long> excludedStoreIds, Pageable pageable);
     StoreSuggestion findByStoreId(Long storeId);
+    Page<StoreSuggestion> findAllByOrderBySuggestedAtAsc(Pageable pageable);
 }

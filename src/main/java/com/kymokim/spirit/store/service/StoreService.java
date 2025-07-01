@@ -118,6 +118,15 @@ public class StoreService {
     }
 
     @Transactional
+    public void rejectStoreSuggestion(Long storeSuggestionId) {
+        StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
+        Store store = storeSuggestion.getStore();
+        storeSuggestionRepository.delete(storeSuggestion);
+        deleteStore(store.getId());
+    }
+
+    @Transactional
     public void createStoreWithOwnership(MultipartFile[] storeImages, MultipartFile businessRegistrationCertificateImage, RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
         RequestStore.CreateStoreRqDto createStoreRqDto = createStoreWithOwnershipRqDto.getCreateStoreRqDto();
         Long storeId = createStore(storeImages, createStoreRqDto).getId();
@@ -287,6 +296,9 @@ public class StoreService {
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByStoreId(storeId);
         if (likedStoreList != null) {
             likedStoreList.forEach(likedStoreRepository::delete);
+        }
+        if (store.getMainImgUrl() != null) {
+            store.setMainImgUrl(null);
         }
         storeRepository.save(store);
     }

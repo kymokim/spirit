@@ -63,7 +63,7 @@ jobs:
         id: set-dev-db
         if: ${{ env.PROFILE == 'dev' }}
         run: |
-          echo "DB_URL=${{ secrets.DB_URL_DEV }}" >> $GITHUB_ENV
+          echo "DB_URL=${{ secrets.DB_URL_PROD }}" >> $GITHUB_ENV
 
       - name: Create application.yml dynamically
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.

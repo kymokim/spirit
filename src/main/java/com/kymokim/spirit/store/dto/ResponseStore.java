@@ -719,4 +719,24 @@ public class ResponseStore {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class OwnershipStatDto{
+        private Long dayCount;
+        private Long weekCount;
+        private Long monthCount;
+        private Long yearCount;
+        private Long totalCount;
+
+        public static OwnershipStatDto toDto(Long dayCount, Long weekCount, Long monthCount, Long yearCount, Long totalCount) {
+            return OwnershipStatDto.builder()
+                    .dayCount(dayCount)
+                    .weekCount(weekCount)
+                    .monthCount(monthCount)
+                    .yearCount(yearCount)
+                    .totalCount(totalCount)
+                    .build();
+        }
+    }
 }

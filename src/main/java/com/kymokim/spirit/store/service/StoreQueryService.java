@@ -27,6 +27,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -291,6 +294,36 @@ public class StoreQueryService {
 
                 return ResponseStore.ManagedStoreListDto.toDto(managedStore, store, calculateRate(store), normalReportCount, priorityReportCount);
             });
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseStore.OwnershipStatDto getOwnershipStats() {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            LocalDate now = LocalDate.now();
+            LocalDateTime end = now.atTime(LocalTime.MAX);
+
+            LocalDateTime dayStart = now.atStartOfDay();
+            Long dayCount = storeManagerRepository.countByApprovedAtBetween(dayStart, end);
+
+            LocalDateTime weekStart = now.minusDays(6).atStartOfDay();
+            Long weekCount = storeManagerRepository.countByApprovedAtBetween(weekStart, end);
+
+            LocalDateTime monthStart = now.minusDays(29).atStartOfDay();
+            Long monthCount = storeManagerRepository.countByApprovedAtBetween(monthStart, end);
+
+            LocalDateTime yearStart = now.minusDays(364).atStartOfDay();
+            Long yearCount = storeManagerRepository.countByApprovedAtBetween(yearStart, end);
+
+            Long totalCount = storeManagerRepository.countByApprovedAtIsNotNull();
+
+            return ResponseStore.OwnershipStatDto.builder()
+                    .dayCount(dayCount)
+                    .weekCount(weekCount)
+                    .monthCount(monthCount)
+                    .yearCount(yearCount)
+                    .totalCount(totalCount)
+                    .build();
         }, 3);
     }
 }

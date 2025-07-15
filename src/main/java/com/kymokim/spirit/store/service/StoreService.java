@@ -62,6 +62,16 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
+    private void validateStoreAccess(Long storeId) {
+        Auth user = resolveUser();
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+        boolean isManager = storeManagerRepository.existsByUserIdAndStoreId(user.getId(), storeId);
+        if (!(isAdmin || isManager)) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
+        }
+    }
+
+
     @Transactional
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
         Store store = createStoreRqDto.toEntity(resolveUserId());
@@ -142,6 +152,7 @@ public class StoreService {
 
     @Transactional
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
+        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
 
         updateIfNotNullOrEmpty(updateStoreDto.getMainImgUrl(), store::setMainImgUrl);
@@ -170,6 +181,7 @@ public class StoreService {
 
     @Transactional
     public void updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+        validateStoreAccess(updateStoreImageSortOrderDto.getStoreId());
         List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
         List<StoreImage> images = storeImageRepository.findAllByUrlIn(storeImageUrlInOrderList);
 
@@ -223,6 +235,7 @@ public class StoreService {
 
     @Transactional
     public ResponseStore.ImageListDto uploadImage(MultipartFile[] files, Long storeId) {
+        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
 
         if (files == null || files.length == 0) {
@@ -280,10 +293,16 @@ public class StoreService {
         return ResponseStore.ImageListDto.toDto(urlList);
     }
 
-    //TODO 매장 운영자 추가 시 소유자만 삭제 가능하게도 추가
     @Transactional
     public void deleteStore(Long storeId) {
+        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
+        Auth user = resolveUser();
+        if (!Objects.equals(store.getOwnerId(), user.getId())) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
+        }
+        List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(storeId);
+        storeManagerRepository.deleteAll(storeManagerList);
         if (!Objects.equals(store.getImgUrlList(), null) && !store.getImgUrlList().isEmpty()) {
             List<StoreImage> toDelete = new ArrayList<>(store.getImgUrlList());
             for (StoreImage storeImage : toDelete) {

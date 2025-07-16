@@ -20,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "Store Query API")
@@ -253,6 +254,15 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-
-
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 권한 인증 통계 조회")
+    @GetMapping("/ownership/stats")
+    public ResponseEntity<ResponseDto> getOwnershipStats() {
+        ResponseStore.OwnershipStatDto ownershipStatDto = storeQueryService.getOwnershipStats();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store ownership stats retrieved successfully.")
+                .data(ownershipStatDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

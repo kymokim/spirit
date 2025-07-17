@@ -54,7 +54,7 @@ public class StoreShareService {
         }
         if (isIOS) {
             // iOS : Universal Link 경로로 넘김 (앱 미설치 → Safari 열림)
-            return shareDomain + "/ul/store/" + storeId;
+            return shareDomain + "/link/store/" + storeId;
         }
         // 기타 : playStore link
         return URI.create(androidStoreUrl).toString();

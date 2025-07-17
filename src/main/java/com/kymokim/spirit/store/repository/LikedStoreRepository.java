@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface LikedStoreRepository extends JpaRepository<LikedStore, Long> {
+public interface LikedStoreRepository extends JpaRepository<LikedStore, Long>, LikedStoreRepositoryCustom {
     LikedStore findByUserIdAndStoreId(Long userId, Long storeId);
     Page<LikedStore> findAllByUserIdOrderByIdDesc(Long userId, Pageable pageable);
     List<LikedStore> findAllByStoreId(Long storeId);

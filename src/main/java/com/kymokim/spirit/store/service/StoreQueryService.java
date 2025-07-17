@@ -326,4 +326,9 @@ public class StoreQueryService {
                     .build();
         }, 3);
     }
+
+    @Transactional(readOnly = true)
+    public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
+        return TransactionRetryUtil.executeWithRetry(() -> likedStoreRepository.getLikedStoreStats(filter), 3);
+    }
 }

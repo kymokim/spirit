@@ -1,16 +1,20 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -19,9 +23,6 @@ import java.util.Set;
 
 
 public class RequestStore {
-
-
-
     @Data
     @Builder
     public static class CreateStoreRqDto {
@@ -223,5 +224,14 @@ public class RequestStore {
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
         @NotNull
         private LocalDateTime conditionTime;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class LikedStoreStatFilter {
+        private Long storeId;
+        private Gender gender;
+        private List<String> ageGroups;
+        private List<String> groupBy;
     }
 }

@@ -1,10 +1,12 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.dto.ResponseLocationDto;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -738,5 +740,13 @@ public class ResponseStore {
                     .totalCount(totalCount)
                     .build();
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class LikedStoreStatDto {
+        private String ageGroup;
+        private Gender gender;
+        private long count;
     }
 }

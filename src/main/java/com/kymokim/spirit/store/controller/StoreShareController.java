@@ -19,6 +19,12 @@ public class StoreShareController {
 
     private final StoreShareService shareService;
 
+    // 인앱 브라우저 UA 키워드 (소문자 비교)
+    private static final String[] INAPP_KEYWORDS = {
+            "kakaotalk", "instagram", "fbav", "facebook", "messenger",
+            "line", "naver", "tiktok", "telegram", "whatsapp"
+    };
+
     record ShareLinkResponse(String url) { }
 
     @GetMapping("/api/store/share/{storeId}")
@@ -34,11 +40,10 @@ public class StoreShareController {
 
         log.info("[StoreShare] /link/store/{}, UA='{}'", storeId, ua);
 
-        String lowerUa = ua != null ? ua.toLowerCase() : "";
-        boolean isKakao = lowerUa.contains("kakaotalk");
+        boolean isInApp = isIsInApp(ua);
 
-        if (isKakao) {
-            String html = shareService.buildKakaoInAppHtml(storeId);
+        if (isInApp) {
+            String html = shareService.buildInAppHtml(storeId);  // 공통 인앱 HTML
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(html);
@@ -51,9 +56,28 @@ public class StoreShareController {
                 .build();
     }
 
-    /**
-     * Universal Link landing (앱 미실행 시 스토어 안내)
-     */
+    private static boolean isIsInApp(String ua) {
+        String lowerUa = ua != null ? ua.toLowerCase() : "";
+
+        // 1) 명시적 인앱 키워드 매칭
+        boolean isInApp = false;
+        for (String kw : INAPP_KEYWORDS) {
+            if (lowerUa.contains(kw)) {
+                isInApp = true;
+                break;
+            }
+        }
+
+        // 2) 선택적: generic WebView 감지 (Android)
+        // ex) UA에 "; wv)" 포함 & 크롬 외부 탭이 아닌 경우
+        if (!isInApp && lowerUa.contains("; wv)")) {
+            // 크롬 커스텀탭 등 특정 예외를 걸러낼 수 있음
+            isInApp = true;
+        }
+        return isInApp;
+    }
+
+    /** Universal Link landing (앱 미실행 시 스토어 안내) */
     @GetMapping("/ul/store/{storeId}")
     public void iosFallback(@PathVariable Long storeId, HttpServletResponse res) throws IOException {
         log.info("[StoreShare] /ul/store/{} landing", storeId);
@@ -82,7 +106,6 @@ public class StoreShareController {
 
     @GetMapping(value = "/.well-known/apple-app-site-association", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getAppleAppSiteAssociation() {
-        // Universal Link는 /ul/store/* 로 매핑
         return Map.of(
                 "applinks", Map.of(
                         "apps", List.of(),

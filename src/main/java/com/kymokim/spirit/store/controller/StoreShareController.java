@@ -7,10 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +29,22 @@ public class StoreShareController {
     }
 
     @GetMapping("/link/store/{storeId}")
-    public ResponseEntity<Void> redirectByOS(
+    public ResponseEntity<?> redirectByOS(
             @PathVariable Long storeId,
             @RequestHeader(value = "User-Agent", required = false) String ua) {
+
+        String lowerUa = ua != null ? ua.toLowerCase() : "";
+        boolean isAndroid = lowerUa.contains("android");
+        boolean isIOS = lowerUa.contains("iphone") || lowerUa.contains("ipad");
+        boolean isKakao = lowerUa.contains("kakaotalk");
+
+        if (isKakao) {
+            String html = shareService.buildFallbackHtml(storeId, isAndroid, isIOS);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_HTML)
+                    .body(html);
+        }
+
         String target = shareService.getRedirectTarget(storeId, ua);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, target)

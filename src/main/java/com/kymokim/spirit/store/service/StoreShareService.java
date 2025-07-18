@@ -232,9 +232,7 @@ public class StoreShareService {
 
               function tryOpen() {
                 if (isAndroid()) {
-                  openViaIframe(deeplink);
                   window.location.href = intentUri;
-                  setTimeout(function(){ window.location.href = playUrl; }, 1500);
                 } else if (isIOS()) {
                   window.location.href = deeplink;
                   setTimeout(function(){ window.location.href = iosUrl; }, 1500);

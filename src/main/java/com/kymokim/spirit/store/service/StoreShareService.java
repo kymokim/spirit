@@ -133,7 +133,7 @@ public class StoreShareService {
                 + ";end;";
         
         String title = "";
-        String description = "한잔할까 - 한잔하고 싶은 당신을 위한 서비스";
+        String description = "한잔할까에서 매장 정보를 확인해보세요.";
         String image = "";
         Store store = storeRepository.findById(storeId).orElse(null);
         if (store != null) {

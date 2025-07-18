@@ -1,5 +1,7 @@
 package com.kymokim.spirit.store.service;
 
+import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -29,6 +32,8 @@ public class StoreShareService {
     /** 앱 내부 Deep Link 스킴 (앱과 반드시 일치) 예: spirit://store/{id} */
     @Value("${app.scheme:spirit}")
     private String appScheme;
+
+    private final StoreRepository storeRepository;
 
     /** 공유 링크 생성 (Universal Link) */
     public String buildShareLink(Long storeId) {
@@ -128,6 +133,16 @@ public class StoreShareService {
                 + ";package=" + androidPackage
                 + ";S.browser_fallback_url=" + URLEncoder.encode(androidStoreUrl, StandardCharsets.UTF_8)
                 + ";end;";
+        
+        String title = "";
+        String description = "한잔할까 - 한잔하고 싶은 당신을 위한 서비스";
+        String image = "";
+        Store store = storeRepository.findById(storeId).orElse(null);
+        if (store != null) {
+            title = store.getName() + " | 한잔할까";
+            if (!Objects.equals(store.getMainImgUrl(), null)) 
+                image = store.getMainImgUrl();
+        }
 
         return """
         <!doctype html>
@@ -135,7 +150,10 @@ public class StoreShareService {
         <head>
           <meta charset='utf-8'>
           <meta name='viewport' content='width=device-width, initial-scale=1'>
-          <title>한잔할까 실행</title>
+          <meta property="og:title"       content="%5$s"/>
+          <meta property="og:description" content="%6$s"/>
+          <meta property="og:image"       content="%7$s"/>
+          <title>%5$s</title>
           <style>
             :root {
               --accent:#45C9FF;
@@ -245,7 +263,10 @@ public class StoreShareService {
                 deeplink,
                 intentUri,
                 androidStoreUrl,
-                iosStoreUrl
+                iosStoreUrl,
+                title,
+                description,
+                image
         );
     }
 

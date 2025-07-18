@@ -3,6 +3,8 @@ package com.kymokim.spirit.store.controller;
 import com.kymokim.spirit.store.service.StoreShareService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,43 +23,30 @@ public class StoreShareController {
 
     private final StoreShareService shareService;
 
-    /** DTO for 생성 API */
-    record ShareLinkResponse(String url) {}
+    record ShareLinkResponse(String url) { }
 
-    /** 1) 매장 공유 링크 생성 */
     @GetMapping("/api/store/share/{storeId}")
     public ResponseEntity<ShareLinkResponse> createShareLink(@PathVariable Long storeId) {
         String url = shareService.buildShareLink(storeId);
         return ResponseEntity.ok(new ShareLinkResponse(url));
     }
 
-    /**
-     * 2) Universal Link 진입점
-     *    ▸ Android  : intent:// + PlayStore fallback (302)
-     *    ▸ iOS/기타 : 200 OK 랜딩 HTML (리다이렉트 없음)
-     */
     @GetMapping("/link/store/{storeId}")
-    public void universalLink(@PathVariable Long storeId,
-                              @RequestHeader(value = "User-Agent", required = false) String ua,
-                              HttpServletResponse res) throws IOException {
+    public ResponseEntity<Void> redirectByOS(
+            @PathVariable Long storeId,
+            @RequestHeader(value = "User-Agent", required = false) String ua) {
+        String target = shareService.getRedirectTarget(storeId, ua);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, target)
+                .build();
+    }
 
-        String uaLower = ua != null ? ua.toLowerCase() : "";
-        boolean isAndroid = uaLower.contains("android");
-
-        if (isAndroid) {
-            // Android → intent:// 리다이렉트
-            res.setStatus(HttpServletResponse.SC_FOUND);
-            res.setHeader("Location", shareService.buildAndroidIntent(storeId));
-            return;
-        }
-
-        // iOS 및 그 외 → 200 OK 랜딩 페이지
+    @GetMapping("/ul/store/{storeId}")
+    public void iosFallback(@PathVariable Long storeId, HttpServletResponse res) throws IOException {
         res.setContentType(MediaType.TEXT_HTML_VALUE);
         res.setCharacterEncoding(StandardCharsets.UTF_8.name());
         res.getWriter().write(shareService.iosStoreHtml());
     }
-
-    /* ---------- 이하 기존 메서드는 그대로 ---------- */
 
     @GetMapping(value = "/.well-known/assetlinks.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getAndroidAssetLinks() {
@@ -84,8 +73,8 @@ public class StoreShareController {
                         "apps", List.of(),
                         "details", List.of(
                                 Map.of(
-                                        "appID", "BU9L2BX6TV.com.spirit.drinkToday",
-                                        "paths", List.of("/link/store/*")
+                                        "appID", "B6Y8UPNX32.com.spirit.drinkToday",
+                                        "paths", List.of("/link/store/*", "/ul/store/*")
                                 )
                         )
                 )

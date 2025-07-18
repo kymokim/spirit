@@ -223,11 +223,6 @@ public class StoreShareService {
                 return navigator.userAgent.toLowerCase().indexOf('android') > -1;
               }
 
-              document.addEventListener('DOMContentLoaded', function() {
-                document.getElementById('storeLink').href = isIOS() ? iosUrl : playUrl;
-                setTimeout(tryOpen, 150);
-              });
-
               window.openApp = tryOpen;
 
               function tryOpen() {

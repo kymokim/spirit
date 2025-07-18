@@ -38,7 +38,7 @@ public class StoreShareService {
     /** 공유 링크 생성 (Universal Link) */
     public String buildShareLink(Long storeId) {
         return UriComponentsBuilder.fromUriString(shareDomain)
-                .path("/ul/store/")
+                .path("/link/store/")
                 .path(storeId.toString())
                 .build()
                 .toUriString();
@@ -123,8 +123,6 @@ public class StoreShareService {
     /**
      * 외부 인앱 브라우저 공통 HTML (KakaoTalk, Instagram, Facebook, LINE, Naver 등)
      * - 자동으로 딥링크 시도
-     * - 실패 시 스토어 이동 버튼
-     * - 수동 재시도 버튼
      */
     public String buildInAppHtml(Long storeId) {
         String deeplink = appScheme + "://store/" + storeId;

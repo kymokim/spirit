@@ -38,7 +38,7 @@ public class StoreShareController {
             @PathVariable Long storeId,
             @RequestHeader(value = "User-Agent", required = false) String ua) {
         if (isInApp(ua)) {
-            String html = shareService.buildInAppHtml(storeId);  // 공통 인앱 HTML
+            String html = shareService.buildInAppHtml(storeId);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(html);
@@ -64,7 +64,6 @@ public class StoreShareController {
         // 2) 선택적: generic WebView 감지 (Android)
         // ex) UA에 "; wv)" 포함 & 크롬 외부 탭이 아닌 경우
         if (!isInApp && lowerUa.contains("; wv)")) {
-            // 크롬 커스텀탭 등 특정 예외를 걸러낼 수 있음
             isInApp = true;
         }
         return isInApp;

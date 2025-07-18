@@ -233,8 +233,8 @@ public class StoreShareService {
               function tryOpen() {
                 if (isAndroid()) {
                   openViaIframe(deeplink);
-                  setTimeout(function(){ window.location.href = intentUri; }, 200);
-                  setTimeout(function(){ window.location.href = playUrl; }, 1800);
+                  window.location.href = intentUri;
+                  setTimeout(function(){ window.location.href = playUrl; }, 1500);
                 } else if (isIOS()) {
                   window.location.href = deeplink;
                   setTimeout(function(){ window.location.href = iosUrl; }, 1500);

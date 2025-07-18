@@ -29,7 +29,7 @@ public class StoreShareService {
      */
     public String buildShareLink(Long storeId) {
         return UriComponentsBuilder.fromUriString(shareDomain)
-                .path("/link/store/")
+                .path("/ul/store/")
                 .path(storeId.toString())
                 .build()
                 .toUriString();

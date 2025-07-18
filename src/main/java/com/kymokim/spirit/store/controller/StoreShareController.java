@@ -74,7 +74,7 @@ public class StoreShareController {
                         "details", List.of(
                                 Map.of(
                                         "appID", "B6Y8UPNX32.com.spirit.drinkToday",
-                                        "paths", List.of("/link/store/*", "/ul/store/*")
+                                        "paths", List.of("/link/store/*")
                                 )
                         )
                 )

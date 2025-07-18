@@ -37,29 +37,22 @@ public class StoreShareController {
     public ResponseEntity<?> redirectByOS(
             @PathVariable Long storeId,
             @RequestHeader(value = "User-Agent", required = false) String ua) {
-
-        log.info("[StoreShare] /link/store/{}, UA='{}'", storeId, ua);
-
-        boolean isInApp = isIsInApp(ua);
-
-        if (isInApp) {
+        if (isInApp(ua)) {
             String html = shareService.buildInAppHtml(storeId);  // 공통 인앱 HTML
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(html);
         }
 
-        // 일반 브라우저는 리다이렉션
         String target = shareService.getRedirectTarget(storeId, ua);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, target)
                 .build();
     }
 
-    private static boolean isIsInApp(String ua) {
+    private static boolean isInApp(String ua) {
         String lowerUa = ua != null ? ua.toLowerCase() : "";
 
-        // 1) 명시적 인앱 키워드 매칭
         boolean isInApp = false;
         for (String kw : INAPP_KEYWORDS) {
             if (lowerUa.contains(kw)) {

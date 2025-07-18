@@ -3,10 +3,8 @@ package com.kymokim.spirit.store.controller;
 import com.kymokim.spirit.store.service.StoreShareService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -16,6 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class StoreShareController {
 
     private final StoreShareService shareService;
@@ -33,26 +32,31 @@ public class StoreShareController {
             @PathVariable Long storeId,
             @RequestHeader(value = "User-Agent", required = false) String ua) {
 
+        log.info("[StoreShare] /link/store/{}, UA='{}'", storeId, ua);
+
         String lowerUa = ua != null ? ua.toLowerCase() : "";
-        boolean isAndroid = lowerUa.contains("android");
-        boolean isIOS = lowerUa.contains("iphone") || lowerUa.contains("ipad");
         boolean isKakao = lowerUa.contains("kakaotalk");
 
         if (isKakao) {
-            String html = shareService.buildFallbackHtml(storeId, isAndroid, isIOS);
+            String html = shareService.buildKakaoInAppHtml(storeId);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(html);
         }
 
+        // 일반 브라우저는 리다이렉션
         String target = shareService.getRedirectTarget(storeId, ua);
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, target)
                 .build();
     }
 
+    /**
+     * Universal Link landing (앱 미실행 시 스토어 안내)
+     */
     @GetMapping("/ul/store/{storeId}")
     public void iosFallback(@PathVariable Long storeId, HttpServletResponse res) throws IOException {
+        log.info("[StoreShare] /ul/store/{} landing", storeId);
         res.setContentType(MediaType.TEXT_HTML_VALUE);
         res.setCharacterEncoding(StandardCharsets.UTF_8.name());
         res.getWriter().write(shareService.iosStoreHtml());
@@ -61,30 +65,31 @@ public class StoreShareController {
     @GetMapping(value = "/.well-known/assetlinks.json", produces = MediaType.APPLICATION_JSON_VALUE)
     public String getAndroidAssetLinks() {
         return """
-                [
-                  {
-                    "relation": ["delegate_permission/common.handle_all_urls"],
-                    "target": {
-                      "namespace": "android_app",
-                      "package_name": "com.spiritfront",
-                      "sha256_cert_fingerprints": [
-                        "F1:55:DB:49:4D:C6:CE:04:97:42:1E:AC:F0:88:61:90:6C:3E:90:0D:AE:26:72:C1:4B:D7:D8:3D:37:C1:4B:88"
-                      ]
-                    }
-                  }
-                ]
-                """;
+            [
+              {
+                "relation": ["delegate_permission/common.handle_all_urls"],
+                "target": {
+                  "namespace": "android_app",
+                  "package_name": "com.spiritfront",
+                  "sha256_cert_fingerprints": [
+                    "F1:55:DB:49:4D:C6:CE:04:97:42:1E:AC:F0:88:61:90:6C:3E:90:0D:AE:26:72:C1:4B:D7:D8:3D:37:C1:4B:88"
+                  ]
+                }
+              }
+            ]
+            """;
     }
 
     @GetMapping(value = "/.well-known/apple-app-site-association", produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getAppleAppSiteAssociation() {
+        // Universal Link는 /ul/store/* 로 매핑
         return Map.of(
                 "applinks", Map.of(
                         "apps", List.of(),
                         "details", List.of(
                                 Map.of(
                                         "appID", "B6Y8UPNX32.com.spirit.drinkToday",
-                                        "paths", List.of("/link/store/*")
+                                        "paths", List.of("/ul/store/*")
                                 )
                         )
                 )

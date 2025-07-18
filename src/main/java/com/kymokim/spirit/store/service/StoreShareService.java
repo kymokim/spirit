@@ -26,15 +26,11 @@ public class StoreShareService {
     @Value("${app.store.fallback.ios:https://apps.apple.com/kr/app/%ED%95%9C%EC%9E%94%ED%95%A0%EA%B9%8C/id6740095371}")
     private String iosStoreUrl;
 
-    /**
-     * 앱 내부 Deep Link 스킴 (앱과 반드시 일치) 예: spirit://store/{id}
-     */
+    /** 앱 내부 Deep Link 스킴 (앱과 반드시 일치) 예: spirit://store/{id} */
     @Value("${app.scheme:spirit}")
     private String appScheme;
 
-    /**
-     * 공유 링크 생성 (Universal Link)
-     */
+    /** 공유 링크 생성 (Universal Link) */
     public String buildShareLink(Long storeId) {
         return UriComponentsBuilder.fromUriString(shareDomain)
                 .path("/ul/store/")
@@ -43,9 +39,7 @@ public class StoreShareService {
                 .toUriString();
     }
 
-    /**
-     * 일반 브라우저 리다이렉션 대상
-     */
+    /** 일반 브라우저 리다이렉션 대상 */
     public String getRedirectTarget(Long storeId, String userAgent) {
         String ua = userAgent != null ? userAgent.toLowerCase() : "";
         boolean isAndroid = ua.contains("android");
@@ -60,25 +54,72 @@ public class StoreShareService {
                     ";end;";
         }
         if (isIOS) {
-            // iOS 인앱 브라우저 → Universal Link로 재시도
             return shareDomain + "/ul/store/" + storeId;
         }
-        // 기타 환경: Android 스토어로
         return androidStoreUrl;
     }
 
-    /**
-     * iOS Universal Link fallback HTML
-     */
+    /** iOS Store Fallback (Safari 등에서 앱 미설치 시) */
     public String iosStoreHtml() {
-        // 템플릿 토큰 치환
-        return HTML_IOS_STORE_TEMPLATE
-                .replace("${IOS_STORE}", iosStoreUrl);
+        return """
+            <!doctype html>
+            <html lang='ko'>
+            <head>
+              <meta charset='utf-8'>
+              <meta name='viewport' content='width=device-width, initial-scale=1'>
+              <title>App Store Redirect</title>
+              <style>
+                :root {
+                  --accent:#45C9FF;
+                  --text-main:#222;
+                  --text-sub:#666;
+                  --bg:#fff;
+                }
+                body {
+                  margin:0;
+                  padding:0;
+                  background:var(--bg);
+                  color:var(--text-main);
+                  font-family:system-ui,apple-system,'Helvetica Neue',sans-serif;
+                  text-align:center;
+                  line-height:1.4;
+                }
+                .wrap{padding-top:5rem;max-width:320px;margin:0 auto;}
+                .spinner{margin:2rem auto;width:32px;height:32px;border-radius:50%%;
+                         border:4px solid rgba(69,201,255,.25);border-top-color:var(--accent);
+                         animation:spin 1s linear infinite;}
+                @keyframes spin{to{transform:rotate(360deg)}}
+                .hint{margin-top:1.5rem;color:var(--text-sub);font-size:.9rem;}
+                a.btn-store{
+                  display:inline-block;margin-top:2rem;padding:.75rem 2rem;
+                  font-size:1rem;font-weight:600;color:#fff;background:var(--accent);
+                  border:none;border-radius:8px;text-decoration:none;
+                }
+                a.btn-store:focus{outline:2px solid var(--accent);outline-offset:2px;}
+              </style>
+            </head>
+            <body>
+              <div class='wrap'>
+                <div>App Store로 이동 중입니다.</div>
+                <div class='spinner'></div>
+                <div class='hint'>잠시만 기다려 주세요.<br/>자동으로 이동되지 않으면 아래 버튼을 눌러주세요.</div>
+                <a class='btn-store' href='%1$s' rel='noopener'>App Store 열기</a>
+              </div>
+              <script>
+                setTimeout(function(){
+                  window.location.href='%1$s';
+                },300);
+              </script>
+            </body>
+            </html>
+            """.formatted(iosStoreUrl);
     }
 
     /**
      * 외부 인앱 브라우저 공통 HTML (KakaoTalk, Instagram, Facebook, LINE, Naver 등)
-     * JS에서 UA 재검사 후 플랫폼별 딥링크 + 스토어 fallback.
+     * - 자동으로 딥링크 시도
+     * - 실패 시 스토어 이동 버튼
+     * - 수동 재시도 버튼
      */
     public String buildInAppHtml(Long storeId) {
         String deeplink = appScheme + "://store/" + storeId;
@@ -88,246 +129,124 @@ public class StoreShareService {
                 + ";S.browser_fallback_url=" + URLEncoder.encode(androidStoreUrl, StandardCharsets.UTF_8)
                 + ";end;";
 
-        return HTML_INAPP_TEMPLATE
-                .replace("${DEEPLINK}", deeplink)
-                .replace("${INTENT_URI}", intentUri)
-                .replace("${ANDROID_STORE}", androidStoreUrl)
-                .replace("${IOS_STORE}", iosStoreUrl);
+        return """
+        <!doctype html>
+        <html lang='ko'>
+        <head>
+          <meta charset='utf-8'>
+          <meta name='viewport' content='width=device-width, initial-scale=1'>
+          <title>한잔할까 실행</title>
+          <style>
+            :root {
+              --accent:#45C9FF;
+              --text-main:#222;
+              --text-sub:#666;
+              --bg:#fff;
+            }
+            html,body{margin:0;padding:0;background:var(--bg);color:var(--text-main);
+                      font-family:system-ui,apple-system,'Helvetica Neue',sans-serif;}
+            .wrap{text-align:center;padding:4rem 1.5rem;max-width:420px;margin:0 auto;}
+            h1{font-size:1.25rem;margin:0 0 1rem 0;font-weight:600;}
+            p{margin:.5rem 0;font-size:1rem;}
+            .hint{margin-top:1rem;font-size:.9rem;color:var(--text-sub);}
+            .actions{margin-top:2.5rem;display:flex;flex-direction:column;gap:1rem;}
+            button, a.btn-store{
+              cursor:pointer;
+              padding:.9rem 1.75rem;
+              font-size:1rem;
+              font-weight:600;
+              border-radius:8px;
+              border:none;
+            }
+            button.btn-open{color:#fff;background:var(--accent);}
+            a.btn-store{
+              display:inline-block;
+              color:var(--accent);
+              background:rgba(69,201,255,.12);
+              text-decoration:none;
+            }
+            button.btn-open:focus,
+            a.btn-store:focus{outline:2px solid var(--accent);outline-offset:2px;}
+            /* 로딩 점 애니메이션 */
+            .dots{margin:2rem auto 0 auto;display:inline-block;}
+            .dots span{
+              display:inline-block;width:8px;height:8px;margin:0 3px;background:var(--accent);
+              border-radius:50%%;opacity:.4;animation:bounce 1.4s infinite ease-in-out both;
+            }
+            .dots span:nth-child(1){animation-delay:-.32s}
+            .dots span:nth-child(2){animation-delay:-.16s}
+            @keyframes bounce{
+              0%%,80%%,100%%{transform:scale(0);opacity:.4;}
+              40%%{transform:scale(1.1);opacity:1;}
+            }
+          </style>
+        </head>
+        <body>
+          <div class='wrap'>
+            <h1>한잔할까 실행 중</h1>
+            <p>잠시만 기다려 주세요.</p>
+            <div class='dots'><span></span><span></span><span></span></div>
+            <div class='hint'>앱이 실행되지 않으면 아래 버튼을 눌러주세요.</div>
+            <div class='actions'>
+              <button type='button' class='btn-open' onclick='openApp()'>앱 열기</button>
+              <a class='btn-store' id='storeLink' href='#' rel='noopener'>스토어에서 설치</a>
+            </div>
+          </div>
+          <script>
+            (function() {
+              var deeplink = "%1$s";
+              var intentUri = "%2$s";
+              var playUrl = "%3$s";
+              var iosUrl = "%4$s";
+
+              function isIOS() {
+                var ua = navigator.userAgent.toLowerCase();
+                return /iphone|ipad|ipod/.test(ua);
+              }
+              function isAndroid() {
+                return navigator.userAgent.toLowerCase().indexOf('android') > -1;
+              }
+
+              document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('storeLink').href = isIOS() ? iosUrl : playUrl;
+                setTimeout(tryOpen, 150);
+              });
+
+              window.openApp = tryOpen;
+
+              function tryOpen() {
+                if (isAndroid()) {
+                  openViaIframe(deeplink);
+                  setTimeout(function(){ window.location.href = intentUri; }, 200);
+                  setTimeout(function(){ window.location.href = playUrl; }, 1800);
+                } else if (isIOS()) {
+                  window.location.href = deeplink;
+                  setTimeout(function(){ window.location.href = iosUrl; }, 1500);
+                } else {
+                  window.location.href = playUrl;
+                }
+              }
+
+              function openViaIframe(url) {
+                try {
+                  var iframe = document.createElement('iframe');
+                  iframe.style.display = 'none';
+                  iframe.src = url;
+                  document.body.appendChild(iframe);
+                } catch(e) {
+                  console.warn('iframe open failed', e);
+                }
+              }
+            })();
+          </script>
+        </body>
+        </html>
+        """.formatted(
+                deeplink,
+                intentUri,
+                androidStoreUrl,
+                iosStoreUrl
+        );
     }
 
-    /**
-     * iOS Store Fallback 템플릿
-     */
-    private static final String HTML_IOS_STORE_TEMPLATE = """
-            <html lang='ko'>
-              <head>
-                <meta charset='utf-8'>
-                <meta name='viewport' content='width=device-width, initial-scale=1'>
-                <title>Redirect…</title>
-                <style>
-                  :root {
-                    --accent:#45C9FF;
-                    --radius:12px;
-                  }
-                  @media (prefers-color-scheme:dark){
-                    body{background:#000;color:#fff;}
-                    .card{background:#111;color:#fff;}
-                  }
-                  @media (prefers-color-scheme:light){
-                    body{background:#f5f7fa;color:#111;}
-                    .card{background:#fff;color:#111;box-shadow:0 2px 8px rgba(0,0,0,.08);}
-                  }
-                  body{
-                    margin:0;
-                    font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Pretendard,sans-serif;
-                    display:flex;
-                    justify-content:center;
-                    align-items:center;
-                    min-height:100dvh;
-                  }
-                  .card{
-                    max-width:320px;
-                    width:90%;
-                    padding:2.5rem 1.5rem 3rem;
-                    border-radius:var(--radius);
-                    text-align:center;
-                  }
-                  h1{margin:0 0 .75rem;font-size:1.25rem;font-weight:600;}
-                  p{margin:0 0 1.5rem;font-size:.95rem;line-height:1.35;}
-                  .spinner{display:inline-block;width:32px;height:32px;position:relative;}
-                  .spinner span{
-                    position:absolute;
-                    width:6px;height:6px;
-                    background:var(--accent);
-                    border-radius:50%;
-                    animation:dotWave 1.2s infinite ease-in-out both;
-                  }
-                  .spinner span:nth-child(1){left:0;animation-delay:-.24s;}
-                  .spinner span:nth-child(2){left:8px;animation-delay:-.12s;}
-                  .spinner span:nth-child(3){left:16px;animation-delay:0s;}
-                  @keyframes dotWave{
-                    0%,80%,100%{transform:scale(0);}
-                    40%{transform:scale(1);}
-                  }
-                  .btn{
-                    display:inline-block;
-                    margin-top:1rem;
-                    padding:.75rem 1.5rem;
-                    font-size:1rem;
-                    font-weight:600;
-                    color:#fff;
-                    background:var(--accent);
-                    border:none;
-                    border-radius:var(--radius);
-                    text-decoration:none;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class='card'>
-                  <h1>앱스토어로 이동 중…</h1>
-                  <p>잠시만 기다려 주세요.<br>자동으로 이동되지 않으면 아래 버튼을 눌러 주세요.</p>
-                  <div class='spinner' aria-hidden='true'><span></span><span></span><span></span></div>
-                  <a class='btn' href='${IOS_STORE}'>App Store 열기</a>
-                </div>
-                <script>
-                  setTimeout(function(){window.location='${IOS_STORE}';},300);
-                </script>
-              </body>
-            </html>
-            """;
-
-    /**
-     * 인앱 브라우저용 UI 템플릿
-     */
-    private static final String HTML_INAPP_TEMPLATE = """
-            <html lang='ko'>
-            <head>
-              <meta charset='utf-8'>
-              <meta name='viewport' content='width=device-width, initial-scale=1'>
-              <title>Launching App…</title>
-              <style>
-                :root {
-                  --accent:#45C9FF;
-                  --radius:12px;
-                }
-                @media (prefers-color-scheme:dark){
-                  body{background:#000;color:#fff;}
-                  .card{background:#111;color:#fff;}
-                  .sub{color:rgba(255,255,255,.65);}
-                  .fallback{text-decoration:underline;color:var(--accent);}
-                }
-                @media (prefers-color-scheme:light){
-                  body{background:#f5f7fa;color:#111;}
-                  .card{background:#fff;color:#111;box-shadow:0 2px 8px rgba(0,0,0,.08);}
-                  .sub{color:rgba(0,0,0,.65);}
-                  .fallback{text-decoration:underline;color:var(--accent);}
-                }
-                body{
-                  margin:0;
-                  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Pretendard,sans-serif;
-                  display:flex;
-                  justify-content:center;
-                  align-items:center;
-                  min-height:100dvh;
-                }
-                .card{
-                  max-width:360px;
-                  width:90%;
-                  padding:2.75rem 1.75rem 3.25rem;
-                  border-radius:var(--radius);
-                  text-align:center;
-                }
-                h1{margin:0 0 .75rem;font-size:1.25rem;font-weight:600;}
-                p{margin:0 0 1.25rem;font-size:.95rem;line-height:1.4;}
-                .sub{font-size:.85rem;margin-top:.5rem;}
-                .spinner{display:inline-block;width:32px;height:32px;position:relative;margin-top:1rem;}
-                .spinner span{
-                  position:absolute;
-                  width:6px;height:6px;
-                  background:var(--accent);
-                  border-radius:50%;
-                  animation:dotWave 1.2s infinite ease-in-out both;
-                }
-                .spinner span:nth-child(1){left:0;animation-delay:-.24s;}
-                .spinner span:nth-child(2){left:8px;animation-delay:-.12s;}
-                .spinner span:nth-child(3){left:16px;animation-delay:0s;}
-                @keyframes dotWave{
-                  0%,80%,100%{transform:scale(0);}
-                  40%{transform:scale(1);}
-                }
-                .btn{
-                  display:inline-block;
-                  margin-top:1.75rem;
-                  padding:.9rem 1.75rem;
-                  font-size:1.05rem;
-                  font-weight:700;
-                  color:#fff;
-                  background:var(--accent);
-                  border:none;
-                  border-radius:var(--radius);
-                  text-decoration:none;
-                }
-                #copyLink{
-                  margin-top:.75rem;
-                  font-size:.85rem;
-                  background:none;
-                  border:none;
-                  color:var(--accent);
-                  text-decoration:underline;
-                }
-              </style>
-            </head>
-            <body>
-              <div class='card'>
-                <h1>앱을 여는 중입니다…</h1>
-                <p>잠시만 기다려 주세요.<br>열리지 않으면 아래 버튼을 눌러 직접 실행해 주세요.</p>
-                <div class='spinner' aria-hidden='true'><span></span><span></span><span></span></div>
-                <button class='btn' onclick="openApp()">앱 열기</button>
-                <p class='sub'>문제가 계속되면 스토어에서 앱을 설치한 뒤 다시 시도해 주세요.<br>
-                  <a class='fallback' id='storeLink' href='#'>스토어로 이동</a>
-                </p>
-                <button id='copyLink' type='button'>딥링크 복사</button>
-              </div>
-              <script>
-                (function() {
-                  var deeplink = "${DEEPLINK}";
-                  var intentUri = "${INTENT_URI}";
-                  var playUrl = "${ANDROID_STORE}";
-                  var iosUrl = "${IOS_STORE}";
-                  var ua = navigator.userAgent.toLowerCase();
-                  var isAndroid = ua.indexOf('android') > -1;
-                  var isIOS = /iphone|ipad|ipod/.test(ua);
-            
-                  // 스토어 링크 클릭 시 플랫폼별 이동
-                  var storeLink = document.getElementById('storeLink');
-                  if (storeLink) {
-                    storeLink.addEventListener('click', function(e){
-                      e.preventDefault();
-                      window.location = isIOS ? iosUrl : playUrl;
-                    });
-                  }
-            
-                  // 딥링크 복사 (미지원 브라우저는 숨김)
-                  var copyBtn = document.getElementById('copyLink');
-                  if (copyBtn && navigator.clipboard) {
-                    copyBtn.addEventListener('click', function(){
-                      navigator.clipboard.writeText(deeplink).then(function(){
-                        copyBtn.textContent = '복사 완료!';
-                        setTimeout(function(){copyBtn.textContent='딥링크 복사';},2000);
-                      });
-                    });
-                  } else if (copyBtn) {
-                    copyBtn.style.display='none';
-                  }
-            
-                  window.openApp = tryOpen;
-            
-                  function tryOpen() {
-                    if (isAndroid) {
-                      openViaIframe(deeplink);
-                      setTimeout(function(){ window.location = intentUri; }, 200);
-                      setTimeout(function(){ window.location = playUrl; }, 1800);
-                    } else if (isIOS) {
-                      window.location = deeplink;
-                      setTimeout(function(){ window.location = iosUrl; }, 1500);
-                    } else {
-                      window.location = playUrl;
-                    }
-                  }
-            
-                  function openViaIframe(url) {
-                    var iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = url;
-                    document.body.appendChild(iframe);
-                  }
-            
-                  // 자동 시도 (약간 지연)
-                  setTimeout(tryOpen, 100);
-                })();
-              </script>
-            </body>
-            </html>
-            """;
 }

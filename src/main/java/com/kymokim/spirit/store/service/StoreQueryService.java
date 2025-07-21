@@ -7,6 +7,7 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.log.service.LogService;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
 import com.kymokim.spirit.report.entity.ReportTarget;
@@ -33,6 +34,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +50,7 @@ public class StoreQueryService {
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
     private final AuthRepository authRepository;
+    private final LogService logService;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -95,6 +98,9 @@ public class StoreQueryService {
                 isUpdatable = true;
             } else {
                 isOwner = false;
+            }
+            if (!Objects.equals(store.getOwnerId(),null)) {
+                logService.createStoreViewLog(storeId);
             }
             return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
         }, 3);

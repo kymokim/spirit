@@ -256,7 +256,7 @@ public class StoreQueryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "매장 권한 인증 통계 조회")
+    @Operation(summary = "매장 권한 인증 통계")
     @GetMapping("/ownership/stats")
     public ResponseEntity<ResponseDto> getOwnershipStats() {
         ResponseStore.OwnershipStatDto ownershipStatDto = storeQueryService.getOwnershipStats();
@@ -267,7 +267,7 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "가게 좋아요 통계 조회")
+    @Operation(summary = "가게 좋아요 통계")
     @GetMapping("/liked/stats")
     public ResponseEntity<ResponseDto> getRegisterLogStats(
             @RequestParam Long storeId,

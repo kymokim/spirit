@@ -68,6 +68,15 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @DeleteMapping(value = "/suggestion/reject")
+    public ResponseEntity<ResponseDto> rejectStore(@RequestParam Long storeSuggestionId) {
+        storeService.rejectStoreSuggestion(storeSuggestionId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion rejected successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @PostMapping(value = "/create/with-ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStoreWithOwnership(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
                                                                 @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,

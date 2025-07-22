@@ -28,8 +28,8 @@ public enum DrinkType {
     //보드카
     VODKA,
 
-    //진
-    GIN,
+    //전통주
+    TRADITIONAL,
 
     //데킬라
     TEQUILA,

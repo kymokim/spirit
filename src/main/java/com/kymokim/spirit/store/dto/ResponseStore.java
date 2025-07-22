@@ -1,10 +1,12 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.dto.ResponseLocationDto;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -718,5 +720,33 @@ public class ResponseStore {
                     .priorityReportCount(priorityReportCount)
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    public static class OwnershipStatDto{
+        private Long dayCount;
+        private Long weekCount;
+        private Long monthCount;
+        private Long yearCount;
+        private Long totalCount;
+
+        public static OwnershipStatDto toDto(Long dayCount, Long weekCount, Long monthCount, Long yearCount, Long totalCount) {
+            return OwnershipStatDto.builder()
+                    .dayCount(dayCount)
+                    .weekCount(weekCount)
+                    .monthCount(monthCount)
+                    .yearCount(yearCount)
+                    .totalCount(totalCount)
+                    .build();
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class LikedStoreStatDto {
+        private String ageGroup;
+        private Gender gender;
+        private long count;
     }
 }

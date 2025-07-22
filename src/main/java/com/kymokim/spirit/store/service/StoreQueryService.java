@@ -7,6 +7,7 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.log.service.LogService;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
 import com.kymokim.spirit.report.entity.ReportTarget;
@@ -27,9 +28,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +50,7 @@ public class StoreQueryService {
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
     private final AuthRepository authRepository;
+    private final LogService logService;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -92,6 +98,9 @@ public class StoreQueryService {
                 isUpdatable = true;
             } else {
                 isOwner = false;
+            }
+            if (!Objects.equals(store.getOwnerId(),null)) {
+                logService.createStoreViewLog(storeId);
             }
             return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
         }, 3);
@@ -207,7 +216,14 @@ public class StoreQueryService {
     public Page<ResponseStore.StoreSuggestionListDto> getStoreSuggestionList(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             List<Long> storeIdsWithOwnership = ownershipRequestRepository.findAllStoreIdsWithOwnershipRequest();
-            Page<StoreSuggestion> storeSuggestionPage = storeSuggestionRepository.findByStoreIdNotInOrderBySuggestedAtAsc(storeIdsWithOwnership, pageable);
+
+            Page<StoreSuggestion> storeSuggestionPage;
+            if (storeIdsWithOwnership.isEmpty()) {
+                storeSuggestionPage = storeSuggestionRepository.findAllByOrderBySuggestedAtAsc(pageable);
+            } else {
+                storeSuggestionPage = storeSuggestionRepository.findByStoreIdNotInOrderBySuggestedAtAsc(storeIdsWithOwnership, pageable);
+            }
+
             return storeSuggestionPage.map(ResponseStore.StoreSuggestionListDto::toDto);
         }, 3);
     }
@@ -285,5 +301,40 @@ public class StoreQueryService {
                 return ResponseStore.ManagedStoreListDto.toDto(managedStore, store, calculateRate(store), normalReportCount, priorityReportCount);
             });
         }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseStore.OwnershipStatDto getOwnershipStats() {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            LocalDate now = LocalDate.now();
+            LocalDateTime end = now.atTime(LocalTime.MAX);
+
+            LocalDateTime dayStart = now.atStartOfDay();
+            Long dayCount = storeManagerRepository.countByApprovedAtBetween(dayStart, end);
+
+            LocalDateTime weekStart = now.minusDays(6).atStartOfDay();
+            Long weekCount = storeManagerRepository.countByApprovedAtBetween(weekStart, end);
+
+            LocalDateTime monthStart = now.minusDays(29).atStartOfDay();
+            Long monthCount = storeManagerRepository.countByApprovedAtBetween(monthStart, end);
+
+            LocalDateTime yearStart = now.minusDays(364).atStartOfDay();
+            Long yearCount = storeManagerRepository.countByApprovedAtBetween(yearStart, end);
+
+            Long totalCount = storeManagerRepository.countByApprovedAtIsNotNull();
+
+            return ResponseStore.OwnershipStatDto.builder()
+                    .dayCount(dayCount)
+                    .weekCount(weekCount)
+                    .monthCount(monthCount)
+                    .yearCount(yearCount)
+                    .totalCount(totalCount)
+                    .build();
+        }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
+        return TransactionRetryUtil.executeWithRetry(() -> likedStoreRepository.getLikedStoreStats(filter), 3);
     }
 }

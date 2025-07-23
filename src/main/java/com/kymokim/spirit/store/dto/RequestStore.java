@@ -3,6 +3,7 @@ package com.kymokim.spirit.store.dto;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -225,14 +226,13 @@ public class RequestStore {
     @Builder
     public static class ConditionSearchDto {
         @Schema(description = "카테고리")
-        @NotEmpty
         private String category;
         @Schema(description = "단체 방문 여부")
-        @NotNull
         private Boolean isGroupAvailable;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
-        @NotNull
         private LocalDateTime conditionTime;
+        @Schema(description = "대표 주종", example = "SOJU")
+        private DrinkType drinkType;
     }
 
     @Getter

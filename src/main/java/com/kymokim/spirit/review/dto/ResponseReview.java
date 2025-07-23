@@ -1,5 +1,6 @@
 package com.kymokim.spirit.review.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.store.entity.Category;
 import lombok.Builder;
@@ -23,6 +24,8 @@ public class ResponseReview {
         private Double rate;
         private LocalDateTime visitedAt;
         private Long storeId;
+        private String reply;
+        private LocalDateTime repliedAt;
         private List<String> imgUrlList;
 
         public static GetReviewDto toDto(Review review) {
@@ -41,6 +44,8 @@ public class ResponseReview {
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
                     .storeId(review.getStore().getId())
+                    .reply(review.getReply())
+                    .repliedAt(review.getRepliedAt())
                     .imgUrlList(imgUrlList)
                     .build();
         }
@@ -57,6 +62,8 @@ public class ResponseReview {
         private LocalDateTime visitedAt;
         private LocalDateTime createdAt;
         private Boolean isWriter;
+        private String reply;
+        private LocalDateTime repliedAt;
         private List<String> imgUrlList;
 
         public static ReviewListDto toDto(Review review, Boolean isWriter) {
@@ -75,6 +82,8 @@ public class ResponseReview {
                     .visitedAt(review.getVisitedAt())
                     .createdAt(review.getHistoryInfo().getCreatedAt())
                     .isWriter(isWriter)
+                    .reply(review.getReply())
+                    .repliedAt(review.getRepliedAt())
                     .imgUrlList(imgUrlList)
                     .build();
         }
@@ -90,6 +99,8 @@ public class ResponseReview {
         private LocalDateTime createdAt;
         private Long storeId;
         private String storeName;
+        private String reply;
+        private LocalDateTime repliedAt;
         private Set<Category> categories;
         private List<String> imgUrlList;
 
@@ -109,6 +120,8 @@ public class ResponseReview {
                     .storeId(review.getStore().getId())
                     .storeName(review.getStore().getName())
                     .categories(review.getStore().getCategories())
+                    .reply(review.getReply())
+                    .repliedAt(review.getRepliedAt())
                     .imgUrlList(imgUrlList)
                     .build();
         }

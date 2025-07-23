@@ -115,4 +115,21 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping("/set-reply")
+    public ResponseEntity<ResponseDto> setReply(@RequestBody RequestReview.SetReplyDto setReplyDto) {
+        reviewService.setReply(setReplyDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reply set successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("/delete-reply/{reviewId}")
+    public ResponseEntity<ResponseDto> deleteReply(@PathVariable("reviewId") Long reviewId) {
+        reviewService.deleteReply(reviewId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Review reply deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

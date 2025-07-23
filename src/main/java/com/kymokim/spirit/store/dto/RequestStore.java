@@ -207,6 +207,15 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class UpdateBoardImageSortOrderDto{
+        @NotEmpty
+        private Long storeId;
+        @NotEmpty
+        private List<String> boardImageUrlInOrderList;
+    }
+
+    @Data
+    @Builder
     public static class DeleteImageDto {
         @NotEmpty
         private List<String> imgUrlList;

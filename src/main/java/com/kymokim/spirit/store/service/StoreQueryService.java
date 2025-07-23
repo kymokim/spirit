@@ -99,7 +99,7 @@ public class StoreQueryService {
             } else {
                 isOwner = false;
             }
-            if (!Objects.equals(store.getOwnerId(),null)) {
+            if (!Objects.equals(store.getOwnerId(), null)) {
                 logService.createStoreViewLog(storeId);
             }
             return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
@@ -199,7 +199,13 @@ public class StoreQueryService {
     @Transactional(readOnly = true)
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
+            Page<Store> storePage = storeRepository.findByMultipleCondition(
+                    criteria, conditionSearchDto.getCategory(),
+                    conditionSearchDto.getIsGroupAvailable(),
+                    conditionSearchDto.getConditionTime(),
+                    conditionSearchDto.getDrinkType(),
+                    pageable
+            );
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
         }, 3);
     }

@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.repository;
 
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
@@ -7,6 +8,7 @@ import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.QOperationInfo;
 import com.kymokim.spirit.store.entity.QStore;
 import com.kymokim.spirit.store.entity.Store;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
@@ -278,18 +280,31 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable){
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable){
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(isDeletedCondition(false));
+        builder.and(radiusCondition(criteria));
+
+        if (category != null) {
+            builder.and(categoryCondition(category));
+        }
+        if (isGroupAvailable != null) {
+            builder.and(isGroupAvailableCondition(isGroupAvailable));
+        }
+        if (conditionTime != null) {
+            builder.and(openCondition(operationInfo, conditionTime));
+        }
+        if (drinkType != null) {
+            builder.and(store.mainDrinks.any().type.eq(drinkType));
+        }
+
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
-                        .and(radiusCondition(criteria))
-                        .and(categoryCondition(category))
-                        .and(isGroupAvailableCondition(isGroupAvailable))
-                        .and(openCondition(operationInfo, conditionTime)))
+                .where(builder)
                 .orderBy(orderByLikeCount());
 
         List<Store> storeList = query.offset(pageable.getOffset())

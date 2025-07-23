@@ -168,7 +168,7 @@ public class StoreQueryController {
                                                             @RequestParam("longitude") double longitude,
                                                             @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
-                                                            @Valid RequestStore.ConditionSearchDto conditionSearchDto) {
+                                                            RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
         ResponseDto responseDto = ResponseDto.builder()

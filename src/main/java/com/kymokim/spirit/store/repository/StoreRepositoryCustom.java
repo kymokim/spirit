@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.repository;
 
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.Category;
@@ -26,7 +27,7 @@ public interface StoreRepositoryCustom {
 
     List<Store> findByRadius(LocationCriteria criteria);
 
-    Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable);
+    Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable);
 
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 }

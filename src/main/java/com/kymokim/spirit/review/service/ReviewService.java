@@ -28,6 +28,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -39,17 +40,17 @@ public class ReviewService {
     private final AuthRepository authRepository;
     private final S3Service s3Service;
 
-    private Store resolveStore(Long storeId){
+    private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
     }
 
-    private Review resolveReview(Long reviewId){
+    private Review resolveReview(Long reviewId) {
         return reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
     }
 
-    private Long resolveUserId(){
+    private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
@@ -65,7 +66,7 @@ public class ReviewService {
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "review/" + String.valueOf(review.getId()));
-            for (String url : imageUrls){
+            for (String url : imageUrls) {
                 ReviewImage reviewImage = ReviewImage.builder().url(url).review(review).build();
                 reviewImageRepository.save(reviewImage);
                 review.addImgUrlList(reviewImage);
@@ -78,13 +79,14 @@ public class ReviewService {
         storeRepository.save(store);
     }
 
+
     @Transactional
-    public void uploadImage(MultipartFile[] files, Long reviewId){
+    public void uploadImage(MultipartFile[] files, Long reviewId) {
         Review review = resolveReview(reviewId);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "review/" + String.valueOf(review.getId()));
-            for (String url : imageUrls){
+            for (String url : imageUrls) {
                 ReviewImage reviewImage = ReviewImage.builder().url(url).review(review).build();
                 reviewImageRepository.save(reviewImage);
                 review.addImgUrlList(reviewImage);
@@ -96,9 +98,9 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteImage(RequestReview.DeleteImageDto deleteImageDto, Long reviewId){
+    public void deleteImage(RequestReview.DeleteImageDto deleteImageDto, Long reviewId) {
         Review review = resolveReview(reviewId);
-        for ( String imgUrl : deleteImageDto.getImgUrlList() ){
+        for (String imgUrl : deleteImageDto.getImgUrlList()) {
             ReviewImage reviewImage = reviewImageRepository.findByUrl(imgUrl)
                     .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_ORIGIN_IMG_URL_EMPTY));
             s3Service.deleteFile(imgUrl);
@@ -109,7 +111,7 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseReview.GetReviewDto getReview(Long reviewId){
+    public ResponseReview.GetReviewDto getReview(Long reviewId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Review review = resolveReview(reviewId);
             return ResponseReview.GetReviewDto.toDto(review);
@@ -125,11 +127,11 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable){
+    public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Long userId = resolveUserId();
             Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
-        return reviewPage.map(ResponseReview.GetRecentReviewDto :: toDto);
+            return reviewPage.map(ResponseReview.GetRecentReviewDto::toDto);
         }, 3);
     }
 
@@ -153,7 +155,7 @@ public class ReviewService {
         Auth user = authRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
         Review review = resolveReview(reviewId);
-        if(!Objects.equals(review.getWriter().getId(), userId) && !user.getRoles().contains(Role.ADMIN)) {
+        if (!Objects.equals(review.getWriter().getId(), userId) && !user.getRoles().contains(Role.ADMIN)) {
             throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
         }
         if (!Objects.equals(review.getImgUrlList(), null) && !review.getImgUrlList().isEmpty()) {
@@ -172,5 +174,31 @@ public class ReviewService {
             store.setTotalRate(totalRate);
         }
         storeRepository.save(store);
+    }
+
+    @Transactional
+    public void setReply(RequestReview.SetReplyDto setReplyDto) {
+        Long userId = resolveUserId();
+        Review review = resolveReview(setReplyDto.getReviewId());
+        Store store = review.getStore();
+        if (!store.getOwnerId().equals(userId)) {
+            throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
+        }
+        review.setReply(setReplyDto.getReply());
+        review.setRepliedAt(LocalDateTime.now());
+        reviewRepository.save(review);
+    }
+
+    @Transactional
+    public void deleteReply(Long reviewId) {
+        Long userId = resolveUserId();
+        Review review = resolveReview(reviewId);
+        Store store = review.getStore();
+        if (!store.getOwnerId().equals(userId)) {
+            throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
+        }
+        review.setReply(null);
+        review.setRepliedAt(null);
+        reviewRepository.save(review);
     }
 }

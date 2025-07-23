@@ -16,7 +16,9 @@ import com.kymokim.spirit.review.repository.ReviewImageRepository;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreImage;
+import com.kymokim.spirit.store.entity.StoreManager;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
+import com.kymokim.spirit.store.repository.StoreManagerRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +38,7 @@ import java.util.*;
 public class ReviewService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
+    private final StoreManagerRepository storeManagerRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final AuthRepository authRepository;
     private final S3Service s3Service;
@@ -180,8 +183,10 @@ public class ReviewService {
     public void setReply(RequestReview.SetReplyDto setReplyDto) {
         Long userId = resolveUserId();
         Review review = resolveReview(setReplyDto.getReviewId());
-        Store store = review.getStore();
-        if (!store.getOwnerId().equals(userId)) {
+        List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(review.getStore().getId());
+        boolean isManager = storeManagerList.stream()
+                .anyMatch(manager -> manager.getUserId().equals(userId));
+        if (!isManager) {
             throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
         }
         review.setReply(setReplyDto.getReply());
@@ -193,8 +198,10 @@ public class ReviewService {
     public void deleteReply(Long reviewId) {
         Long userId = resolveUserId();
         Review review = resolveReview(reviewId);
-        Store store = review.getStore();
-        if (!store.getOwnerId().equals(userId)) {
+        List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(review.getStore().getId());
+        boolean isManager = storeManagerList.stream()
+                .anyMatch(manager -> manager.getUserId().equals(userId));
+        if (!isManager) {
             throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
         }
         review.setReply(null);

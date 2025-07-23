@@ -68,6 +68,7 @@ public class ResponseStore {
         private Long likeCount;
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
+        private List<BoardImageListDto> boardImageDtoList;
 
         public static GetStoreDto toDto(Store store, Boolean isOwner, Boolean isUpdatable, Double storeRate, Boolean isStoreLiked) {
 
@@ -84,6 +85,11 @@ public class ResponseStore {
             List<String> imgUrlList = new ArrayList<>();
             if (!store.getImgUrlList().isEmpty()) {
                 store.getImgUrlList().forEach(storeImage -> imgUrlList.add(storeImage.getUrl()));
+            }
+
+            List<BoardImageListDto> boardImageDtoList = new ArrayList<>();
+            if (!store.getBoardImgUrlList().isEmpty()) {
+                store.getBoardImgUrlList().forEach(boardImage -> boardImageDtoList.add(BoardImageListDto.toDto(boardImage)));
             }
 
             return GetStoreDto.builder()
@@ -107,6 +113,23 @@ public class ResponseStore {
                     .likeCount(store.getLikeCount())
                     .isStoreLiked(isStoreLiked)
                     .imgUrlList(imgUrlList)
+                    .boardImageDtoList(boardImageDtoList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class BoardImageListDto {
+        private Long id;
+        private String url;
+        private BoardType boardType;
+
+        public static BoardImageListDto toDto(BoardImage boardImage) {
+            return BoardImageListDto.builder()
+                    .id(boardImage.getId())
+                    .url(boardImage.getUrl())
+                    .boardType(boardImage.getBoardType())
                     .build();
         }
     }

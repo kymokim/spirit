@@ -94,6 +94,10 @@ public class Store {
     @OrderBy("sortOrder ASC")
     private List<StoreImage> imgUrlList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC")
+    private List<BoardImage> boardImgUrlList = new ArrayList<>();
+
     @Builder
     public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
                  Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
@@ -171,6 +175,12 @@ public class Store {
     }
     public void removeImgUrlList(StoreImage storeImage){
         this.imgUrlList.remove(storeImage);
+    }
+    public void addBoardImgUrlList(BoardImage boardImage){
+        this.boardImgUrlList.add(boardImage);
+    }
+    public void removeBoardImgUrlList(BoardImage boardImage){
+        this.boardImgUrlList.remove(boardImage);
     }
     public void increaseReviewCount() {
         this.reviewCount++;

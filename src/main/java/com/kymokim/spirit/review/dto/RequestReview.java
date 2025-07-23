@@ -54,6 +54,15 @@ public class RequestReview {
 
     @Data
     @Builder
+    public static class SetReplyDto {
+        @NotEmpty
+        private Long reviewId;
+        @NotEmpty
+        private String reply;
+    }
+
+    @Data
+    @Builder
     public static class DeleteImageDto {
         @NotEmpty
         private List<String> imgUrlList;

@@ -181,7 +181,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+    public ResponseStore.ImageListDto updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
         validateStoreAccess(updateStoreImageSortOrderDto.getStoreId());
         List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
         List<StoreImage> images = storeImageRepository.findAllByUrlIn(storeImageUrlInOrderList);
@@ -198,10 +198,13 @@ public class StoreService {
             }
             image.setSortOrder(i);
         }
+        Store store = resolveStore(updateStoreImageSortOrderDto.getStoreId());
+        List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
+        return ResponseStore.ImageListDto.toDto(urlList);
     }
 
     @Transactional
-    public void updateBoardImageSortOrder(RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
+    public List<ResponseStore.BoardImageListDto> updateBoardImageSortOrder(RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
         validateStoreAccess(updateBoardImageSortOrderDto.getStoreId());
         List<String> boardImageUrlInOrderList = updateBoardImageSortOrderDto.getBoardImageUrlInOrderList();
         List<BoardImage> images = boardImageRepository.findAllByUrlIn(boardImageUrlInOrderList);
@@ -218,6 +221,8 @@ public class StoreService {
             }
             image.setSortOrder(i);
         }
+        Store store = resolveStore(updateBoardImageSortOrderDto.getStoreId());
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {

@@ -100,18 +100,20 @@ public class StoreController {
 
     @PutMapping("/update-image/sort-order")
     public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
-        storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
+        ResponseStore.ImageListDto dto = storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store image sort order updated successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @PutMapping("/update-board-image/sort-order")
     public ResponseEntity<ResponseDto> updateBoardImageSortOrder(@RequestBody RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
-        storeService.updateBoardImageSortOrder(updateBoardImageSortOrderDto);
+        List<ResponseStore.BoardImageListDto> dtoList = storeService.updateBoardImageSortOrder(updateBoardImageSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Board image sort order updated successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

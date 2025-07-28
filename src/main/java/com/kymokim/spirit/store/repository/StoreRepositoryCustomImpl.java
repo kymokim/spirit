@@ -317,7 +317,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 .leftJoin(store.operationInfos, operationInfo)
                 .where(builder)
                 .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount());
+                .orderBy(orderByLikeCount())
+                .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

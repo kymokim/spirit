@@ -279,7 +279,7 @@ public class StoreService {
     }
 
     @Transactional
-    public ResponseStore.ImageListDto uploadBoardImage(MultipartFile[] files, Long storeId, BoardType boardType) {
+    public List<ResponseStore.BoardImageListDto> uploadBoardImage(MultipartFile[] files, Long storeId, BoardType boardType) {
         validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
 
@@ -298,8 +298,8 @@ public class StoreService {
         }
         store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
-        List<String> urlList = store.getBoardImgUrlList().stream().map(BoardImage::getUrl).toList();
-        return ResponseStore.ImageListDto.toDto(urlList);
+
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
     @Transactional
@@ -346,7 +346,7 @@ public class StoreService {
     }
 
     @Transactional
-    public ResponseStore.ImageListDto deleteBoardImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
+    public List<ResponseStore.BoardImageListDto> deleteBoardImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             BoardImage boardImage = boardImageRepository.findByUrl(imgUrl)
@@ -356,8 +356,8 @@ public class StoreService {
             store.removeBoardImgUrlList(boardImage);
         }
         storeRepository.save(store);
-        List<String> urlList = store.getBoardImgUrlList().stream().map(BoardImage::getUrl).toList();
-        return ResponseStore.ImageListDto.toDto(urlList);
+
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
     @Transactional

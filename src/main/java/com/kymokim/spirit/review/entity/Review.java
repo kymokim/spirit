@@ -49,6 +49,12 @@ public class Review {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
+    @Column(name = "reply")
+    private String reply;
+
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt;
+
     @Builder
     public Review(String content, Double rate, LocalDateTime visitedAt, Auth writer, Store store) {
         this.content = content;
@@ -65,10 +71,11 @@ public class Review {
         this.visitedAt = visitedAt;
     }
 
-    public void addImgUrlList(ReviewImage reviewImage){
+    public void addImgUrlList(ReviewImage reviewImage) {
         this.imgUrlList.add(reviewImage);
     }
-    public void removeImgUrlList(ReviewImage reviewImage){
+
+    public void removeImgUrlList(ReviewImage reviewImage) {
         this.imgUrlList.remove(reviewImage);
     }
 }

@@ -198,6 +198,7 @@ public class StoreService {
             }
             image.setSortOrder(i);
         }
+        storeImageRepository.flush();
         Store store = resolveStore(updateStoreImageSortOrderDto.getStoreId());
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
         return ResponseStore.ImageListDto.toDto(urlList);
@@ -221,6 +222,7 @@ public class StoreService {
             }
             image.setSortOrder(i);
         }
+        boardImageRepository.flush();
         Store store = resolveStore(updateBoardImageSortOrderDto.getStoreId());
         return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }

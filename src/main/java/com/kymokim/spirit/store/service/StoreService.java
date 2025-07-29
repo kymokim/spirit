@@ -40,6 +40,7 @@ public class StoreService {
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
     private final StoreSuggestionRepository storeSuggestionRepository;
+    private final BoardImageRepository boardImageRepository;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -180,7 +181,7 @@ public class StoreService {
     }
 
     @Transactional
-    public void updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+    public ResponseStore.ImageListDto updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
         validateStoreAccess(updateStoreImageSortOrderDto.getStoreId());
         List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
         List<StoreImage> images = storeImageRepository.findAllByUrlIn(storeImageUrlInOrderList);
@@ -197,6 +198,33 @@ public class StoreService {
             }
             image.setSortOrder(i);
         }
+        storeImageRepository.flush();
+        Store store = resolveStore(updateStoreImageSortOrderDto.getStoreId());
+        List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
+        return ResponseStore.ImageListDto.toDto(urlList);
+    }
+
+    @Transactional
+    public List<ResponseStore.BoardImageListDto> updateBoardImageSortOrder(RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
+        validateStoreAccess(updateBoardImageSortOrderDto.getStoreId());
+        List<String> boardImageUrlInOrderList = updateBoardImageSortOrderDto.getBoardImageUrlInOrderList();
+        List<BoardImage> images = boardImageRepository.findAllByUrlIn(boardImageUrlInOrderList);
+
+        for (int i = 0; i < boardImageUrlInOrderList.size(); i++) {
+            String imageUrl = boardImageUrlInOrderList.get(i);
+            BoardImage image = images.stream()
+                    .filter(img -> img.getUrl().equals(imageUrl))
+                    .findFirst()
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.BOARD_IMAGE_NOT_FOUND));
+
+            if (!image.getStore().getId().equals(updateBoardImageSortOrderDto.getStoreId())) {
+                throw new CustomException(StoreErrorCode.INVALID_STORE_BOARD_IMAGE_RELATION);
+            }
+            image.setSortOrder(i);
+        }
+        boardImageRepository.flush();
+        Store store = resolveStore(updateBoardImageSortOrderDto.getStoreId());
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {
@@ -252,11 +280,42 @@ public class StoreService {
             store.addImgUrlList(storeImage);
         }
         store.getHistoryInfo().update(resolveUserId());
-
-        store.getHistoryInfo().update(resolveUserId());
         storeRepository.save(store);
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
         return ResponseStore.ImageListDto.toDto(urlList);
+    }
+
+    @Transactional
+    public List<ResponseStore.BoardImageListDto> uploadBoardImage(MultipartFile[] files, Long storeId, BoardType boardType) {
+        validateStoreAccess(storeId);
+        Store store = resolveStore(storeId);
+
+        if (files == null || files.length == 0) {
+            throw new CustomException(StoreErrorCode.BOARD_IMG_FILE_EMPTY);
+        }
+
+        List<MultipartFile> fileList = Arrays.asList(files);
+        List<String> imageUrls = s3Service.uploadMultiple(fileList, "store/" + String.valueOf(store.getId()) + "/board");
+        int maxOrder = boardImageRepository.findMaxSortOrderByStoreId(storeId).orElse(-1);
+        for (int i = 0; i < imageUrls.size(); i++) {
+            int sortOrder = maxOrder + i + 1;
+            BoardImage boardImage = BoardImage.builder().url(imageUrls.get(i)).store(store).sortOrder(sortOrder).boardType(boardType).build();
+            boardImageRepository.save(boardImage);
+            store.addBoardImgUrlList(boardImage);
+        }
+        store.getHistoryInfo().update(resolveUserId());
+        storeRepository.save(store);
+
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
+    }
+
+    @Transactional
+    public void updateBoardImageType(Long boardImageId, BoardType boardType) {
+        BoardImage boardImage = boardImageRepository.findById(boardImageId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.BOARD_IMAGE_NOT_FOUND));
+        validateStoreAccess(boardImage.getStore().getId());
+        boardImage.setBoardType(boardType);
+        boardImageRepository.save(boardImage);
     }
 
     @Transactional
@@ -294,6 +353,21 @@ public class StoreService {
     }
 
     @Transactional
+    public List<ResponseStore.BoardImageListDto> deleteBoardImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
+        Store store = resolveStore(storeId);
+        for (String imgUrl : deleteImageDto.getImgUrlList()) {
+            BoardImage boardImage = boardImageRepository.findByUrl(imgUrl)
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_ORIGIN_IMG_URL_EMPTY));
+            s3Service.deleteFile(imgUrl);
+            boardImageRepository.delete(boardImage);
+            store.removeBoardImgUrlList(boardImage);
+        }
+        storeRepository.save(store);
+
+        return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
+    }
+
+    @Transactional
     public void deleteStore(Long storeId) {
         validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
@@ -309,6 +383,14 @@ public class StoreService {
                 s3Service.deleteFile(storeImage.getUrl());
                 storeImageRepository.delete(storeImage);
                 store.removeImgUrlList(storeImage);
+            }
+        }
+        if (!Objects.equals(store.getBoardImgUrlList(), null) && !store.getBoardImgUrlList().isEmpty()) {
+            List<BoardImage> toDelete = new ArrayList<>(store.getBoardImgUrlList());
+            for (BoardImage boardImage : toDelete) {
+                s3Service.deleteFile(boardImage.getUrl());
+                boardImageRepository.delete(boardImage);
+                store.removeBoardImgUrlList(boardImage);
             }
         }
         store.delete();

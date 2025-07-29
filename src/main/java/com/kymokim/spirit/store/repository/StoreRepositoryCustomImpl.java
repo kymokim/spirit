@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.repository;
 
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
@@ -7,6 +8,7 @@ import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.QOperationInfo;
 import com.kymokim.spirit.store.entity.QStore;
 import com.kymokim.spirit.store.entity.Store;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPQLQuery;
@@ -32,12 +34,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     private QStore store;
 
     // 삭제 여부에 해당하는 가게 검색
-    private BooleanExpression isDeletedCondition(Boolean isDeleted){
-        return store.isDeleted.eq(isDeleted);
+    private BooleanExpression isDeletedCondition() {
+        return store.isDeleted.eq(false);
     }
 
     // 반경 내에 있는 가게 탐색
-    private BooleanExpression radiusCondition(LocationCriteria criteria){
+    private BooleanExpression radiusCondition(LocationCriteria criteria) {
         distance = Expressions.numberTemplate(Double.class,
                 "6371 * acos(cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + sin(radians({4})) * sin(radians({5})))",
                 criteria.getLatitude(), store.location.latitude, store.location.longitude, criteria.getLongitude(), criteria.getLatitude(), store.location.latitude);
@@ -46,22 +48,21 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     // 현재 시간 기준 영업중인 가게 탐색
-    private BooleanExpression openCondition(QOperationInfo operationInfo){
+    private BooleanExpression openCondition(QOperationInfo operationInfo) {
         return openCondition(operationInfo, LocalDateTime.now());
     }
 
     // 영업중인 가게 탐색
-    private BooleanExpression openCondition(QOperationInfo operationInfo, LocalDateTime conditionTime){
+    private BooleanExpression openCondition(QOperationInfo operationInfo, LocalDateTime conditionTime) {
         // 0. 항상 영업중인지(24시간)
         BooleanExpression isAlwaysOpen = store.isAlwaysOpen.isTrue();
 
         // 조건 시간 필드
         LocalTime currentTime = conditionTime.toLocalTime();
         DayOfWeek today;
-        if (currentTime.isBefore(LocalTime.of(9,0))){
+        if (currentTime.isBefore(LocalTime.of(9, 0))) {
             today = conditionTime.minusDays(1).getDayOfWeek();
-        }
-        else {
+        } else {
             today = conditionTime.getDayOfWeek();
         }
 
@@ -91,19 +92,19 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     // 검색어가 공백 제외하고 이름에 포함되어 있는 가게 탐색
-    private BooleanExpression storeNameCondition(String searchKeyword){
+    private BooleanExpression storeNameCondition(String searchKeyword) {
         String formattedSearchKeyword = searchKeyword.trim().replaceAll("\\s+", "");
         return Expressions.stringTemplate("REPLACE({0}, ' ', '')", store.name).containsIgnoreCase(formattedSearchKeyword);
     }
 
     // 검색어가 공백 제외하고 이름에 포함되어 있는 메뉴 탐색
-    private BooleanExpression menuNameCondition(QMenu menu, String searchKeyword){
+    private BooleanExpression menuNameCondition(QMenu menu, String searchKeyword) {
         String formattedSearchKeyword = searchKeyword.trim().replaceAll("\\s+", "");
         return Expressions.stringTemplate("REPLACE({0}, ' ', '')", menu.name).containsIgnoreCase(formattedSearchKeyword);
     }
 
     // 카테고리에 해당하는 가게 탐색
-    private BooleanExpression categoryCondition(String category){
+    private BooleanExpression categoryCondition(String category) {
         return store.categories.contains(Category.valueOf(category));
     }
 
@@ -113,17 +114,17 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중으로 정렬
-    private OrderSpecifier<Integer> orderByIsOpen(QOperationInfo operationInfo){
+    private OrderSpecifier<Integer> orderByIsOpen(QOperationInfo operationInfo) {
         return new CaseBuilder().when(openCondition(operationInfo)).then(1).otherwise(0).desc();
     }
 
     // 좋아요 많은 순서대로 정렬
-    private OrderSpecifier<Long> orderByLikeCount(){
+    private OrderSpecifier<Long> orderByLikeCount() {
         return store.likeCount.desc();
     }
 
     // 24시간 영업일 경우 우선으로 정렬
-    private OrderSpecifier<Integer> orderByAlwaysOpen(){
+    private OrderSpecifier<Integer> orderByAlwaysOpen() {
 
         NumberExpression<Integer> alwaysOpenPriority = new CaseBuilder()
                 .when(store.isAlwaysOpen.isTrue())
@@ -154,6 +155,15 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return distance.asc();
     }
 
+    // 인증된 가게 우선 정렬
+    private OrderSpecifier<Integer> orderByIsCertified() {
+        NumberExpression<Integer> isCertifiedPriority = new CaseBuilder()
+                .when(store.ownerId.isNotNull())
+                .then(1)
+                .otherwise(0);
+        return isCertifiedPriority.desc();
+    }
+
     // 검색어가 가게명, 메뉴명에 포함되는 가게 리스트 반환
     @Override
     public Page<Store> findByNameAndMenu(LocationCriteria criteria, String searchKeyword, Pageable pageable) {
@@ -165,11 +175,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.menuList, menu)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria))
                         .and(storeNameCondition(searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))
                 .orderBy(orderByIsOpen(operationInfo))
+                .orderBy(orderByIsCertified())
                 .orderBy(orderByLikeCount())
                 .distinct();
 
@@ -187,7 +198,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         store = QStore.store;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(storeNameCondition(searchKeyword)))
                 .distinct();
 
@@ -200,14 +211,14 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 가까운 순 가게 리스트 반환
     @Override
-    public Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable){
+    public Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria)))
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByDistance());
@@ -228,10 +239,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria))
                         .and(categoryCondition(category)))
                 .orderBy(orderByIsOpen(operationInfo))
+                .orderBy(orderByIsCertified())
                 .orderBy(orderByLikeCount());
 
         List<Store> storeList = query.offset(pageable.getOffset())
@@ -243,18 +255,19 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 현재 영업중인 가게중, 영업시간 늦는 순서 가게 리스트 반환
     @Override
-    public Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable){
+    public Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria))
                         .and(openCondition(operationInfo)))
                 .orderBy(orderByAlwaysOpen())
                 .orderBy(orderByCloseTime(operationInfo))
+                .orderBy(orderByIsCertified())
                 .orderBy(orderByLikeCount())
                 .distinct();
 
@@ -267,30 +280,45 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 근처 가게 리스트 반환(지도용)
     @Override
-    public List<Store> findByRadius(LocationCriteria criteria){
+    public List<Store> findByRadius(LocationCriteria criteria) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
 
         return queryFactory.selectFrom(store)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria)))
                 .fetch();
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, Pageable pageable){
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(isDeletedCondition());
+        builder.and(radiusCondition(criteria));
+
+        if (category != null) {
+            builder.and(categoryCondition(category));
+        }
+        if (isGroupAvailable != null) {
+            builder.and(isGroupAvailableCondition(isGroupAvailable));
+        }
+        if (conditionTime != null) {
+            builder.and(openCondition(operationInfo, conditionTime));
+        }
+        if (drinkType != null) {
+            builder.and(store.mainDrinks.any().type.eq(drinkType));
+        }
+
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition(false)
-                        .and(radiusCondition(criteria))
-                        .and(categoryCondition(category))
-                        .and(isGroupAvailableCondition(isGroupAvailable))
-                        .and(openCondition(operationInfo, conditionTime)))
-                .orderBy(orderByLikeCount());
+                .where(builder)
+                .orderBy(orderByIsCertified())
+                .orderBy(orderByLikeCount())
+                .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -308,7 +336,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         // 반경 내 술집 존재 여부
         boolean hasNearbyStores = queryFactory.selectFrom(store)
-                .where(isDeletedCondition(false)
+                .where(isDeletedCondition()
                         .and(radiusCondition(criteria)))
                 .fetchFirst() != null;
 
@@ -319,11 +347,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         for (Category category : categories) {
             JPQLQuery<Store> query = queryFactory.selectFrom(store)
                     .leftJoin(store.operationInfos, operationInfo)
-                    .where(isDeletedCondition(false)
+                    .where(isDeletedCondition()
                             // 반경 안에 가게가 있으면 반경 내에서, 없으면 전체에서 조회
                             .and(hasNearbyStores ? radiusCondition(criteria) : null)
                             .and(store.categories.contains(category)))
                     .orderBy(orderByIsOpen(operationInfo))
+                    .orderBy(orderByIsCertified())
                     .orderBy(orderByLikeCount())
                     .limit(10);
 

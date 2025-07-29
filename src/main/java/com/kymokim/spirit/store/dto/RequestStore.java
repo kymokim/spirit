@@ -1,16 +1,21 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -19,9 +24,6 @@ import java.util.Set;
 
 
 public class RequestStore {
-
-
-
     @Data
     @Builder
     public static class CreateStoreRqDto {
@@ -206,6 +208,15 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class UpdateBoardImageSortOrderDto{
+        @NotEmpty
+        private Long storeId;
+        @NotEmpty
+        private List<String> boardImageUrlInOrderList;
+    }
+
+    @Data
+    @Builder
     public static class DeleteImageDto {
         @NotEmpty
         private List<String> imgUrlList;
@@ -215,13 +226,21 @@ public class RequestStore {
     @Builder
     public static class ConditionSearchDto {
         @Schema(description = "카테고리")
-        @NotEmpty
         private String category;
         @Schema(description = "단체 방문 여부")
-        @NotNull
         private Boolean isGroupAvailable;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
-        @NotNull
         private LocalDateTime conditionTime;
+        @Schema(description = "대표 주종", example = "SOJU")
+        private DrinkType drinkType;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class LikedStoreStatFilter {
+        private Long storeId;
+        private Gender gender;
+        private List<String> ageGroups;
+        private List<String> groupBy;
     }
 }

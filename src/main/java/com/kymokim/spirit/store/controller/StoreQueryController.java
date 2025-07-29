@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.controller;
 
+import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.RequestStore;
@@ -32,7 +33,7 @@ public class StoreQueryController {
 
     private final StoreQueryService storeQueryService;
 
-    private LocationCriteria setCriteria(double latitude, double longitude, double radius){
+    private LocationCriteria setCriteria(double latitude, double longitude, double radius) {
         LocationCriteria criteria = new LocationCriteria();
         criteria.setLatitude(latitude);
         criteria.setLongitude(longitude);
@@ -57,7 +58,7 @@ public class StoreQueryController {
                                                    @RequestParam("latitude") double latitude,
                                                    @RequestParam("longitude") double longitude,
                                                    @RequestParam(value = "radius", defaultValue = "2") double radius,
-                                                   @PageableDefault(size = 10) Pageable pageable){
+                                                   @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.searchStore(criteria, keyword, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -70,7 +71,7 @@ public class StoreQueryController {
     @Operation(summary = "전체 가게 검색(가게명) 리스트 조회")
     @GetMapping("/keyword/all/{keyword}")
     public ResponseEntity<ResponseDto> searchAllStore(@PathVariable("keyword") String keyword,
-                                                      @PageableDefault(size = 10) Pageable pageable){
+                                                      @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.SearchAllStoreDto> dtoPage = storeQueryService.searchAllStore(keyword, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store all search list retrieved successfully.")
@@ -84,7 +85,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
                                                      @RequestParam(value = "radius", defaultValue = "2") double radius,
-                                                     @PageableDefault(size = 10) Pageable pageable){
+                                                     @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByDistanceDto> dtoPage = storeQueryService.getByDistance(criteria, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -115,7 +116,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getByBusinessHours(@RequestParam("latitude") double latitude,
                                                           @RequestParam("longitude") double longitude,
                                                           @RequestParam(value = "radius", defaultValue = "2") double radius,
-                                                          @PageableDefault(size = 10) Pageable pageable){
+                                                          @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByBusinessHoursDto> dtoPage = storeQueryService.getByBusinessHours(criteria, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -129,7 +130,7 @@ public class StoreQueryController {
     @GetMapping("/radius")
     public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
                                                    @RequestParam("longitude") double longitude,
-                                                   @RequestParam(value = "radius", defaultValue = "2") double radius){
+                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
         ResponseDto responseDto = ResponseDto.builder()
@@ -141,7 +142,7 @@ public class StoreQueryController {
 
     @Operation(summary = "좋아요한 가게 리스트 조회")
     @GetMapping("/liked")
-    public ResponseEntity<ResponseDto> getLikedStore(@PageableDefault(size = 10, sort = "id") Pageable pageable){
+    public ResponseEntity<ResponseDto> getLikedStore(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
         Page<ResponseStore.GetLikedStoreDto> dtoPage = storeQueryService.getLikedStore(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Liked store list retrieved successfully.")
@@ -167,7 +168,7 @@ public class StoreQueryController {
                                                             @RequestParam("longitude") double longitude,
                                                             @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
-                                                            @Valid RequestStore.ConditionSearchDto conditionSearchDto){
+                                                            RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -181,7 +182,7 @@ public class StoreQueryController {
     @GetMapping("/main-banner")
     public ResponseEntity<ResponseDto> getMainBanner(@RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
-                                                     @RequestParam(value = "radius", defaultValue = "2") double radius){
+                                                     @RequestParam(value = "radius", defaultValue = "2") double radius) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         ResponseStore.GetMainBannerDto dto = storeQueryService.getMainBanner(criteria);
         ResponseDto responseDto = ResponseDto.builder()
@@ -194,7 +195,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 제보 리스트 조회")
     @GetMapping("/suggestion/list")
-    public ResponseEntity<ResponseDto> getStoreSuggestionList(@PageableDefault(size = 10)Pageable pageable) {
+    public ResponseEntity<ResponseDto> getStoreSuggestionList(@PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.StoreSuggestionListDto> dtoPage = storeQueryService.getStoreSuggestionList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -207,7 +208,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 리스트 조회")
     @GetMapping("/ownership/list")
-    public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10)Pageable pageable) {
+    public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.OwnershipListDto> dtoPage = storeQueryService.getOwnershipList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -220,7 +221,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 제보 & 권한 등록 동시 진행 리스트 조회")
     @GetMapping("/ownership/with-suggestion")
-    public ResponseEntity<ResponseDto> getOwnershipListWithStoreSuggestion(@PageableDefault(size = 10)Pageable pageable) {
+    public ResponseEntity<ResponseDto> getOwnershipListWithStoreSuggestion(@PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.GetOwnershipListWithStoreSuggestionDto> dtoPage = storeQueryService.getOwnershipListWithStoreSuggestion(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -232,7 +233,7 @@ public class StoreQueryController {
 
     @Operation(summary = "관리 중인 매장 리스트 조회")
     @GetMapping("/managed")
-    public ResponseEntity<ResponseDto> getManagedStoreList(@PageableDefault(size = 10)Pageable pageable) {
+    public ResponseEntity<ResponseDto> getManagedStoreList(@PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.ManagedStoreListDto> dtoPage = storeQueryService.getManagedStoreList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -255,13 +256,30 @@ public class StoreQueryController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "매장 권한 인증 통계 조회")
+    @Operation(summary = "매장 권한 인증 통계")
     @GetMapping("/ownership/stats")
     public ResponseEntity<ResponseDto> getOwnershipStats() {
         ResponseStore.OwnershipStatDto ownershipStatDto = storeQueryService.getOwnershipStats();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store ownership stats retrieved successfully.")
                 .data(ownershipStatDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "가게 좋아요 통계")
+    @GetMapping("/liked/stats")
+    public ResponseEntity<ResponseDto> getRegisterLogStats(
+            @RequestParam Long storeId,
+            @RequestParam(required = false) Gender gender,
+            @RequestParam(required = false) List<String> ageGroup,
+            @RequestParam List<String> groupBy
+    ) {
+        RequestStore.LikedStoreStatFilter filter = new RequestStore.LikedStoreStatFilter(storeId, gender, ageGroup, groupBy);
+        List<ResponseStore.LikedStoreStatDto> dtoList = storeQueryService.getLikedStoreStats(filter);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Liked store log stats retrieved successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

@@ -7,6 +7,7 @@ import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.log.service.LogService;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
 import com.kymokim.spirit.report.entity.ReportTarget;
@@ -33,6 +34,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +50,7 @@ public class StoreQueryService {
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
     private final AuthRepository authRepository;
+    private final LogService logService;
 
     private Long resolveUserId() {
         return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
@@ -95,6 +98,9 @@ public class StoreQueryService {
                 isUpdatable = true;
             } else {
                 isOwner = false;
+            }
+            if (!Objects.equals(store.getOwnerId(), null)) {
+                logService.createStoreViewLog(storeId);
             }
             return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
         }, 3);
@@ -193,7 +199,13 @@ public class StoreQueryService {
     @Transactional(readOnly = true)
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Store> storePage = storeRepository.findByMultipleCondition(criteria, conditionSearchDto.getCategory(), conditionSearchDto.getIsGroupAvailable(), conditionSearchDto.getConditionTime(), pageable);
+            Page<Store> storePage = storeRepository.findByMultipleCondition(
+                    criteria, conditionSearchDto.getCategory(),
+                    conditionSearchDto.getIsGroupAvailable(),
+                    conditionSearchDto.getConditionTime(),
+                    conditionSearchDto.getDrinkType(),
+                    pageable
+            );
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
         }, 3);
     }
@@ -325,5 +337,10 @@ public class StoreQueryService {
                     .totalCount(totalCount)
                     .build();
         }, 3);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
+        return TransactionRetryUtil.executeWithRetry(() -> likedStoreRepository.getLikedStoreStats(filter), 3);
     }
 }

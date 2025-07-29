@@ -4,6 +4,7 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.menu.dto.RequestMenu;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
+import com.kymokim.spirit.store.entity.BoardType;
 import com.kymokim.spirit.store.service.StoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -99,20 +100,53 @@ public class StoreController {
 
     @PutMapping("/update-image/sort-order")
     public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
-        storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
+        ResponseStore.ImageListDto dto = storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store image sort order updated successfully.")
+                .data(dto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PutMapping("/update-board-image/sort-order")
+    public ResponseEntity<ResponseDto> updateBoardImageSortOrder(@RequestBody RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
+        List<ResponseStore.BoardImageListDto> dtoList = storeService.updateBoardImageSortOrder(updateBoardImageSortOrderDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Board image sort order updated successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PutMapping("/update-board-image/type")
+    public ResponseEntity<ResponseDto> updateBoardImageType(@RequestParam Long boardImageId,
+                                                            @RequestParam BoardType boardType) {
+        storeService.updateBoardImageType(boardImageId, boardType);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Board image type updated successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @PostMapping(value = "/upload-image/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files", required = true) MultipartFile[] files,
+    public ResponseEntity<ResponseDto> uploadImage(@RequestPart(value = "files") MultipartFile[] files,
                                                    @PathVariable("storeId") Long storeId) {
         ResponseStore.ImageListDto dto = storeService.uploadImage(files, storeId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image uploaded successfully.")
                 .data(dto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/upload-board-image/{storeId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> uploadBoardImage(@RequestPart(value = "files") MultipartFile[] files,
+                                                        @RequestParam BoardType boardType,
+                                                        @PathVariable("storeId") Long storeId) {
+        List<ResponseStore.BoardImageListDto> dtoList = storeService.uploadBoardImage(files, storeId, boardType);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Board image uploaded successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -133,6 +167,17 @@ public class StoreController {
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
                 .data(dto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping("/delete-board-image/{storeId}")
+    public ResponseEntity<ResponseDto> deleteBoardImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
+                                                        @PathVariable("storeId") Long storeId) {
+        List<ResponseStore.BoardImageListDto> dtoList = storeService.deleteBoardImage(deleteImageDto, storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Board image deleted successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

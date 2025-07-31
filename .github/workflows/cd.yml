@@ -58,12 +58,14 @@ jobs:
         if: ${{ env.PROFILE == 'prod' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_PROD }}" >> $GITHUB_ENV
+          echo "AUTH_DB_URL=${{ secrets.AUTH_DB_URL_PROD }}" >> $GITHUB_ENV
 
       - name: Set DB_URL to dev
         id: set-dev-db
         if: ${{ env.PROFILE == 'dev' }}
         run: |
           echo "DB_URL=${{ secrets.DB_URL_DEV }}" >> $GITHUB_ENV
+          echo "AUTH_DB_URL=${{ secrets.AUTH_DB_URL_DEV }}" >> $GITHUB_ENV
 
       - name: Create application.yml dynamically
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
@@ -71,10 +73,16 @@ jobs:
         run: |
           echo "spring:" >> ${APP_CONFIG_FILE}
           echo "  datasource:" >> ${APP_CONFIG_FILE}
-          echo "    driver-class-name: org.mariadb.jdbc.Driver" >> ${APP_CONFIG_FILE}
-          echo "    url: ${DB_URL}" >> ${APP_CONFIG_FILE}
-          echo "    username: ${{ secrets.DB_USERNAME }}" >> ${APP_CONFIG_FILE}
-          echo "    password: ${{ secrets.DB_PASSWORD }}" >> ${APP_CONFIG_FILE}
+          echo "    main:" >> ${APP_CONFIG_FILE}
+          echo "      driver-class-name: org.mariadb.jdbc.Driver" >> ${APP_CONFIG_FILE}
+          echo "      url: ${DB_URL}" >> ${APP_CONFIG_FILE}
+          echo "      username: ${{ secrets.DB_USERNAME }}" >> ${APP_CONFIG_FILE}
+          echo "      password: ${{ secrets.DB_PASSWORD }}" >> ${APP_CONFIG_FILE}
+          echo "    auth:" >> ${APP_CONFIG_FILE}
+          echo "      driver-class-name: org.mariadb.jdbc.Driver" >> ${APP_CONFIG_FILE}
+          echo "      url: ${AUTH_DB_URL}" >> ${APP_CONFIG_FILE}
+          echo "      username: ${{ secrets.DB_USERNAME }}" >> ${APP_CONFIG_FILE}
+          echo "      password: ${{ secrets.DB_PASSWORD }}" >> ${APP_CONFIG_FILE}
           echo "  jpa:" >> ${APP_CONFIG_FILE}
           echo "    show-sql: false" >> ${APP_CONFIG_FILE}
           echo "    generate-ddl: false" >> ${APP_CONFIG_FILE}
@@ -241,6 +249,7 @@ jobs:
             # Docker 컨테이너 실행
             docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --network spirit-network \
             --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
@@ -304,6 +313,7 @@ jobs:
             # Docker 컨테이너 실행
             docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --network spirit-network \
             --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \

@@ -37,6 +37,7 @@ out/
 .vscode/
 
 /src/main/resources/secret/
-/src/main/resources/application-local.yml
+/src/main/resources/application-local-dev.yml
+/src/main/resources/application-local-prod.yml
 /src/main/resources/application-dev.yml
 /src/main/resources/application-prod.yml

@@ -1,9 +1,9 @@
 package com.kymokim.spirit.common.security;
 
-import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.auth.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.common.exception.CustomException;
-import com.kymokim.spirit.auth.entity.Auth;
-import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.auth.auth.entity.Auth;
+import com.kymokim.spirit.auth.auth.repository.AuthRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

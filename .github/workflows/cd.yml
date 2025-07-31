@@ -271,6 +271,7 @@ jobs:
 
             docker run -d \
             --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
+            --network spirit-network \
             --restart unless-stopped \
             -p 8080:8080 \
             -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }},mac \

@@ -1,0 +1,15 @@
+package com.kymokim.spirit.report.entity;
+
+public enum ReportReason {
+    INCORRECT_STORE_INFO,
+    INCORRECT_MENU_INFO,
+    INCORRECT_DRINK_INFO,
+    NON_EXISTENT_STORE,
+    DUPLICATE_STORE,
+
+    INAPPROPRIATE_LANGUAGE,
+    INAPPROPRIATE_PHOTO,
+    VIOLATION_OF_GUIDELINES,
+
+    ETC
+}

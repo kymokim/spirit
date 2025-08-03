@@ -18,8 +18,15 @@ import javax.sql.DataSource;
 @EnableTransactionManagement
 @EnableJpaRepositories(
         basePackages = {
-                "com.kymokim.spirit.main",
-                "com.kymokim.spirit.common"
+                "com.kymokim.spirit.archive",
+                "com.kymokim.spirit.common",
+                "com.kymokim.spirit.drink",
+                "com.kymokim.spirit.log",
+                "com.kymokim.spirit.menu",
+                "com.kymokim.spirit.notification",
+                "com.kymokim.spirit.report",
+                "com.kymokim.spirit.review",
+                "com.kymokim.spirit.store"
         },
         entityManagerFactoryRef = "mainEntityManagerFactory",
         transactionManagerRef = "mainTransactionManager"
@@ -46,7 +53,15 @@ public class MainDataSourceConfig {
             @Qualifier("mainDataSource") DataSource dataSource) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.kymokim.spirit.main", "com.kymokim.spirit.common")
+                .packages("com.kymokim.spirit.archive",
+                        "com.kymokim.spirit.common",
+                        "com.kymokim.spirit.drink",
+                        "com.kymokim.spirit.log",
+                        "com.kymokim.spirit.menu",
+                        "com.kymokim.spirit.notification",
+                        "com.kymokim.spirit.report",
+                        "com.kymokim.spirit.review",
+                        "com.kymokim.spirit.store")
                 .persistenceUnit("main")
                 .build();
     }

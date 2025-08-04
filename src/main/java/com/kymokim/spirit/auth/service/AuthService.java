@@ -82,11 +82,6 @@ public class AuthService {
                 likedStoreRepository.delete(likedStore);
             });
         }
-        for (SocialInfo socialInfo : new ArrayList<>(user.getSocialInfoList())) {
-            user.getSocialInfoList().remove(socialInfo);
-            socialInfo.setAuth(null);
-            socialInfoRepository.delete(socialInfo);
-        }
         if (!Objects.equals(user.getPersonalInfo().getCi(), null)) {
             archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
         }

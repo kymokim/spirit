@@ -77,6 +77,7 @@ public class Auth implements UserDetails {
         this.refreshToken = null;
         this.userStatus = UserStatus.WITHDREW;
         this.roles.clear();
+        this.socialInfoList.clear();
     }
 
     public void addSocialInfo(SocialInfo socialInfo) {

@@ -50,6 +50,7 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/version/check").permitAll()
                         .requestMatchers("/api/store/share/{storeId}", "/link/store/{storeId}", "/ul/store/{storeId}").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()
+                        .requestMatchers("/app-ads.txt").permitAll()
                         .requestMatchers("**exception**").permitAll()
                 )
 

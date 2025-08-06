@@ -3,7 +3,6 @@ package com.kymokim.spirit.common.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,8 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity // Spring Security에 대한 디버깅 모드를 사용하기 위한 어노테이션 (default : false)
@@ -50,6 +47,7 @@ public class SecurityConfiguration{
                         .requestMatchers("/api/version/check").permitAll()
                         .requestMatchers("/api/store/share/{storeId}", "/link/store/{storeId}", "/ul/store/{storeId}").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()
+                        .requestMatchers("/app-ads.txt").permitAll()
                         .requestMatchers("**exception**").permitAll()
                 )
 

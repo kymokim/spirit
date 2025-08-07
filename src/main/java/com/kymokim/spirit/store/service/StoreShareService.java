@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.service;
 
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@MainTransactional
 public class StoreShareService {
 
     @Value("${app.share.domain:https://dev.team-spirit.click}")

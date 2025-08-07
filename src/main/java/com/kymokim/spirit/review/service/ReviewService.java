@@ -3,6 +3,7 @@ package com.kymokim.spirit.review.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
@@ -18,6 +19,7 @@ import com.kymokim.spirit.store.entity.StoreManager;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreManagerRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,12 +33,14 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class ReviewService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
+    private final StoreService storeService;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -48,7 +52,6 @@ public class ReviewService {
                 .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_NOT_FOUND));
     }
 
-    @Transactional
     public void createReview(MultipartFile[] files, RequestReview.CreateReviewDto createReviewDto) {
         Store store = resolveStore(createReviewDto.getStoreId());
         Review review = createReviewDto.toEntity(store, AuthResolver.resolveUserId());
@@ -71,9 +74,12 @@ public class ReviewService {
     }
 
 
-    @Transactional
     public void uploadImage(MultipartFile[] files, Long reviewId) {
         Review review = resolveReview(reviewId);
+        Auth user = AuthResolver.resolveUser();
+        if (!Objects.equals(review.getWriterId(), user.getId()) && !user.getRoles().contains(Role.ADMIN)) {
+            throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
+        }
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
             List<String> imageUrls = s3Service.uploadMultiple(fileList, "review/" + String.valueOf(review.getId()));
@@ -88,9 +94,12 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    @Transactional
     public void deleteImage(RequestReview.DeleteImageDto deleteImageDto, Long reviewId) {
         Review review = resolveReview(reviewId);
+        Auth user = AuthResolver.resolveUser();
+        if (!Objects.equals(review.getWriterId(), user.getId()) && !user.getRoles().contains(Role.ADMIN)) {
+            throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
+        }
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             ReviewImage reviewImage = reviewImageRepository.findByUrl(imgUrl)
                     .orElseThrow(() -> new CustomException(ReviewErrorCode.REVIEW_ORIGIN_IMG_URL_EMPTY));
@@ -101,7 +110,7 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public ResponseReview.GetReviewDto getReview(Long reviewId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Review review = resolveReview(reviewId);
@@ -109,7 +118,7 @@ public class ReviewService {
         }, 3);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public Page<ResponseReview.ReviewListDto> getReviewByStore(Long storeId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Review> reviewPage = reviewRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
@@ -118,7 +127,7 @@ public class ReviewService {
         }, 3);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public Page<ResponseReview.GetRecentReviewDto> getRecentReview(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(AuthResolver.resolveUserId(), pageable);
@@ -126,9 +135,12 @@ public class ReviewService {
         }, 3);
     }
 
-    @Transactional
     public void updateReview(Long reviewId, RequestReview.UpdateReviewDto updateReviewDto) {
         Review originalReview = resolveReview(reviewId);
+        Auth user = AuthResolver.resolveUser();
+        if (!Objects.equals(originalReview.getWriterId(), user.getId()) && !user.getRoles().contains(Role.ADMIN)) {
+            throw new CustomException(ReviewErrorCode.NOT_REVIEW_WRITER);
+        }
         Store store = originalReview.getStore();
 
         Double totalRate = store.getTotalRate() - originalReview.getRate() + updateReviewDto.getRate();
@@ -136,11 +148,10 @@ public class ReviewService {
         storeRepository.save(store);
 
         Review updatedReview = updateReviewDto.toEntity(originalReview);
-        updatedReview.getHistoryInfo().update(AuthResolver.resolveUserId());
+        updatedReview.getHistoryInfo().update(user.getId());
         reviewRepository.save(updatedReview);
     }
 
-    @Transactional
     public void deleteReview(Long reviewId) {
         Auth user = AuthResolver.resolveUser();
         Review review = resolveReview(reviewId);
@@ -165,31 +176,17 @@ public class ReviewService {
         storeRepository.save(store);
     }
 
-    @Transactional
     public void setReply(RequestReview.SetReplyDto setReplyDto) {
-        Long userId = AuthResolver.resolveUserId();
         Review review = resolveReview(setReplyDto.getReviewId());
-        List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(review.getStore().getId());
-        boolean isManager = storeManagerList.stream()
-                .anyMatch(manager -> manager.getUserId().equals(userId));
-        if (!isManager) {
-            throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
-        }
+        storeService.validateStoreAccess(review.getStore().getId());
         review.setReply(setReplyDto.getReply());
         review.setRepliedAt(LocalDateTime.now());
         reviewRepository.save(review);
     }
 
-    @Transactional
     public void deleteReply(Long reviewId) {
-        Long userId = AuthResolver.resolveUserId();
         Review review = resolveReview(reviewId);
-        List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(review.getStore().getId());
-        boolean isManager = storeManagerList.stream()
-                .anyMatch(manager -> manager.getUserId().equals(userId));
-        if (!isManager) {
-            throw new CustomException(ReviewErrorCode.REVIEW_REPLY_FORBIDDEN);
-        }
+        storeService.validateStoreAccess(review.getStore().getId());
         review.setReply(null);
         review.setRepliedAt(null);
         reviewRepository.save(review);

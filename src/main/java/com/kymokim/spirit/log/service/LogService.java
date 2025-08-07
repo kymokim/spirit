@@ -3,6 +3,7 @@ package com.kymokim.spirit.log.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.log.dto.RequestLog;
@@ -12,7 +13,6 @@ import com.kymokim.spirit.log.exception.LogErrorCode;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,11 +22,11 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class LogService {
     private final StoreViewLogRepository storeViewLogRepository;
     private final AESUtil aesUtil;
 
-    @Transactional
     public void createStoreViewLog(Long storeId) {
         Auth user = AuthResolver.resolveUser();
         if (Objects.equals(user.getPersonalInfo(), null) || user.getPersonalInfo().getGender().equals(Gender.UNKNOWN)) {

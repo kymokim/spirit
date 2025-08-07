@@ -1,5 +1,6 @@
 package com.kymokim.spirit.notification.service;
 
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.notification.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +13,11 @@ import java.time.LocalDateTime;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@MainTransactional
 public class ExpiredNotificationCleaner {
 
     private final NotificationRepository notificationRepository;
 
-    @Transactional
     @Scheduled(cron = "0 0 0 * * *")
     public void deleteExpiredNotifications() {
         LocalDateTime expireDate = LocalDateTime.now().minusDays(30);

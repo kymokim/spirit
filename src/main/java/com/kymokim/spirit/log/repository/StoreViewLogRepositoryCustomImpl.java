@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryCustom {
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
     private final QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;

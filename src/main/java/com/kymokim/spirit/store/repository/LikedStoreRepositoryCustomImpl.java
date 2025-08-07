@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class LikedStoreRepositoryCustomImpl implements LikedStoreRepositoryCustom {
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
     private final QLikedStore likedStore = QLikedStore.likedStore;

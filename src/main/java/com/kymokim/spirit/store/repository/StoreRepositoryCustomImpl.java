@@ -28,7 +28,7 @@ import java.util.List;
 
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
-    @PersistenceContext
+    @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
     private NumberExpression<Double> distance;
     private QStore store;

@@ -1,6 +1,7 @@
 package com.kymokim.spirit.notification.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class StoreNotificationEventHandler {
     private final FCMNotificationService fcmNotificationService;
     private final NotificationRepository notificationRepository;

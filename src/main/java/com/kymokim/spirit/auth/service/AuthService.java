@@ -4,47 +4,33 @@ import com.kymokim.spirit.archive.entity.ArchiveType;
 import com.kymokim.spirit.archive.service.ArchiveService;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.NotificationConsent;
+import com.kymokim.spirit.auth.entity.Role;
 import com.kymokim.spirit.auth.entity.SocialInfo;
 import com.kymokim.spirit.auth.dto.RequestAuth;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
 import com.kymokim.spirit.auth.repository.NotificationConsentRepository;
 import com.kymokim.spirit.auth.repository.SocialInfoRepository;
+import com.kymokim.spirit.common.annotation.AuthTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
-import com.kymokim.spirit.notification.repository.NotificationRepository;
-import com.kymokim.spirit.store.entity.LikedStore;
-import com.kymokim.spirit.store.entity.Store;
-import com.kymokim.spirit.store.entity.StoreManager;
-import com.kymokim.spirit.store.exception.StoreErrorCode;
-import com.kymokim.spirit.store.repository.LikedStoreRepository;
-import com.kymokim.spirit.store.repository.OwnershipRequestRepository;
-import com.kymokim.spirit.store.repository.StoreManagerRepository;
-import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@AuthTransactional
 public class AuthService {
 
     private final AuthRepository authRepository;
     private final S3Service s3Service;
     private final ArchiveService archiveService;
-    private final LikedStoreRepository likedStoreRepository;
-    private final StoreRepository storeRepository;
     private final SocialInfoRepository socialInfoRepository;
     private final NotificationConsentRepository notificationConsentRepository;
-    private final NotificationRepository notificationRepository;
-    private final StoreManagerRepository storeManagerRepository;
-    private final OwnershipRequestRepository ownershipRequestRepository;
+    private final MainDataCleaner mainDataCleaner;
 
-    @Transactional
     public void mergeUser(RequestAuth.MergeUserDto mergeUserDto) {
         Auth originalUser = authRepository.findBySocial(mergeUserDto.getOriginalSocialInfoDto().getSocialType(), mergeUserDto.getOriginalSocialInfoDto().getSocialId());
         if (originalUser == null) {
@@ -61,26 +47,16 @@ public class AuthService {
         authRepository.save(originalUser);
     }
 
-    @Transactional
     public void withdrawUser() {
         Auth user = AuthResolver.resolveUser();
         withdraw(user);
     }
 
-    @Transactional
-    private void withdraw(Auth user){
+    private void withdraw(Auth user) {
+        mainDataCleaner.cleanUp(user);
         if (!Objects.equals(user.getImgUrl(), null) && !user.getImgUrl().isEmpty()) {
             s3Service.deleteFile(user.getImgUrl());
             user.setImgUrl(null);
-        }
-        List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
-        if (likedStoreList != null) {
-            likedStoreList.forEach(likedStore -> {
-                Store store = storeRepository.findById(likedStore.getStoreId())
-                        .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
-                store.decreaseLikeCount();
-                likedStoreRepository.delete(likedStore);
-            });
         }
         if (!Objects.equals(user.getPersonalInfo().getCi(), null)) {
             archiveService.archiveUser(user.getId(), user.getPersonalInfo().getCi(), ArchiveType.WITHDREW);
@@ -90,20 +66,17 @@ public class AuthService {
             user.initNotificationConsent(null);
             notificationConsentRepository.delete(notificationConsent);
         }
-        notificationRepository.deleteAllByUserId(user.getId());
-        storeManagerRepository.deleteAllByUserId(user.getId());
-        List<Store> ownedStores = storeRepository.findByOwnerId(user.getId());
-        for (Store store : ownedStores) {
-            List<StoreManager> managers = storeManagerRepository.findByStoreIdOrderByApprovedAtAsc(store.getId());
-            if (!managers.isEmpty()) {
-                store.setOwnerId(managers.getFirst().getUserId());
-            } else {
-                store.setOwnerId(null);
-            }
-        }
-        ownershipRequestRepository.deleteAllByRequesterId(user.getId());
-
         user.withdraw();
+        authRepository.save(user);
+    }
+
+    public void addRole(Auth user, Role role) {
+        user.getRoles().add(role);
+        authRepository.save(user);
+    }
+
+    public void removeRole(Auth user, Role role) {
+        user.getRoles().remove(role);
         authRepository.save(user);
     }
 }

@@ -1,6 +1,7 @@
 package com.kymokim.spirit.common.security;
 
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
+import com.kymokim.spirit.common.annotation.AuthTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.repository.AuthRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
+@AuthTransactional(readOnly = true)
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final AuthRepository authRepository;

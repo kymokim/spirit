@@ -31,7 +31,6 @@ public class BusinessRegistrationValidator {
     @Value("${odcloud.decodingKey}")
     private String decodingKey;
 
-    @Transactional
     public Boolean validateBusiness(String businessRegistrationNumber, String representativeName, String openingDate){
         WebClient webClient = WebClient.builder()
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

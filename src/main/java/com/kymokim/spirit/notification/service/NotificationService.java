@@ -1,6 +1,7 @@
 package com.kymokim.spirit.notification.service;
 
 import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.notification.dto.ResponseNotification;
 import com.kymokim.spirit.notification.entity.Notification;
@@ -16,6 +17,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -25,7 +27,6 @@ public class NotificationService {
                 .orElseThrow(() -> new CustomException(NotificationErrorCode.NOTIFICATION_NOT_FOUND));
     }
 
-    @Transactional
     public void readNotification(Long notificationId) {
         Notification notification = resolveNotification(notificationId);
         if (!Objects.equals(notification.getUserId(), AuthResolver.resolveUserId())) {
@@ -35,13 +36,11 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    @Transactional
     public void readAllNotification() {
         notificationRepository.findAllByUserId(AuthResolver.resolveUserId())
                 .forEach(Notification::readNotification);
     }
 
-    @Transactional(readOnly = true)
     public Page<ResponseNotification.NotificationResponseDto> getReceivedNotification(Pageable pageable) {
         return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(AuthResolver.resolveUserId(), pageable)
                 .map(ResponseNotification.NotificationResponseDto::toDto);

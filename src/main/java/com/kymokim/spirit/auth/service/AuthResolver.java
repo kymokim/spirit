@@ -3,11 +3,13 @@ package com.kymokim.spirit.auth.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.exception.AuthErrorCode;
 import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.common.annotation.AuthTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
+@AuthTransactional(readOnly = true)
 public class AuthResolver {
 
     private static AuthRepository authRepository;

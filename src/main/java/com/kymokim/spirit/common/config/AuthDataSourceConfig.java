@@ -23,7 +23,6 @@ import javax.sql.DataSource;
         entityManagerFactoryRef = "authEntityManagerFactory",
         transactionManagerRef = "authTransactionManager"
 )
-@ConditionalOnProperty(prefix = "spring.datasource.auth", name = "url")
 public class AuthDataSourceConfig {
 
     @Bean

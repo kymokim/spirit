@@ -1,6 +1,5 @@
 package com.kymokim.spirit.report.dto;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.report.entity.Report;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportTarget;
@@ -26,13 +25,13 @@ public class RequestReport {
         private String description;
 
 
-        public Report toEntity(Auth reporter) {
+        public Report toEntity(Long reporterId) {
             return Report.builder()
                     .reportTarget(this.reportTarget)
                     .targetId(this.targetId)
                     .reportReason(this.reportReason)
                     .description(this.description)
-                    .reporter(reporter)
+                    .reporterId(reporterId)
                     .build();
         }
     }

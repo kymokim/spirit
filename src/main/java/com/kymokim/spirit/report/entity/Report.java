@@ -1,6 +1,5 @@
 package com.kymokim.spirit.report.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -43,17 +42,16 @@ public class Report {
     @Enumerated(EnumType.STRING)
     private ReportStatus reportStatus = ReportStatus.PENDING;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id", nullable = false)
-    private Auth reporter;
+    @Column
+    private Long reporterId;
 
     @Builder
-    public Report(ReportTarget reportTarget, Long targetId, ReportReason reportReason, String description, Auth reporter){
+    public Report(ReportTarget reportTarget, Long targetId, ReportReason reportReason, String description, Long reporterId){
         this.reportTarget = reportTarget;
         this.targetId = targetId;
         this.reportReason = reportReason;
         this.description = description;
-        this.reporter = reporter;
+        this.reporterId = reporterId;
     }
 
     public void handleReport(ReportStatus reportStatus){

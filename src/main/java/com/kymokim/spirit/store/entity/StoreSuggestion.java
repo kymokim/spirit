@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;
@@ -29,13 +28,11 @@ public class StoreSuggestion {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id", nullable = false)
-    private Auth suggestedBy;
+    private Long suggesterId;
 
     @Builder
-    public StoreSuggestion(Store store, Auth suggestedBy) {
+    public StoreSuggestion(Store store, Long suggesterId) {
         this.store = store;
-        this.suggestedBy = suggestedBy;
+        this.suggesterId = suggesterId;
     }
 }

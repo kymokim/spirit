@@ -1,5 +1,7 @@
 package com.kymokim.spirit.drink.service;
 
+import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
@@ -8,16 +10,12 @@ import com.kymokim.spirit.drink.dto.ResponseDrink;
 import com.kymokim.spirit.drink.exception.DrinkErrorCode;
 import com.kymokim.spirit.drink.repository.DrinkRepository;
 import com.kymokim.spirit.drink.entity.Drink;
-import com.kymokim.spirit.menu.dto.RequestMenu;
-import com.kymokim.spirit.menu.entity.Menu;
-import com.kymokim.spirit.menu.exception.MenuErrorCode;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -26,10 +24,12 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class DrinkService {
     private final DrinkRepository drinkRepository;
     private final StoreRepository storeRepository;
     private final S3Service s3Service;
+    private final StoreService storeService;
 
     private Store resolveStore(Long storeId){
         return storeRepository.findById(storeId)
@@ -41,16 +41,11 @@ public class DrinkService {
                 .orElseThrow(() -> new CustomException(DrinkErrorCode.DRINK_NOT_FOUND));
     }
 
-    private Long resolveUserId(){
-        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
-
-    @Transactional
     public void createDrink(MultipartFile file, RequestDrink.CreateDrinkDto createDrinkDto) {
         Store store = resolveStore(createDrinkDto.getStoreId());
-
+        storeService.validateStoreAccess(store.getId());
         Integer maxOrder = drinkRepository.findMaxSortOrderByStoreId(store.getId()).orElse(-1);
-        Drink drink = createDrinkDto.toEntity(store, maxOrder + 1, resolveUserId());
+        Drink drink = createDrinkDto.toEntity(store, maxOrder + 1, AuthResolver.resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "drink/" + String.valueOf(drink.getId()));
@@ -61,9 +56,9 @@ public class DrinkService {
         storeRepository.save(store);
     }
 
-    @Transactional
     public void updateImage(MultipartFile file, Long drinkId){
         Drink drink = resolveDrink(drinkId);
+        storeService.validateStoreAccess(drink.getStore().getId());
         String imageUrl;
         if (file != null){
             if (drink.getImgUrl() == null) {
@@ -76,13 +71,13 @@ public class DrinkService {
             throw new CustomException(DrinkErrorCode.DRINK_IMG_FILE_EMPTY);
         }
         drink.setImgUrl(imageUrl);
-        drink.getHistoryInfo().update(resolveUserId());
+        drink.getHistoryInfo().update(AuthResolver.resolveUserId());
         drinkRepository.save(drink);
     }
 
-    @Transactional
     public void deleteImage(Long drinkId){
         Drink drink = resolveDrink(drinkId);
+        storeService.validateStoreAccess(drink.getStore().getId());
         String originUrl;
         if (!Objects.equals(drink.getImgUrl(), null) && !drink.getImgUrl().isEmpty()){
             originUrl = drink.getImgUrl();
@@ -94,7 +89,7 @@ public class DrinkService {
         drinkRepository.save(drink);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public List<ResponseDrink.DrinkListDto> getByStore(Long storeId){
         return TransactionRetryUtil.executeWithRetry(() -> {
             Store store = resolveStore(storeId);
@@ -105,7 +100,7 @@ public class DrinkService {
         }, 3);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public ResponseDrink.GetDrinkDto getDrink(Long drinkId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Drink drink = resolveDrink(drinkId);
@@ -113,16 +108,16 @@ public class DrinkService {
         }, 3);
     }
 
-    @Transactional
     public void updateDrink(Long drinkId, RequestDrink.UpdateDrinkDto updateDrinkDto) {
         Drink originalDrink = resolveDrink(drinkId);
+        storeService.validateStoreAccess(originalDrink.getStore().getId());
         Drink updatedDrink = updateDrinkDto.toEntity(originalDrink);
-        updatedDrink.getHistoryInfo().update(resolveUserId());
+        updatedDrink.getHistoryInfo().update(AuthResolver.resolveUserId());
         drinkRepository.save(updatedDrink);
     }
 
-    @Transactional
     public void updateDrinkSortOrder(RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
+        storeService.validateStoreAccess(updateDrinkSortOrderDto.getStoreId());
         List<Long> drinkIdInOrderList = updateDrinkSortOrderDto.getDrinkIdInOrderList();
         List<Drink> drinks = drinkRepository.findAllById(drinkIdInOrderList);
 
@@ -140,10 +135,10 @@ public class DrinkService {
         }
     }
 
-    @Transactional
     public void deleteDrink(Long drinkId) {
         Drink drink = resolveDrink(drinkId);
         Store store = resolveStore(drink.getStore().getId());
+        storeService.validateStoreAccess(store.getId());
         if (!Objects.equals(drink.getImgUrl(), null) && !drink.getImgUrl().isEmpty()){
             s3Service.deleteFile(drink.getImgUrl());
         }

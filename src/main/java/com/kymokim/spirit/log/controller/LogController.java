@@ -23,7 +23,7 @@ public class LogController {
 
     @Operation(summary = "매장 조회 로그 통계", description = "groupBy field : ageGroup, gender, role")
     @GetMapping("/store-view/stats")
-    public ResponseEntity<ResponseDto> getAccessLogStats(
+    public ResponseEntity<ResponseDto> getStoreViewLogStats(
             @RequestParam Long storeId,
             @RequestParam String period,
             @RequestParam(required = false) Gender gender,

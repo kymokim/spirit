@@ -1,9 +1,9 @@
 package com.kymokim.spirit.report.service;
 
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.archive.service.ArchiveService;
 import com.kymokim.spirit.auth.entity.Auth;
-import com.kymokim.spirit.auth.exception.AuthErrorCode;
-import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.report.dto.RequestReport;
@@ -24,7 +24,6 @@ import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,11 +33,11 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class ReportService {
     private final ReportRepository reportRepository;
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
-    private final AuthRepository authRepository;
     private final ArchiveService archiveService;
 
     private Store resolveStore(Long storeId) {
@@ -56,21 +55,12 @@ public class ReportService {
                 .orElseThrow(() -> new CustomException(ReportErrorCode.REPORT_NOT_FOUND));
     }
 
-    private Auth resolveUser() {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
-        return user;
-    }
-
-    @Transactional
     public void createReport(RequestReport.CreateReportRqDto createReportRqDto) {
-        Auth reporter = resolveUser();
-        Report report = createReportRqDto.toEntity(reporter);
+        Report report = createReportRqDto.toEntity(AuthResolver.resolveUserId());
         reportRepository.save(report);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public Page<ResponseReport.StoreReportListDto> getStoreReports(Pageable pageable, ReportStatus reportStatus) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
@@ -84,8 +74,7 @@ public class ReportService {
         }, 3);
     }
 
-
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public Page<ResponseReport.StoreReportListDto> getPriorityStoreReports(Pageable pageable, ReportStatus reportStatus) {
         List<ReportReason> priorityReasons = List.of(
                 ReportReason.INAPPROPRIATE_LANGUAGE,
@@ -105,8 +94,7 @@ public class ReportService {
         }, 3);
     }
 
-
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public Page<ResponseReport.ReviewReportListDto> getReviewReports(Pageable pageable, ReportStatus reportStatus) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Report> reportPage = reportRepository.findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
@@ -120,8 +108,7 @@ public class ReportService {
         }, 3);
     }
 
-
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public List<ResponseReport.ReportDto> getReportsByTargetId(ReportTarget reportTarget, Long targetId) {
         List<Report> reports = reportRepository.findAllByReportTargetAndTargetIdAndReportStatus(reportTarget, targetId, ReportStatus.PENDING);
 
@@ -129,28 +116,24 @@ public class ReportService {
         reports.forEach(report -> reportList.add(ResponseReport.ReportDto.toDto(report)));
 
         return reportList;
-
     }
 
-    @Transactional
     public void completeReport(Long reportId) {
         Report report = resolveReport(reportId);
         report.handleReport(ReportStatus.COMPLETED);
     }
 
-    @Transactional
     public void archiveReport(Long reportId, RequestReport.ArchiveReportDto archiveReportDto){
         Report report = resolveReport(reportId);
         if (report.getReportTarget().equals(ReportTarget.REVIEW)){
             Review reportedReview = resolveReview(report.getTargetId());
-            archiveService.archiveReport(report, reportedReview.getContent(), reportedReview.getWriter(), archiveReportDto.getHandleResult());
+            archiveService.archiveReport(report, reportedReview.getContent(), AuthResolver.resolveUser(reportedReview.getWriterId()), archiveReportDto.getHandleResult());
         }
         else if (report.getReportTarget().equals(ReportTarget.STORE)){
             if (Objects.equals(archiveReportDto.getTargetContent(), null) || archiveReportDto.getTargetContent().isEmpty())
                 throw new CustomException(ReportErrorCode.REPORT_TARGET_CONTENT_EMPTY);
             Store reportedStore = resolveStore(report.getTargetId());
-            Auth owner = authRepository.findById(reportedStore.getId())
-                    .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
+            Auth owner = AuthResolver.resolveUser(reportedStore.getId());
             archiveService.archiveReport(report, archiveReportDto.getTargetContent(), owner, archiveReportDto.getHandleResult());
         }
         report.handleReport(ReportStatus.ARCHIVED);

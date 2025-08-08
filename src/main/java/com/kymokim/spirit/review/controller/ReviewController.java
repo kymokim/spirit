@@ -1,15 +1,11 @@
 package com.kymokim.spirit.review.controller;
 
-import com.kymokim.spirit.auth.controller.AuthController;
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
 import com.kymokim.spirit.review.service.ReviewService;
-import com.kymokim.spirit.store.entity.Store;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -19,11 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
-import java.util.Optional;
 
 @Tag(name = "Review API")
 @Controller

@@ -1,14 +1,11 @@
 package com.kymokim.spirit.menu.controller;
 
 import com.kymokim.spirit.common.dto.ResponseDto;
-import com.kymokim.spirit.common.security.JwtTokenProvider;
 import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.menu.service.MenuService;
 import com.kymokim.spirit.menu.dto.RequestMenu;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

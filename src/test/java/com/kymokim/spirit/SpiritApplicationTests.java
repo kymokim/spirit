@@ -10,8 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 @Import(S3MockConfig.class)
 class SpiritApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

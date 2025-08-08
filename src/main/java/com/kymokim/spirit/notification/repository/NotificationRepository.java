@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    Page<Notification> findAllByAuthIdOrderByCreatedAtDesc(Long authId, Pageable pageable);
-    List<Notification> findAllByAuthId(Long authId);
-    void deleteAllByAuthId(Long authId);
+    Page<Notification> findAllByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    List<Notification> findAllByUserId(Long userId);
+    void deleteAllByUserId(Long userId);
     void deleteByCreatedAtBefore(LocalDateTime expireDate);
 }

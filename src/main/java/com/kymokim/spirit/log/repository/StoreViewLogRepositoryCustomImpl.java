@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryCustom {
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
     private final QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
@@ -102,8 +102,8 @@ public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryC
             if (!pattern.matcher(group).matches()) continue;
 
             int base = Integer.parseInt(group.replace("s", ""));
-            int startYear = LocalDate.now().getYear() - base - 9;
-            int endYear = LocalDate.now().getYear() - base;
+            int startYear = LocalDate.now().getYear() - base - 9 + 1;
+            int endYear = LocalDate.now().getYear() - base + 1;
 
             IntStream.rangeClosed(startYear, endYear)
                     .mapToObj(String::valueOf)

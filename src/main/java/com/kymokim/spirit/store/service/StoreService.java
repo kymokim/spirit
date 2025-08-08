@@ -2,8 +2,9 @@ package com.kymokim.spirit.store.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Role;
-import com.kymokim.spirit.auth.exception.AuthErrorCode;
-import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.auth.service.AuthService;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
@@ -17,7 +18,6 @@ import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,34 +28,24 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class StoreService {
     private final StoreRepository storeRepository;
     private final StoreImageRepository storeImageRepository;
     private final LikedStoreRepository likedStoreRepository;
     private final S3Service s3Service;
     private final OperationInfoRepository operationInfoRepository;
-    private final AuthRepository authRepository;
     private final OwnershipRequestRepository ownershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
     private final StoreSuggestionRepository storeSuggestionRepository;
     private final BoardImageRepository boardImageRepository;
-
-    private Long resolveUserId() {
-        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
+    private final AuthService authService;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
-    }
-
-    private Auth resolveUser() {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
-        return user;
     }
 
     private OwnershipRequest resolveOwnership(Long ownershipId) {
@@ -63,8 +53,8 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
     }
 
-    private void validateStoreAccess(Long storeId) {
-        Auth user = resolveUser();
+    public void validateStoreAccess(Long storeId) {
+        Auth user = AuthResolver.resolveUser();
         boolean isAdmin = user.getRoles().contains(Role.ADMIN);
         boolean isManager = storeManagerRepository.existsByUserIdAndStoreId(user.getId(), storeId);
         if (!(isAdmin || isManager)) {
@@ -72,10 +62,8 @@ public class StoreService {
         }
     }
 
-
-    @Transactional
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
-        Store store = createStoreRqDto.toEntity(resolveUserId());
+        Store store = createStoreRqDto.toEntity(AuthResolver.resolveUserId());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -95,9 +83,8 @@ public class StoreService {
         return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
-    @Transactional
     public void suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
-        Auth user = resolveUser();
+        Auth user = AuthResolver.resolveUser();
         Store store = suggestStoreDto.toEntity(user.getId());
         storeRepository.save(store);
         if (files != null) {
@@ -114,11 +101,10 @@ public class StoreService {
         if (!(suggestStoreDto.getIsAlwaysOpen() == null && (suggestStoreDto.getOperationInfoDtos() == null || suggestStoreDto.getOperationInfoDtos().isEmpty())))
             setIsAlwaysOpenAndOperationInfos(store, suggestStoreDto.getIsAlwaysOpen(), suggestStoreDto.getOperationInfoDtos());
 
-        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggestedBy(user).build();
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(user.getId()).build();
         storeSuggestionRepository.save(storeSuggestion);
     }
 
-    @Transactional
     public void approveStoreSuggestion(Long storeSuggestionId) {
         StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
@@ -128,7 +114,6 @@ public class StoreService {
         storeSuggestionRepository.delete(storeSuggestion);
     }
 
-    @Transactional
     public void rejectStoreSuggestion(Long storeSuggestionId) {
         StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
@@ -137,13 +122,12 @@ public class StoreService {
         deleteStore(store.getId());
     }
 
-    @Transactional
     public void createStoreWithOwnership(MultipartFile[] storeImages, MultipartFile businessRegistrationCertificateImage, RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
         RequestStore.CreateStoreRqDto createStoreRqDto = createStoreWithOwnershipRqDto.getCreateStoreRqDto();
         Long storeId = createStore(storeImages, createStoreRqDto).getId();
         Store store = resolveStore(storeId);
         store.delete();
-        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggestedBy(resolveUser()).build();
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(AuthResolver.resolveUserId()).build();
         storeSuggestionRepository.save(storeSuggestion);
 
         RequestStore.CreateOwnershipRqDto createOwnershipRqDto = createStoreWithOwnershipRqDto.getCreateOwnershipRqDto();
@@ -151,7 +135,6 @@ public class StoreService {
         createOwnership(businessRegistrationCertificateImage, createOwnershipRqDto);
     }
 
-    @Transactional
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
         validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
@@ -176,11 +159,10 @@ public class StoreService {
             }
         }
 
-        store.getHistoryInfo().update(resolveUserId());
+        store.getHistoryInfo().update(AuthResolver.resolveUserId());
         storeRepository.save(store);
     }
 
-    @Transactional
     public ResponseStore.ImageListDto updateStoreImageSortOrder(RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
         validateStoreAccess(updateStoreImageSortOrderDto.getStoreId());
         List<String> storeImageUrlInOrderList = updateStoreImageSortOrderDto.getStoreImageUrlInOrderList();
@@ -204,7 +186,6 @@ public class StoreService {
         return ResponseStore.ImageListDto.toDto(urlList);
     }
 
-    @Transactional
     public List<ResponseStore.BoardImageListDto> updateBoardImageSortOrder(RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
         validateStoreAccess(updateBoardImageSortOrderDto.getStoreId());
         List<String> boardImageUrlInOrderList = updateBoardImageSortOrderDto.getBoardImageUrlInOrderList();
@@ -261,7 +242,6 @@ public class StoreService {
         }
     }
 
-    @Transactional
     public ResponseStore.ImageListDto uploadImage(MultipartFile[] files, Long storeId) {
         validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
@@ -279,13 +259,12 @@ public class StoreService {
             storeImageRepository.save(storeImage);
             store.addImgUrlList(storeImage);
         }
-        store.getHistoryInfo().update(resolveUserId());
+        store.getHistoryInfo().update(AuthResolver.resolveUserId());
         storeRepository.save(store);
         List<String> urlList = store.getImgUrlList().stream().map(StoreImage::getUrl).toList();
         return ResponseStore.ImageListDto.toDto(urlList);
     }
 
-    @Transactional
     public List<ResponseStore.BoardImageListDto> uploadBoardImage(MultipartFile[] files, Long storeId, BoardType boardType) {
         validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
@@ -303,13 +282,12 @@ public class StoreService {
             boardImageRepository.save(boardImage);
             store.addBoardImgUrlList(boardImage);
         }
-        store.getHistoryInfo().update(resolveUserId());
+        store.getHistoryInfo().update(AuthResolver.resolveUserId());
         storeRepository.save(store);
 
         return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
-    @Transactional
     public void updateBoardImageType(Long boardImageId, BoardType boardType) {
         BoardImage boardImage = boardImageRepository.findById(boardImageId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.BOARD_IMAGE_NOT_FOUND));
@@ -318,13 +296,17 @@ public class StoreService {
         boardImageRepository.save(boardImage);
     }
 
-    @Transactional
     public void likeStore(Long storeId) {
         Store store = resolveStore(storeId);
-        Long userId = resolveUserId();
-        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(userId, store.getId());
+        Auth user = AuthResolver.resolveUser();
+        LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(user.getId(), store.getId());
         if (likedStore == null) {
-            likedStore = LikedStore.builder().storeId(store.getId()).userId(userId).build();
+            likedStore = LikedStore.builder()
+                    .storeId(store.getId())
+                    .userId(user.getId())
+                    .gender(user.getPersonalInfo().getGender())
+                    .birthYear(aesUtil.decrypt(user.getPersonalInfo().getBirthDate()).substring(0, 4))
+                    .build();
             likedStoreRepository.save(likedStore);
             store.increaseLikeCount();
         } else {
@@ -334,7 +316,6 @@ public class StoreService {
         storeRepository.save(store);
     }
 
-    @Transactional
     public ResponseStore.ImageListDto deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
@@ -352,7 +333,6 @@ public class StoreService {
         return ResponseStore.ImageListDto.toDto(urlList);
     }
 
-    @Transactional
     public List<ResponseStore.BoardImageListDto> deleteBoardImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
@@ -367,12 +347,10 @@ public class StoreService {
         return store.getBoardImgUrlList().stream().map(ResponseStore.BoardImageListDto::toDto).toList();
     }
 
-    @Transactional
     public void deleteStore(Long storeId) {
-        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
-        Auth user = resolveUser();
-        if (!Objects.equals(store.getOwnerId(), user.getId())) {
+        Auth user = AuthResolver.resolveUser();
+        if (!user.getRoles().contains(Role.ADMIN) || !Objects.equals(store.getOwnerId(), user.getId())) {
             throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
         }
         List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(storeId);
@@ -394,6 +372,7 @@ public class StoreService {
             }
         }
         store.delete();
+        authService.removeRole(user, Role.MANAGER);
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByStoreId(storeId);
         if (likedStoreList != null) {
             likedStoreList.forEach(likedStoreRepository::delete);
@@ -404,17 +383,15 @@ public class StoreService {
         storeRepository.save(store);
     }
 
-
-    @Transactional
     public void createOwnership(MultipartFile file, RequestStore.CreateOwnershipRqDto createOwnershipRqDto) {
         Store store = resolveStore(createOwnershipRqDto.getStoreId());
-        Auth requester = resolveUser();
+        Auth requester = AuthResolver.resolveUser();
 
         if (store.getOwnerId() != null) {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
 
-        if (ownershipRequestRepository.existsByRequesterAndStore(requester, store)) {
+        if (ownershipRequestRepository.existsByRequesterIdAndStore(requester.getId(), store)) {
             throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
         }
 
@@ -445,7 +422,7 @@ public class StoreService {
             throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_VALIDATION_FAILED);
         }
 
-        OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester);
+        OwnershipRequest ownershipRequest = createOwnershipRqDto.toEntity(store, requester.getId());
         ownershipRequestRepository.save(ownershipRequest);
         if (file != null && !file.isEmpty()) {
             String imageUrl = s3Service.upload(file, "store/ownership/" + ownershipRequest.getId());
@@ -453,26 +430,25 @@ public class StoreService {
         }
     }
 
-    @Transactional
     public void approveOwnership(Long ownershipId) {
         OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
-        StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(ownershipRequest.getRequester().getId(), ownershipRequest.getStore().getId());
+        Auth requester = AuthResolver.resolveUser(ownershipRequest.getRequesterId());
+        StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(requester.getId(), ownershipRequest.getStore().getId());
         if (ownershipRequest.getStore().getOwnerId() != null || storeManager != null) {
             throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
         }
 
-        ownershipRequest.getStore().setOwnerId(ownershipRequest.getRequester().getId());
+        ownershipRequest.getStore().setOwnerId(requester.getId());
+        authService.addRole(requester, Role.MANAGER);
 
-        ownershipRequest.getRequester().getRoles().add(Role.MANAGER);
         ownershipRequestRepository.delete(ownershipRequest);
 
-        storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(ownershipRequest.getRequester().getId()).build();
+        storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(requester.getId()).build();
         storeManagerRepository.save(storeManager);
 
-        NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore()));
+        NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(requester, ownershipRequest.getStore()));
     }
 
-    @Transactional
     public void rejectOwnership(Long ownershipId, String rejectionReason) {
         OwnershipRequest ownershipRequest = resolveOwnership(ownershipId);
 
@@ -483,7 +459,7 @@ public class StoreService {
 
         ownershipRequestRepository.delete(ownershipRequest);
 
-        NotificationEvent.raise(new StoreOwnershipRejectedNotificationEvent(ownershipRequest.getRequester(), ownershipRequest.getStore(), rejectionReason));
+        NotificationEvent.raise(new StoreOwnershipRejectedNotificationEvent(AuthResolver.resolveUser(ownershipRequest.getRequesterId()), ownershipRequest.getStore(), rejectionReason));
     }
 
 

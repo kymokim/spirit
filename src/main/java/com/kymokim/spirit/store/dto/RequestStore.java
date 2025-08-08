@@ -1,11 +1,8 @@
 package com.kymokim.spirit.store.dto;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
-import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.entity.*;
-import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,9 +10,6 @@ import lombok.Data;
 import lombok.Getter;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -154,10 +148,10 @@ public class RequestStore {
         @NotEmpty(message = "주소가 비었습니다.")
         private CommonStore.LocationDto businessLocation;
 
-        public OwnershipRequest toEntity(Store store, Auth requester) {
+        public OwnershipRequest toEntity(Store store, Long requesterId) {
             return OwnershipRequest.builder()
                     .store(store)
-                    .requester(requester)
+                    .requesterId(requesterId)
                     .receivedStoreName(this.receivedStoreName)
                     .receivedStoreContact(this.receivedStoreContact)
                     .receivedUserContact(this.receivedUserContact)

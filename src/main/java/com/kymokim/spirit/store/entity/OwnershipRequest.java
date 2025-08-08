@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import jakarta.persistence.*;
@@ -32,9 +31,7 @@ public class OwnershipRequest {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id", nullable = false)
-    private Auth requester;
+    private Long requesterId;
 
     @Column(name = "received_store_name")
     private String receivedStoreName;
@@ -67,10 +64,10 @@ public class OwnershipRequest {
     private String businessRegistrationCertificateImgUrl;
 
     @Builder
-    public OwnershipRequest(Store store, Auth requester, String receivedStoreName, String receivedStoreContact, String receivedUserContact, String businessRegistrationNumber,
+    public OwnershipRequest(Store store, Long requesterId, String receivedStoreName, String receivedStoreContact, String receivedUserContact, String businessRegistrationNumber,
                             List<RepresentativeInfo> representativeInfoList, String openingDate, String liquorReportNumber, Location businessLocation, String businessRegistrationCertificateImgUrl){
         this.store = store;
-        this.requester = requester;
+        this.requesterId = requesterId;
         setReceivedStoreName(receivedStoreName);
         setReceivedStoreContact(receivedStoreContact);
         setReceivedUserContact(receivedUserContact);

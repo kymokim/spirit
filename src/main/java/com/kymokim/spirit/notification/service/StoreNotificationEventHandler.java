@@ -1,6 +1,7 @@
 package com.kymokim.spirit.notification.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class StoreNotificationEventHandler {
     private final FCMNotificationService fcmNotificationService;
     private final NotificationRepository notificationRepository;
@@ -29,12 +31,11 @@ public class StoreNotificationEventHandler {
                 "storeName", event.getStore().getName()
         ));
         Notification notification = Notification.builder()
-                .auth(user)
+                .userId(user.getId())
                 .notificationType(notificationType)
                 .notificationBody(body)
                 .redirectTarget(redirectTarget)
                 .build();
-        user.addNotification(notification);
         notification = notificationRepository.save(notification);
         if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())){
             fcmNotificationService.pushAlarmToToken(notification);
@@ -51,12 +52,11 @@ public class StoreNotificationEventHandler {
                 "rejectionReason", event.getRejectionReason()
         ));
         Notification notification = Notification.builder()
-                .auth(user)
+                .userId(user.getId())
                 .notificationType(notificationType)
                 .notificationBody(body)
                 .redirectTarget(redirectTarget)
                 .build();
-        user.addNotification(notification);
         notification = notificationRepository.save(notification);
         if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())){
             fcmNotificationService.pushAlarmToToken(notification);

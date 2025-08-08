@@ -1,11 +1,13 @@
 package com.kymokim.spirit.archive.service;
 
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.archive.entity.ArchiveType;
 import com.kymokim.spirit.archive.entity.ReportArchive;
 import com.kymokim.spirit.archive.entity.UserArchive;
 import com.kymokim.spirit.archive.repository.ReportArchiveRepository;
 import com.kymokim.spirit.archive.repository.UserArchiveRepository;
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.report.entity.Report;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,12 +17,12 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class ArchiveService {
 
     private final UserArchiveRepository userArchiveRepository;
     private final ReportArchiveRepository reportArchiveRepository;
 
-    @Transactional
     public void archiveUser(Long originalId, String encryptedCi, ArchiveType type){
         UserArchive userArchive = UserArchive.builder()
                 .originalId(originalId)
@@ -31,8 +33,8 @@ public class ArchiveService {
         userArchiveRepository.save(userArchive);
     }
 
-    @Transactional
     public void archiveReport(Report report, String targetContent, Auth reportedUser, String handleResult){
+        Auth reporter = AuthResolver.resolveUser(report.getReporterId());
         ReportArchive reportArchive = ReportArchive.builder()
                 .reportedAt(report.getReportedAt())
                 .reportTarget(report.getReportTarget())
@@ -40,8 +42,8 @@ public class ArchiveService {
                 .targetContent(targetContent)
                 .reportReason(report.getReportReason())
                 .reportDescription(report.getDescription())
-                .reporterId(report.getReporter().getId())
-                .reporterNickname(report.getReporter().getNickname())
+                .reporterId(reporter.getId())
+                .reporterNickname(reporter.getNickname())
                 .reportedUserId(reportedUser.getId())
                 .reportedUserNickname(reportedUser.getNickname())
                 .handleResult(handleResult)

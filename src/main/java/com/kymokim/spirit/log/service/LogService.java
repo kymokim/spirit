@@ -2,8 +2,8 @@ package com.kymokim.spirit.log.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
-import com.kymokim.spirit.auth.exception.AuthErrorCode;
-import com.kymokim.spirit.auth.repository.AuthRepository;
+import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.log.dto.RequestLog;
@@ -12,9 +12,7 @@ import com.kymokim.spirit.log.entity.StoreViewLog;
 import com.kymokim.spirit.log.exception.LogErrorCode;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,22 +22,13 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class LogService {
-
-    private final AuthRepository authRepository;
     private final StoreViewLogRepository storeViewLogRepository;
     private final AESUtil aesUtil;
 
-    private Auth resolveUser() {
-        Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-        Auth user = authRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(AuthErrorCode.USER_NOT_FOUND));
-        return user;
-    }
-
-    @Transactional
     public void createStoreViewLog(Long storeId) {
-        Auth user = resolveUser();
+        Auth user = AuthResolver.resolveUser();
         if (Objects.equals(user.getPersonalInfo(), null) || user.getPersonalInfo().getGender().equals(Gender.UNKNOWN)) {
             return;
         }

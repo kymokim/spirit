@@ -2,6 +2,7 @@ package com.kymokim.spirit.store.controller;
 
 import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.common.dto.ResponseDto;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -97,9 +99,11 @@ public class StoreQueryController {
                                                      @RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
                                                      @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                     @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
+                                                     @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                      @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
-        Page<ResponseStore.GetByCategoryDto> dtoPage = storeQueryService.getByCategory(criteria, category, pageable);
+        Page<ResponseStore.GetByCategoryDto> dtoPage = storeQueryService.getByCategory(criteria, category, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(dtoPage)

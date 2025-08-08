@@ -18,6 +18,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -25,6 +26,8 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.kymokim.spirit.store.entity.QMainDrink.mainDrink;
 
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
@@ -230,21 +233,36 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return new PageImpl<>(storeList, pageable, query.fetchCount());
     }
 
-    // 카테고리 해당하는 가게 리스트 반환
+    // 카테고리에 해당하는 가게 리스트 반환 + 동적 주종 필터
     @Override
-    public Page<Store> findByCategory(LocationCriteria criteria, String category, Pageable pageable) {
+    public Page<Store> findByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
+        BooleanBuilder conditionBuilder = new BooleanBuilder();
+        conditionBuilder.and(isDeletedCondition());
+        conditionBuilder.and(radiusCondition(criteria));
+        conditionBuilder.and(categoryCondition(category));
+        if (drinkType != null) {
+            conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
+        }
+
         JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria))
-                        .and(categoryCondition(category)))
+                .leftJoin(store.operationInfos, operationInfo);
+        if (drinkType != null) {
+            query.leftJoin(store.mainDrinks, mainDrink);
+            conditionBuilder.and(mainDrink.type.eq(drinkType));
+            if (priceOrder != null) {
+                query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
+            }
+        }
+
+        query.where(conditionBuilder)
                 .orderBy(orderByIsOpen(operationInfo))
                 .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount());
+                .orderBy(orderByLikeCount())
+                .distinct();
 
         List<Store> storeList = query.offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

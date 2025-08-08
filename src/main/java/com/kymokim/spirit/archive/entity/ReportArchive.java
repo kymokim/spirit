@@ -1,7 +1,5 @@
 package com.kymokim.spirit.archive.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
-import com.kymokim.spirit.report.entity.Report;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportTarget;
 import jakarta.persistence.*;

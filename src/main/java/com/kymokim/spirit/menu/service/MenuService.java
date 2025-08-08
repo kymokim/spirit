@@ -1,5 +1,7 @@
 package com.kymokim.spirit.menu.service;
 
+import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
@@ -11,8 +13,8 @@ import com.kymokim.spirit.menu.repository.MenuRepository;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,14 +25,12 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@MainTransactional
 public class MenuService {
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
     private final S3Service s3Service;
-
-    private Long resolveUserId(){
-        return Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
-    }
+    private final StoreService storeService;
 
     private Store resolveStore(Long storeId){
         return storeRepository.findById(storeId)
@@ -42,12 +42,11 @@ public class MenuService {
                 .orElseThrow(() -> new CustomException(MenuErrorCode.MENU_NOT_FOUND));
     }
 
-    @Transactional
     public void createMenu(MultipartFile file, RequestMenu.CreateMenuDto createMenuDto) {
         Store store = resolveStore(createMenuDto.getStoreId());
-
+        storeService.validateStoreAccess(store.getId());
         Integer maxOrder = menuRepository.findMaxSortOrderByStoreId(store.getId()).orElse(-1);
-        Menu menu = createMenuDto.toEntity(store, maxOrder + 1, resolveUserId());
+        Menu menu = createMenuDto.toEntity(store, maxOrder + 1, AuthResolver.resolveUserId());
         String imageUrl;
         if (file != null){
             imageUrl = s3Service.upload(file, "menu/" + String.valueOf(menu.getId()));
@@ -58,9 +57,9 @@ public class MenuService {
         storeRepository.save(store);
     }
 
-    @Transactional
     public void updateImage(MultipartFile file, Long menuId){
         Menu menu = resolveMenu(menuId);
+        storeService.validateStoreAccess(menu.getStore().getId());
         String imageUrl;
         if (file != null){
             if (menu.getImgUrl() == null) {
@@ -73,13 +72,13 @@ public class MenuService {
             throw new CustomException(MenuErrorCode.MENU_IMG_FILE_EMPTY);
         }
         menu.setImgUrl(imageUrl);
-        menu.getHistoryInfo().update(resolveUserId());
+        menu.getHistoryInfo().update(AuthResolver.resolveUserId());
         menuRepository.save(menu);
     }
 
-    @Transactional
     public void deleteImage(Long menuId){
         Menu menu = resolveMenu(menuId);
+        storeService.validateStoreAccess(menu.getStore().getId());
         String originUrl;
         if (!Objects.equals(menu.getImgUrl(), null) && !menu.getImgUrl().isEmpty()){
             originUrl = menu.getImgUrl();
@@ -91,7 +90,7 @@ public class MenuService {
         menuRepository.save(menu);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public List<ResponseMenu.MenuListDto> getByStore(Long storeId){
         return TransactionRetryUtil.executeWithRetry(() -> {
             Store store = resolveStore(storeId);
@@ -102,7 +101,7 @@ public class MenuService {
         }, 3);
     }
 
-    @Transactional(readOnly = true)
+    @MainTransactional(readOnly = true)
     public ResponseMenu.GetMenuDto getMenu(Long menuId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Menu menu = resolveMenu(menuId);
@@ -110,16 +109,16 @@ public class MenuService {
         }, 3);
     }
 
-    @Transactional
     public void updateMenu(Long menuId, RequestMenu.UpdateMenuDto updateMenuDto) {
         Menu originalMenu = resolveMenu(menuId);
+        storeService.validateStoreAccess(originalMenu.getStore().getId());
         Menu updatedMenu = updateMenuDto.toEntity(originalMenu);
-        updatedMenu.getHistoryInfo().update(resolveUserId());
+        updatedMenu.getHistoryInfo().update(AuthResolver.resolveUserId());
         menuRepository.save(updatedMenu);
     }
 
-    @Transactional
     public void updateMenuSortOrder(RequestMenu.UpdateMenuSortOrderDto updateMenuSortOrderDto) {
+        storeService.validateStoreAccess(updateMenuSortOrderDto.getStoreId());
         List<Long> menuIdInOrderList = updateMenuSortOrderDto.getMenuIdInOrderList();
         List<Menu> menus = menuRepository.findAllById(menuIdInOrderList);
 
@@ -137,10 +136,10 @@ public class MenuService {
         }
     }
 
-    @Transactional
     public void deleteMenu(Long menuId) {
         Menu menu = resolveMenu(menuId);
         Store store = resolveStore(menu.getStore().getId());
+        storeService.validateStoreAccess(store.getId());
         if (!Objects.equals(menu.getImgUrl(), null) && !menu.getImgUrl().isEmpty()){
             s3Service.deleteFile(menu.getImgUrl());
         }

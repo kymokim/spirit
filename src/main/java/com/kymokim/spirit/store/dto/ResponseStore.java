@@ -1,7 +1,8 @@
 package com.kymokim.spirit.store.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
-import com.kymokim.spirit.common.dto.ResponseLocationDto;
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
@@ -621,14 +622,15 @@ public class ResponseStore {
         private String suggestedUserNickname;
 
         public static StoreSuggestionListDto toDto(StoreSuggestion storeSuggestion) {
+            Auth suggestedUser = AuthResolver.resolveUser(storeSuggestion.getSuggesterId());
             return StoreSuggestionListDto.builder()
                     .storeSuggestionId(storeSuggestion.getId())
                     .suggestedAt(storeSuggestion.getSuggestedAt())
                     .storeId(storeSuggestion.getStore().getId())
                     .storeName(storeSuggestion.getStore().getName())
                     .locationDto(CommonStore.LocationDto.toDto(storeSuggestion.getStore().getLocation()))
-                    .suggestedUserId(storeSuggestion.getSuggestedBy().getId())
-                    .suggestedUserNickname(storeSuggestion.getSuggestedBy().getNickname())
+                    .suggestedUserId(suggestedUser.getId())
+                    .suggestedUserNickname(suggestedUser.getNickname())
                     .build();
         }
     }
@@ -652,7 +654,7 @@ public class ResponseStore {
                     .storeId(ownershipRequest.getStore().getId())
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
-                    .requesterNickname(ownershipRequest.getRequester().getNickname())
+                    .requesterNickname(AuthResolver.resolveUser(ownershipRequest.getRequesterId()).getNickname())
                     .build();
         }
     }
@@ -687,6 +689,7 @@ public class ResponseStore {
         private List<OwnershipListDto> ownershipList;
 
         public static OwnershipDto toDto(OwnershipRequest ownershipRequest, List<OwnershipListDto> ownershipListDto, AESUtil aesUtil) {
+            Auth requester = AuthResolver.resolveUser(ownershipRequest.getRequesterId());
             return OwnershipDto.builder()
                     .id(ownershipRequest.getId())
                     .requestedAt(ownershipRequest.getRequestedAt())
@@ -694,8 +697,8 @@ public class ResponseStore {
                     .storeId(ownershipRequest.getStore().getId())
                     .originalStoreName(ownershipRequest.getStore().getName())
                     .receivedStoreName(ownershipRequest.getReceivedStoreName())
-                    .requesterNickname(ownershipRequest.getRequester().getNickname())
-                    .requesterName(aesUtil.decrypt(ownershipRequest.getRequester().getPersonalInfo().getName()))
+                    .requesterNickname(requester.getNickname())
+                    .requesterName(aesUtil.decrypt(requester.getPersonalInfo().getName()))
                     .originalStoreContact(ownershipRequest.getStore().getContact())
                     .receivedStoreContact(ownershipRequest.getReceivedStoreContact())
                     .receivedUserContact(ownershipRequest.getReceivedUserContact())

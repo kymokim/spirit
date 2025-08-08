@@ -1,9 +1,7 @@
 package com.kymokim.spirit.review.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.store.entity.Store;
-import com.kymokim.spirit.store.entity.StoreImage;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -41,9 +39,8 @@ public class Review {
     @OneToMany(mappedBy = "review", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ReviewImage> imgUrlList = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id", nullable = false)
-    private Auth writer;
+    @Column
+    private Long writerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
@@ -56,12 +53,12 @@ public class Review {
     private LocalDateTime repliedAt;
 
     @Builder
-    public Review(String content, Double rate, LocalDateTime visitedAt, Auth writer, Store store) {
+    public Review(String content, Double rate, LocalDateTime visitedAt, Long writerId, Store store) {
         this.content = content;
         this.rate = rate;
         this.visitedAt = visitedAt;
-        this.historyInfo = new HistoryInfo(writer.getId());
-        this.writer = writer;
+        this.historyInfo = new HistoryInfo(writerId);
+        this.writerId = writerId;
         this.store = store;
     }
 

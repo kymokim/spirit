@@ -1,7 +1,6 @@
 package com.kymokim.spirit.report.exception;
 
 import com.kymokim.spirit.common.exception.ErrorCode;
-import com.kymokim.spirit.report.entity.ReportStatus;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class LikedStoreRepositoryCustomImpl implements LikedStoreRepositoryCustom {
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
     private final QLikedStore likedStore = QLikedStore.likedStore;
@@ -83,8 +83,8 @@ public class LikedStoreRepositoryCustomImpl implements LikedStoreRepositoryCusto
             if (!pattern.matcher(group).matches()) continue;
 
             int base = Integer.parseInt(group.replace("s", ""));
-            int startYear = LocalDate.now().getYear() - base - 9;
-            int endYear = LocalDate.now().getYear() - base;
+            int startYear = LocalDate.now().getYear() - base - 9 + 1;
+            int endYear = LocalDate.now().getYear() - base + 1;
 
             IntStream.rangeClosed(startYear, endYear)
                     .mapToObj(String::valueOf)

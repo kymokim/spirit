@@ -7,8 +7,6 @@ import jakarta.persistence.Embeddable;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalTime;
-
 @Getter
 @Embeddable
 public class Location {

@@ -1,5 +1,6 @@
 package com.kymokim.spirit.store.service;
 
+import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@MainTransactional
 public class StoreShareService {
 
     @Value("${app.share.domain:https://dev.team-spirit.click}")
@@ -29,13 +31,11 @@ public class StoreShareService {
     @Value("${app.store.fallback.ios:https://apps.apple.com/kr/app/%ED%95%9C%EC%9E%94%ED%95%A0%EA%B9%8C/id6740095371}")
     private String iosStoreUrl;
 
-    /** 앱 내부 Deep Link 스킴 (앱과 반드시 일치) 예: spirit://store/{id} */
     @Value("${app.scheme:spirit}")
     private String appScheme;
 
     private final StoreRepository storeRepository;
 
-    /** 공유 링크 생성 (Universal Link) */
     public String buildShareLink(Long storeId) {
         return UriComponentsBuilder.fromUriString(shareDomain)
                 .path("/link/store/")
@@ -44,7 +44,6 @@ public class StoreShareService {
                 .toUriString();
     }
 
-    /** 일반 브라우저 리다이렉션 대상 */
     public String getRedirectTarget(Long storeId, String userAgent) {
         String ua = userAgent != null ? userAgent.toLowerCase() : "";
         boolean isAndroid = ua.contains("android");
@@ -64,7 +63,7 @@ public class StoreShareService {
         return androidStoreUrl;
     }
 
-    /** iOS Store Fallback (Safari 등에서 앱 미설치 시) */
+    // iOS Store Fallback
     public String iosStoreHtml() {
         return """
             <!doctype html>

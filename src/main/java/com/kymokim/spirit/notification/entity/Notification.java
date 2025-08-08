@@ -1,6 +1,5 @@
 package com.kymokim.spirit.notification.entity;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,9 +22,7 @@ public class Notification {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_id")
-    private Auth auth;
+    private Long userId;
 
     private Boolean hasRead;
 
@@ -38,8 +35,8 @@ public class Notification {
     private RedirectTarget redirectTarget;
 
     @Builder
-    public Notification(Auth auth, NotificationType notificationType, String notificationBody, RedirectTarget redirectTarget) {
-        this.auth = auth;
+    public Notification(Long userId, NotificationType notificationType, String notificationBody, RedirectTarget redirectTarget) {
+        this.userId = userId;
         this.hasRead = false;
         this.notificationType = notificationType;
         this.notificationBody = notificationBody;

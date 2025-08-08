@@ -6,8 +6,6 @@ import com.kymokim.spirit.drink.dto.ResponseDrink;
 import com.kymokim.spirit.drink.service.DrinkService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

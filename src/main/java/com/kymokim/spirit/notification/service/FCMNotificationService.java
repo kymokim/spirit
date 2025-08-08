@@ -6,8 +6,8 @@ import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
-import com.kymokim.spirit.notification.entity.NotificationType;
-import com.kymokim.spirit.notification.entity.RedirectTarget;
+import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.service.AuthResolver;
 import jakarta.annotation.PostConstruct;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,8 @@ public class FCMNotificationService {
     }
 
     public void pushAlarmToToken(com.kymokim.spirit.notification.entity.Notification notification) {
-        if (Objects.equals(notification.getAuth().getFcmToken(), null) || notification.getAuth().getFcmToken().isEmpty()) {
+        Auth user = AuthResolver.resolveUser(notification.getUserId());
+        if (Objects.equals(user.getFcmToken(), null) || user.getFcmToken().isEmpty()) {
             return;
         }
         Notification fcmNotification = Notification.builder()
@@ -53,7 +54,7 @@ public class FCMNotificationService {
                 .setBody(notification.getNotificationBody())
                 .build();
         Message message = Message.builder()
-                .setToken(notification.getAuth().getFcmToken())
+                .setToken(user.getFcmToken())
                 .setNotification(fcmNotification)
                 .putData("notificationType", notification.getNotificationType().toString())
                 .putData("notificationId", notification.getId().toString())

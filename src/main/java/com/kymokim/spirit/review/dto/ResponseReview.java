@@ -1,6 +1,7 @@
 package com.kymokim.spirit.review.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.review.entity.Review;
 import com.kymokim.spirit.store.entity.Category;
 import lombok.Builder;
@@ -35,11 +36,13 @@ public class ResponseReview {
                 review.getImgUrlList().forEach(reviewImage -> imgUrlList.add(reviewImage.getUrl()));
             }
 
+            Auth writer = AuthResolver.resolveUser(review.getWriterId());
+
             return GetReviewDto.builder()
                     .id(review.getId())
-                    .writerId(review.getWriter().getId())
-                    .writerNickname(review.getWriter().getNickname())
-                    .writerImgUrl(review.getWriter().getImgUrl())
+                    .writerId(writer.getId())
+                    .writerNickname(writer.getNickname())
+                    .writerImgUrl(writer.getImgUrl())
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())
@@ -73,10 +76,12 @@ public class ResponseReview {
                 review.getImgUrlList().forEach(reviewImage -> imgUrlList.add(reviewImage.getUrl()));
             }
 
+            Auth writer = AuthResolver.resolveUser(review.getWriterId());
+
             return ReviewListDto.builder()
                     .id(review.getId())
-                    .writerNickname(review.getWriter().getNickname())
-                    .writerImgUrl(review.getWriter().getImgUrl())
+                    .writerNickname(writer.getNickname())
+                    .writerImgUrl(writer.getImgUrl())
                     .content(review.getContent())
                     .rate(review.getRate())
                     .visitedAt(review.getVisitedAt())

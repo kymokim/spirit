@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.repository;
 
-import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.store.entity.OwnershipRequest;
 import com.kymokim.spirit.store.entity.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface OwnershipRequestRepository extends JpaRepository <OwnershipRequest, Long> {
-    boolean existsByRequesterAndStore(Auth requester, Store store);
+    boolean existsByRequesterIdAndStore(Long requesterId, Store store);
     Page<OwnershipRequest> findByStoreIsDeletedFalseOrderByRequestedAtAsc(Pageable pageable);
     List<OwnershipRequest> findAllByStore(Store store);
     void deleteAllByRequesterId(Long requesterId);

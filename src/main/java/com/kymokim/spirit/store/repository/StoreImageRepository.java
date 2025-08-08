@@ -1,6 +1,5 @@
 package com.kymokim.spirit.store.repository;
 
-import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

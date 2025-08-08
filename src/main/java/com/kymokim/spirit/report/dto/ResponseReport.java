@@ -1,5 +1,7 @@
 package com.kymokim.spirit.report.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.report.entity.Report;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
@@ -27,6 +29,7 @@ public class ResponseReport {
         private Boolean isCertified;
 
         public static StoreReportListDto toDto(Report report, Store store) {
+            Auth reporter = AuthResolver.resolveUser(report.getReporterId());
             return StoreReportListDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
@@ -35,8 +38,8 @@ public class ResponseReport {
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())
-                    .reporterId(report.getReporter().getId())
-                    .reporterNickname(report.getReporter().getNickname())
+                    .reporterId(reporter.getId())
+                    .reporterNickname(reporter.getNickname())
                     .isCertified(store.getOwnerId() != null)
                     .build();
         }
@@ -55,14 +58,15 @@ public class ResponseReport {
         private String reporterNickname;
 
         public static ReportDto toDto(Report report) {
+            Auth reporter = AuthResolver.resolveUser(report.getReporterId());
             return ReportDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())
-                    .reporterId(report.getReporter().getId())
-                    .reporterNickname(report.getReporter().getNickname())
+                    .reporterId(reporter.getId())
+                    .reporterNickname(reporter.getNickname())
                     .build();
         }
     }
@@ -84,6 +88,8 @@ public class ResponseReport {
         private String writerNickname;
 
         public static ReviewReportListDto toDto(Report report, Review review) {
+            Auth reporter = AuthResolver.resolveUser(report.getReporterId());
+            Auth writer = AuthResolver.resolveUser(review.getWriterId());
             return ReviewReportListDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
@@ -93,10 +99,10 @@ public class ResponseReport {
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())
-                    .reporterId(report.getReporter().getId())
-                    .reporterNickname(report.getReporter().getNickname())
-                    .writerId(review.getWriter().getId())
-                    .writerNickname(review.getWriter().getNickname())
+                    .reporterId(reporter.getId())
+                    .reporterNickname(reporter.getNickname())
+                    .writerId(writer.getId())
+                    .writerNickname(writer.getNickname())
                     .build();
         }
 

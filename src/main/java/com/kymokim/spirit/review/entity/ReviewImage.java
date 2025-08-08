@@ -1,6 +1,5 @@
 package com.kymokim.spirit.review.entity;
 
-import com.kymokim.spirit.store.entity.Store;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Data;

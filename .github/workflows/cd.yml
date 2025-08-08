@@ -105,16 +105,7 @@ jobs:
             echo "  api-docs:" >> ${APP_CONFIG_FILE}
             echo "    enabled: false" >> ${APP_CONFIG_FILE}
           fi
-
-      - name: Create application-mac.yml dynamically
-        if: ${{ env.PROFILE == 'prod' }}
-        env:
-          APP_CONFIG_FILE: src/main/resources/application-mac.yml
-        run: |
-          echo "spring:" >> ${APP_CONFIG_FILE}
-          echo "  datasource:" >> ${APP_CONFIG_FILE}
-          echo "    url: ${{ secrets.DB_URL_MAC }}" >> ${APP_CONFIG_FILE}
-
+          
       # application-S3.properties 생성
       - name: Create application-s3.properties
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.
@@ -231,36 +222,6 @@ jobs:
         PROFILE: ${{ needs.setup-env.outputs.profile }}
         SERVICE: ${{ needs.setup-env.outputs.service }}
     steps:
-      # EC2 인스턴스에 SSH로 접속하여 Docker 이미지 풀 및 실행(prod)
-      - name: Deploy to EC2 via SSH
-        if: ${{ env.PROFILE == 'prod' }}
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.EC2_PORT }}
-          script: |
-            # AWS CLI로 ECR 로그인
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-            
-            # 기존 컨테이너가 있다면 종료하고 삭제
-            docker stop ${{ env.SERVICE }}-${{ env.PROFILE }} || true
-            docker rm ${{ env.SERVICE }}-${{ env.PROFILE }} || true
-            docker image prune -f
-            
-            # ECR에서 Docker 이미지 풀
-            docker pull ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
-
-            # Docker 컨테이너 실행
-            docker run -d \
-            --name ${{ env.SERVICE }}-${{ env.PROFILE }} \
-            --network spirit-network \
-            --restart unless-stopped \
-            -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
-            ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
-
       - name: Deploy to MAC via SSH
         if: ${{ env.PROFILE == 'prod' }}
         uses: appleboy/ssh-action@v1.2.2
@@ -289,10 +250,9 @@ jobs:
             --network spirit-network \
             --restart unless-stopped \
             -p 8080:8080 \
-            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }},mac \
+            -e SPRING_PROFILES_ACTIVE=${{ env.PROFILE }} \
             ${{ env.ECR_URI }}:${{ env.PROFILE }}-latest
 
-      # OPM 서버에 SSH로 접속하여 Docker 이미지 풀 및 실행(dev)
       - name: Deploy to OPM via SSH
         if: ${{ env.PROFILE == 'dev' }}
         uses: appleboy/ssh-action@v1.2.2

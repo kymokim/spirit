@@ -12,7 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import javax.sql.DataSource;
+import jakarta.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
@@ -43,7 +43,7 @@ public class MainDataSourceConfig {
     @Primary
     @Bean(name = "mainDataSource")
     public DataSource mainDataSource(@Qualifier("mainDataSourceProps") DataSourceProperties props) {
-        return props.initializeDataSourceBuilder().build();
+        return props.initializeDataSourceBuilder().build(); // TODO: jakarta DataSource 동작 확인
     }
 
     @Primary

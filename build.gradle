@@ -34,13 +34,13 @@ dependencies {
 	implementation platform('software.amazon.awssdk:bom:2.20.81') // AWS SDK 2.x BOM 추가
 	implementation 'software.amazon.awssdk:s3'
 
-	implementation 'javax.servlet:javax.servlet-api:4.0.1'
+        implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
 
 	// Spring Security Core 의존성
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	//jwt
-	implementation 'javax.validation:validation-api:2.0.1.Final'
+        implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'

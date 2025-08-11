@@ -29,7 +29,7 @@ public class StoreController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                   @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
+                                                   @Valid @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
         ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.createStore(files, createStoreRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store created successfully.")
@@ -40,7 +40,7 @@ public class StoreController {
 
     @PostMapping(value = "/suggestion/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> suggestStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                    @RequestPart(value = "suggestStoreDto") RequestStore.SuggestStoreDto suggestStoreDto) {
+                                                    @Valid @RequestPart(value = "suggestStoreDto") RequestStore.SuggestStoreDto suggestStoreDto) {
         storeService.suggestStore(files, suggestStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store suggested successfully.")
@@ -69,7 +69,7 @@ public class StoreController {
     @PostMapping(value = "/create/with-ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStoreWithOwnership(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
                                                                 @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
-                                                                @RequestPart(value = "createStoreWithOwnershipRqDto") RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
+                                                                @Valid @RequestPart(value = "createStoreWithOwnershipRqDto") RequestStore.CreateStoreWithOwnershipRqDto createStoreWithOwnershipRqDto) {
         storeService.createStoreWithOwnership(storeImages, businessRegistrationCertificateImage, createStoreWithOwnershipRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store suggestion and Ownership request created successfully.")
@@ -78,7 +78,7 @@ public class StoreController {
     }
 
     @PatchMapping("/update/{storeId}")
-    public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
+    public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @Valid @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
         storeService.updateStore(storeId, updateStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store updated successfully.")
@@ -87,7 +87,7 @@ public class StoreController {
     }
 
     @PutMapping("/update-image/sort-order")
-    public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
+    public ResponseEntity<ResponseDto> updateStoreImageSortOrder(@Valid @RequestBody RequestStore.UpdateStoreImageSortOrderDto updateStoreImageSortOrderDto) {
         ResponseStore.ImageListDto dto = storeService.updateStoreImageSortOrder(updateStoreImageSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store image sort order updated successfully.")
@@ -97,7 +97,7 @@ public class StoreController {
     }
 
     @PutMapping("/update-board-image/sort-order")
-    public ResponseEntity<ResponseDto> updateBoardImageSortOrder(@RequestBody RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
+    public ResponseEntity<ResponseDto> updateBoardImageSortOrder(@Valid @RequestBody RequestStore.UpdateBoardImageSortOrderDto updateBoardImageSortOrderDto) {
         List<ResponseStore.BoardImageListDto> dtoList = storeService.updateBoardImageSortOrder(updateBoardImageSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Board image sort order updated successfully.")
@@ -149,7 +149,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/delete-image/{storeId}")
-    public ResponseEntity<ResponseDto> deleteImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
+    public ResponseEntity<ResponseDto> deleteImage(@Valid @RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                    @PathVariable("storeId") Long storeId) {
         ResponseStore.ImageListDto dto = storeService.deleteImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()
@@ -160,7 +160,7 @@ public class StoreController {
     }
 
     @DeleteMapping("/delete-board-image/{storeId}")
-    public ResponseEntity<ResponseDto> deleteBoardImage(@RequestBody RequestStore.DeleteImageDto deleteImageDto,
+    public ResponseEntity<ResponseDto> deleteBoardImage(@Valid @RequestBody RequestStore.DeleteImageDto deleteImageDto,
                                                         @PathVariable("storeId") Long storeId) {
         List<ResponseStore.BoardImageListDto> dtoList = storeService.deleteBoardImage(deleteImageDto, storeId);
         ResponseDto responseDto = ResponseDto.builder()

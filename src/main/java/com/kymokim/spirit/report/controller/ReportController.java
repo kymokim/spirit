@@ -9,6 +9,7 @@ import com.kymokim.spirit.report.entity.ReportTarget;
 import com.kymokim.spirit.report.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -32,7 +33,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping(value = "/create")
-    public ResponseEntity<ResponseDto> createReport(@RequestBody RequestReport.CreateReportRqDto createReportRqDto){
+    public ResponseEntity<ResponseDto> createReport(@Valid @RequestBody RequestReport.CreateReportRqDto createReportRqDto){
         reportService.createReport(createReportRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report created successfully.")
@@ -105,7 +106,7 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "신고 보관")
     @PostMapping("archive/{reportId}")
-    public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId, @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
+    public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId, @Valid @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
         reportService.archiveReport(reportId, archiveReportDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report archived successfully.")

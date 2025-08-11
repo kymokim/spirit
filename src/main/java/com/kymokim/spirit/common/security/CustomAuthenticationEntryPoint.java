@@ -22,7 +22,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        Throwable cause = (Throwable) request.getAttribute("javax.servlet.error.exception");
+        Throwable cause = (Throwable) request.getAttribute("jakarta.servlet.error.exception"); // TODO: jakarta 마이그레이션 후 예외 키 확인
 
         if (cause instanceof CustomException) {
             CustomException customException = (CustomException) cause;

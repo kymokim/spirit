@@ -5,6 +5,7 @@ import com.kymokim.spirit.drink.dto.RequestDrink;
 import com.kymokim.spirit.drink.dto.ResponseDrink;
 import com.kymokim.spirit.drink.service.DrinkService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class DrinkController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createDrink(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                  @RequestPart(value = "createDrinkDto") RequestDrink.CreateDrinkDto createDrinkDto) {
+                                                   @Valid @RequestPart(value = "createDrinkDto") RequestDrink.CreateDrinkDto createDrinkDto) {
         drinkService.createDrink(file, createDrinkDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink created successfully.")
@@ -37,7 +38,7 @@ public class DrinkController {
 
     @PostMapping(value = "/update-image/{drinkId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> updateDrinkImage(@RequestPart(value = "file", required = true) MultipartFile file,
-                                                       @PathVariable("drinkId") Long drinkId){
+                                                        @PathVariable("drinkId") Long drinkId) {
         drinkService.updateImage(file, drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image updated successfully.")
@@ -46,7 +47,7 @@ public class DrinkController {
     }
 
     @DeleteMapping("delete-image/{drinkId}")
-    public ResponseEntity<ResponseDto> deleteImage(@PathVariable("drinkId") Long drinkId){
+    public ResponseEntity<ResponseDto> deleteImage(@PathVariable("drinkId") Long drinkId) {
         drinkService.deleteImage(drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")
@@ -75,7 +76,7 @@ public class DrinkController {
     }
 
     @PutMapping("/update/{drinkId}")
-    public ResponseEntity<ResponseDto> updateDrink(@PathVariable("drinkId") Long drinkId, @RequestBody RequestDrink.UpdateDrinkDto updateDrinkDto) {
+    public ResponseEntity<ResponseDto> updateDrink(@PathVariable("drinkId") Long drinkId, @Valid @RequestBody RequestDrink.UpdateDrinkDto updateDrinkDto) {
         drinkService.updateDrink(drinkId, updateDrinkDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink updated successfully.")
@@ -84,7 +85,7 @@ public class DrinkController {
     }
 
     @PutMapping("/update/sort-order")
-    public ResponseEntity<ResponseDto> updateDrinkSortOrder(@RequestBody RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
+    public ResponseEntity<ResponseDto> updateDrinkSortOrder(@Valid @RequestBody RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
         drinkService.updateDrinkSortOrder(updateDrinkSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink sort order updated successfully.")

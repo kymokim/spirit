@@ -6,7 +6,8 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class RequestMenu {
@@ -19,9 +20,9 @@ public class RequestMenu {
         private String description;
         @NotEmpty
         private String price;
-        @NotEmpty
+        @NotNull
         private Long storeId;
-        @NotEmpty
+        @NotNull
         private MenuType menuType;
 
         public Menu toEntity(Store store, Integer sortOrder, Long creatorId) {
@@ -45,7 +46,7 @@ public class RequestMenu {
         private String description;
         @NotEmpty
         private String price;
-        @NotEmpty
+        @NotNull
         private MenuType menuType;
 
         public Menu toEntity(Menu menu) {
@@ -57,7 +58,7 @@ public class RequestMenu {
     @Data
     @Builder
     public static class UpdateMenuSortOrderDto{
-        @NotEmpty
+        @NotNull
         private Long storeId;
         @NotEmpty
         private List<Long> menuIdInOrderList;

@@ -1,8 +1,6 @@
 package com.kymokim.spirit.common.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kymokim.spirit.common.exception.CustomException;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -22,7 +20,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        Throwable cause = (Throwable) request.getAttribute("jakarta.servlet.error.exception"); // TODO: jakarta 마이그레이션 후 예외 키 확인
+        Throwable cause = (Throwable) request.getAttribute("jakarta.servlet.error.exception");
 
         if (cause instanceof CustomException) {
             CustomException customException = (CustomException) cause;

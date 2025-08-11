@@ -28,7 +28,7 @@ public class DrinkController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createDrink(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                  @Valid @RequestPart(value = "createDrinkDto") RequestDrink.CreateDrinkDto createDrinkDto) {
+                                                   @Valid @RequestPart(value = "createDrinkDto") RequestDrink.CreateDrinkDto createDrinkDto) {
         drinkService.createDrink(file, createDrinkDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Drink created successfully.")
@@ -38,7 +38,7 @@ public class DrinkController {
 
     @PostMapping(value = "/update-image/{drinkId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> updateDrinkImage(@RequestPart(value = "file", required = true) MultipartFile file,
-                                                       @PathVariable("drinkId") Long drinkId){
+                                                        @PathVariable("drinkId") Long drinkId) {
         drinkService.updateImage(file, drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image updated successfully.")
@@ -47,7 +47,7 @@ public class DrinkController {
     }
 
     @DeleteMapping("delete-image/{drinkId}")
-    public ResponseEntity<ResponseDto> deleteImage(@PathVariable("drinkId") Long drinkId){
+    public ResponseEntity<ResponseDto> deleteImage(@PathVariable("drinkId") Long drinkId) {
         drinkService.deleteImage(drinkId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Image deleted successfully.")

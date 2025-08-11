@@ -13,7 +13,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.sql.DataSource;
+import jakarta.sql.DataSource;
 
 @Configuration
 @EnableTransactionManagement
@@ -32,7 +32,7 @@ public class AuthDataSourceConfig {
 
     @Bean(name = "authDataSource")
     public DataSource authDataSource(@Qualifier("authDataSourceProps") DataSourceProperties props) {
-        return props.initializeDataSourceBuilder().build();
+        return props.initializeDataSourceBuilder().build(); // TODO: jakarta DataSource 동작 확인
     }
 
     @Bean(name = "authEntityManagerFactory")

@@ -5,6 +5,7 @@ import com.kymokim.spirit.menu.dto.ResponseMenu;
 import com.kymokim.spirit.menu.service.MenuService;
 import com.kymokim.spirit.menu.dto.RequestMenu;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ public class MenuController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createMenu(@RequestPart(value = "file", required = false) MultipartFile file,
-                                                  @RequestPart(value = "createMenuDto") RequestMenu.CreateMenuDto createMenuDto) {
+                                                  @Valid @RequestPart(value = "createMenuDto") RequestMenu.CreateMenuDto createMenuDto) {
         menuService.createMenu(file, createMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu created successfully.")
@@ -75,7 +76,7 @@ public class MenuController {
     }
 
     @PutMapping("/update/{menuId}")
-    public ResponseEntity<ResponseDto> updateMenu(@PathVariable("menuId") Long menuId, @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
+    public ResponseEntity<ResponseDto> updateMenu(@PathVariable("menuId") Long menuId, @Valid @RequestBody RequestMenu.UpdateMenuDto updateMenuDto) {
         menuService.updateMenu(menuId, updateMenuDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu updated successfully.")
@@ -84,7 +85,7 @@ public class MenuController {
     }
 
     @PutMapping("/update/sort-order")
-    public ResponseEntity<ResponseDto> updateMenuSortOrder(@RequestBody RequestMenu.UpdateMenuSortOrderDto updateMenuSortOrderDto) {
+    public ResponseEntity<ResponseDto> updateMenuSortOrder(@Valid @RequestBody RequestMenu.UpdateMenuSortOrderDto updateMenuSortOrderDto) {
         menuService.updateMenuSortOrder(updateMenuSortOrderDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Menu sort order updated successfully.")

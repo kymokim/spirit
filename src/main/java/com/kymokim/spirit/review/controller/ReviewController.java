@@ -5,6 +5,7 @@ import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
 import com.kymokim.spirit.review.service.ReviewService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +29,7 @@ public class ReviewController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createReview(@RequestPart(value = "files", required = false) MultipartFile[] files,
-                                                    @RequestPart(value = "createReviewDto") RequestReview.CreateReviewDto createReviewDto) {
+                                                    @Valid @RequestPart(value = "createReviewDto") RequestReview.CreateReviewDto createReviewDto) {
         reviewService.createReview(files, createReviewDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review created successfully.")
@@ -47,7 +48,7 @@ public class ReviewController {
     }
 
     @DeleteMapping("/delete-image/{reviewId}")
-    public ResponseEntity<ResponseDto> deleteReviewImage(@RequestBody RequestReview.DeleteImageDto deleteImageDto,
+    public ResponseEntity<ResponseDto> deleteReviewImage(@Valid @RequestBody RequestReview.DeleteImageDto deleteImageDto,
                                                          @PathVariable("reviewId") Long reviewId) {
         reviewService.deleteImage(deleteImageDto, reviewId);
         ResponseDto responseDto = ResponseDto.builder()
@@ -90,7 +91,7 @@ public class ReviewController {
     //토큰 받아서 본인만 수정 가능하게 변경
     @PutMapping("/update/{reviewId}")
     public ResponseEntity<ResponseDto> updateReview(@PathVariable("reviewId") Long reviewId,
-                                                    @RequestBody RequestReview.UpdateReviewDto updateReviewDto) {
+                                                    @Valid @RequestBody RequestReview.UpdateReviewDto updateReviewDto) {
         reviewService.updateReview(reviewId, updateReviewDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Review updated successfully.")
@@ -108,7 +109,7 @@ public class ReviewController {
     }
 
     @PostMapping("/set-reply")
-    public ResponseEntity<ResponseDto> setReply(@RequestBody RequestReview.SetReplyDto setReplyDto) {
+    public ResponseEntity<ResponseDto> setReply(@Valid @RequestBody RequestReview.SetReplyDto setReplyDto) {
         reviewService.setReply(setReplyDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reply set successfully.")

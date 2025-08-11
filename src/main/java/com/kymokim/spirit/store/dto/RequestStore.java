@@ -9,7 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -29,24 +31,27 @@ public class RequestStore {
         @Schema(description = "설명")
         private String description;
         @Schema(description = "스크린 보유 여부")
-        @NotEmpty(message = "스크린 보유 여부가 비었습니다.")
+        @NotNull(message = "스크린 보유 여부가 비었습니다.")
         private Boolean hasScreen;
         @Schema(description = "단체석 보유 여부")
-        @NotEmpty(message = "단체석 보유 여부가 비었습니다.")
+        @NotNull(message = "단체석 보유 여부가 비었습니다.")
         private Boolean isGroupAvailable;
         @Schema(description = "24시간 운영 여부")
-        @NotEmpty(message = "24시간 운영 여부가 비었습니다.")
+        @NotNull(message = "24시간 운영 여부가 비었습니다.")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
-        @NotEmpty(message = "위치 정보가 비었습니다.")
+        @NotNull(message = "위치 정보가 비었습니다.")
+        @Valid
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
         @NotEmpty(message = "카테고리가 비었습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         @NotEmpty(message = "대표 주종이 비었습니다.")
+        @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         @Schema(description = "운영 정보")
+        @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
         public Store toEntity(Long creatorId) {
@@ -86,13 +91,16 @@ public class RequestStore {
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
-        @NotEmpty(message = "위치 정보가 비었습니다.")
+        @NotNull(message = "위치 정보가 비었습니다.")
+        @Valid
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
+        @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         @Schema(description = "운영 정보")
+        @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
         public Store toEntity(Long creatorId) {
@@ -109,9 +117,11 @@ public class RequestStore {
     @Data
     @Builder
     public static class CreateStoreWithOwnershipRqDto {
-        @NotEmpty
+        @NotNull
+        @Valid
         private CreateStoreRqDto createStoreRqDto;
-        @NotEmpty
+        @NotNull
+        @Valid
         private CreateOwnershipRqDto createOwnershipRqDto;
     }
 
@@ -143,9 +153,11 @@ public class RequestStore {
         private String liquorReportNumber;
         @Schema(description = "대표자")
         @NotEmpty(message = "대표자가 비었습니다.")
+        @Valid
         private List<RepresentativeInfo> representativeInfoList;
         @Schema(description = "주소")
-        @NotEmpty(message = "주소가 비었습니다.")
+        @NotNull(message = "주소가 비었습니다.")
+        @Valid
         private CommonStore.LocationDto businessLocation;
 
         public OwnershipRequest toEntity(Store store, Long requesterId) {
@@ -182,19 +194,22 @@ public class RequestStore {
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
+        @Valid
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
+        @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         @Schema(description = "운영 정보")
+        @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
     }
 
     @Data
     @Builder
     public static class UpdateStoreImageSortOrderDto{
-        @NotEmpty
+        @NotNull
         private Long storeId;
         @NotEmpty
         private List<String> storeImageUrlInOrderList;
@@ -203,7 +218,7 @@ public class RequestStore {
     @Data
     @Builder
     public static class UpdateBoardImageSortOrderDto{
-        @NotEmpty
+        @NotNull
         private Long storeId;
         @NotEmpty
         private List<String> boardImageUrlInOrderList;

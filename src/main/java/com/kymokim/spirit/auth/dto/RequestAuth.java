@@ -4,16 +4,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @RequiredArgsConstructor
 public class RequestAuth {
     @Builder
     @Data
     public static class MergeUserDto{
-        @NotEmpty
+        @NotNull
+        @Valid
         private CommonAuth.SocialInfoDto originalSocialInfoDto;
-        @NotEmpty
+        @NotNull
+        @Valid
         private CommonAuth.SocialInfoDto newSocialInfoDto;
     }
 }

@@ -6,7 +6,8 @@ import com.kymokim.spirit.report.entity.ReportTarget;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 public class RequestReport {
 
@@ -14,12 +15,12 @@ public class RequestReport {
     @Builder
     public static class CreateReportRqDto {
 
-        @NotEmpty
+        @NotNull
         private ReportTarget reportTarget;
         //REVIEW, STORE
-        @NotEmpty
+        @NotNull
         private Long targetId;
-        @NotEmpty
+        @NotNull
         private ReportReason reportReason;
         @NotEmpty
         private String description;

@@ -19,7 +19,7 @@ import java.util.Objects;
 @MainTransactional
 public class StoreShareService {
 
-    @Value("${app.share.domain:https://dev.team-spirit.click}")
+    @Value("${app.share.domain:https://team-spirit.click}")
     private String shareDomain;
 
     @Value("${app.android.package:com.spiritfront}")

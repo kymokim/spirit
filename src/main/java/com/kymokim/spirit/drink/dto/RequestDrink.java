@@ -6,7 +6,8 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class RequestDrink {
@@ -19,9 +20,9 @@ public class RequestDrink {
         private String description;
         @NotEmpty
         private String price;
-        @NotEmpty
+        @NotNull
         private DrinkType type;
-        @NotEmpty
+        @NotNull
         private Long storeId;
 
         public Drink toEntity(Store store, Integer sortOrder, Long creatorId) {
@@ -45,7 +46,7 @@ public class RequestDrink {
         private String description;
         @NotEmpty
         private String price;
-        @NotEmpty
+        @NotNull
         private DrinkType type;
 
         public Drink toEntity(Drink drink) {
@@ -57,7 +58,7 @@ public class RequestDrink {
     @Data
     @Builder
     public static class UpdateDrinkSortOrderDto{
-        @NotEmpty
+        @NotNull
         private Long storeId;
         @NotEmpty
         private List<Long> drinkIdInOrderList;

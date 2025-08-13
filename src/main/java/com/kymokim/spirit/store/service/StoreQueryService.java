@@ -7,6 +7,7 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.log.service.LogService;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
@@ -24,6 +25,7 @@ import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,9 +121,9 @@ public class StoreQueryService {
         }, 3);
     }
 
-    public Page<ResponseStore.GetByCategoryDto> getByCategory(LocationCriteria criteria, String category, Pageable pageable) {
+    public Page<ResponseStore.GetByCategoryDto> getByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Store> storePage = storeRepository.findByCategory(criteria, category, pageable);
+            Page<Store> storePage = storeRepository.findByCategory(criteria, category, drinkType, priceOrder, pageable);
             return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store)));
         }, 3);
     }

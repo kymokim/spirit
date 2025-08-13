@@ -6,6 +6,7 @@ import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.Store;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,7 +20,7 @@ public interface StoreRepositoryCustom {
 
     Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable);
 
-    Page<Store> findByCategory(LocationCriteria criteria, String category, Pageable pageable);
+    Page<Store> findByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable);
 
     Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable);
 

@@ -1,6 +1,7 @@
 package com.kymokim.spirit.store.controller;
 
 import com.kymokim.spirit.store.service.StoreShareService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Store Share API")
 @RestController
 @RequiredArgsConstructor
 @Slf4j

@@ -350,7 +350,7 @@ public class StoreService {
     public void deleteStore(Long storeId) {
         Store store = resolveStore(storeId);
         Auth user = AuthResolver.resolveUser();
-        if (!user.getRoles().contains(Role.ADMIN) || !Objects.equals(store.getOwnerId(), user.getId())) {
+        if (!user.getRoles().contains(Role.ADMIN) && !Objects.equals(store.getOwnerId(), user.getId())) {
             throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
         }
         List<StoreManager> storeManagerList = storeManagerRepository.findAllByStoreId(storeId);

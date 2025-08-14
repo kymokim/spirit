@@ -51,4 +51,14 @@ public class LocationController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @GetMapping("/get-init-road")
+    public ResponseEntity<ResponseDto> getInitRoadAddressAndCoordinate() {
+        ResponseLocationDto.GetRoadAddressAndCoordinateDto response = locationService.getRoadAddressAndCoordinate();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Init road address retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

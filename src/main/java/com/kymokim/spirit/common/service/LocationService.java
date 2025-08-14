@@ -13,17 +13,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 @Service
 @RequiredArgsConstructor
-@PropertySource("classpath:/secret/api-key.properties")
+@PropertySource({
+        "classpath:application.properties",
+        "classpath:/secret/api-key.properties"
+})
 public class LocationService {
 
     @Value("${kakao.rest.key}")
     private String kakaoRestKey;
+
+    @Value("${app.init.latitude}")
+    private double appInitLatitude;
+
+    @Value("${app.init.longitude}")
+    private double appInitLongitude;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -82,5 +87,9 @@ public class LocationService {
         ResponseLocationDto.GetCoordinateDto getCoordinateDto = getCoordinate(getAddressDto.getAddress());
 
         return ResponseLocationDto.GetRoadAddressAndCoordinateDto.toDto(getAddressDto, getCoordinateDto);
+    }
+
+    public ResponseLocationDto.GetRoadAddressAndCoordinateDto getRoadAddressAndCoordinate() {
+        return getRoadAddressAndCoordinate(appInitLatitude, appInitLongitude);
     }
 }

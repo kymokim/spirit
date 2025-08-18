@@ -396,6 +396,24 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class GetViewedStoreDto {
+        private Long id;
+        private Boolean isCertified;
+        private String mainImgUrl;
+        private String name;
+
+        public static GetViewedStoreDto toDto(Store store) {
+            return GetViewedStoreDto.builder()
+                    .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class GetByRadiusDto {
         private Long id;
         private Boolean isCertified;
@@ -408,7 +426,6 @@ public class ResponseStore {
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
         private Long reviewCount;
-        private List<MenuListDto> menuList;
 
         public static GetByRadiusDto toDto(Store store, Double storeRate) {
 
@@ -429,15 +446,6 @@ public class ResponseStore {
                 });
             }
 
-            List<MenuListDto> menuList = new ArrayList<>();
-            if (!store.getMenuList().isEmpty()) {
-                store.getMenuList().forEach(menu -> {
-                    if (menu.getMenuType().equals(MenuType.MAIN)) {
-                        menuList.add(MenuListDto.toDto(menu));
-                    }
-                });
-            }
-
             return GetByRadiusDto.builder()
                     .id(store.getId())
                     .isCertified(store.getOwnerId() != null)
@@ -450,7 +458,6 @@ public class ResponseStore {
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
-                    .menuList(menuList)
                     .build();
         }
     }
@@ -469,7 +476,6 @@ public class ResponseStore {
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
         private Long reviewCount;
-        private List<MenuListDto> menuList;
 
         public static GetLikedStoreDto toDto(Store store, Double storeRate) {
 
@@ -490,15 +496,6 @@ public class ResponseStore {
                 });
             }
 
-            List<MenuListDto> menuList = new ArrayList<>();
-            if (!store.getMenuList().isEmpty()) {
-                store.getMenuList().forEach(menu -> {
-                    if (menu.getMenuType().equals(MenuType.MAIN)) {
-                        menuList.add(MenuListDto.toDto(menu));
-                    }
-                });
-            }
-
             return GetLikedStoreDto.builder()
                     .id(store.getId())
                     .isCertified(store.getOwnerId() != null)
@@ -511,7 +508,6 @@ public class ResponseStore {
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
-                    .menuList(menuList)
                     .build();
         }
     }
@@ -750,7 +746,7 @@ public class ResponseStore {
 
     @Getter
     @Builder
-    public static class OwnershipStatDto{
+    public static class OwnershipStatDto {
         private Long dayCount;
         private Long weekCount;
         private Long monthCount;

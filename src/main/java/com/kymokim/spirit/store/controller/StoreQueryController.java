@@ -283,4 +283,15 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @Operation(summary = "최근 조회한 매장 리스트 조회")
+    @GetMapping("/viewed")
+    public ResponseEntity<ResponseDto> getViewedStore(@PageableDefault(size = 10) Pageable pageable) {
+        Page<ResponseStore.GetViewedStoreDto> dtoPage = storeQueryService.getViewedStore(pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Viewed store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

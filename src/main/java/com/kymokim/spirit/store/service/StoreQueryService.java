@@ -8,6 +8,7 @@ import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.drink.entity.DrinkType;
+import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import com.kymokim.spirit.log.service.LogService;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
@@ -24,6 +25,7 @@ import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,7 @@ public class StoreQueryService {
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
     private final LogService logService;
+    private final StoreViewLogRepository storeViewLogRepository;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -93,9 +96,8 @@ public class StoreQueryService {
             } else {
                 isOwner = false;
             }
-            if (!Objects.equals(store.getOwnerId(), null)) {
-                logService.createStoreViewLog(storeId);
-            }
+            //todo event raise 방식으로 비동기 처리
+            logService.createStoreViewLog(storeId);
             return ResponseStore.GetStoreDto.toDto(store, isOwner, isUpdatable, calculateRate(store), isStoreLiked);
         }, 3);
     }
@@ -319,5 +321,30 @@ public class StoreQueryService {
 
     public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
         return TransactionRetryUtil.executeWithRetry(() -> likedStoreRepository.getLikedStoreStats(filter), 3);
+    }
+
+    public Page<ResponseStore.GetViewedStoreDto> getViewedStore(Pageable pageable) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
+
+            Page<Long> idPage = storeViewLogRepository.findViewedStoreIds(userId, pageable);
+            List<Long> idList = idPage.getContent();
+            if (idList.isEmpty()) {
+                return new PageImpl<>(List.of(), pageable, idPage.getTotalElements());
+            }
+
+            Map<Long, Store> storeMap = storeRepository.findByIdIn(idList).stream()
+                    .collect(Collectors.toMap(Store::getId, store -> store));
+
+            List<ResponseStore.GetViewedStoreDto> content = new ArrayList<>(idList.size());
+            for (Long id : idList) {
+                Store store = storeMap.get(id);
+                if (store != null) {
+                    content.add(ResponseStore.GetViewedStoreDto.toDto(store));
+                }
+            }
+
+            return new PageImpl<>(content, pageable, idPage.getTotalElements());
+        }, 3);
     }
 }

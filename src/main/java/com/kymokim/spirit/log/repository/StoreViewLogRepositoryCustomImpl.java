@@ -12,6 +12,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,6 +33,30 @@ public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryC
     private final QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
 
     private record GroupKey(String ageGroup, Gender gender) {
+    }
+
+    @Override
+    public Page<Long> findViewedStoreIds(Long userId, Pageable pageable) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStoreViewLog svl = QStoreViewLog.storeViewLog;
+
+        List<Long> content = queryFactory
+                .select(svl.storeId)
+                .from(svl)
+                .where(svl.userId.eq(userId))
+                .groupBy(svl.storeId)
+                .orderBy(svl.viewDateTime.max().desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(svl.storeId.countDistinct())
+                .from(svl)
+                .where(svl.userId.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     @Override

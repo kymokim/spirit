@@ -29,4 +29,6 @@ public interface StoreRepositoryCustom {
     Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable);
 
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
+
+    Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, Pageable pageable);
 }

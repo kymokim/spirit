@@ -28,14 +28,14 @@ public class LikedStoreRepositoryCustomImpl implements LikedStoreRepositoryCusto
     @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
-    private final QLikedStore likedStore = QLikedStore.likedStore;
     private record GroupKey(String ageGroup, Gender gender) {}
 
     @Override
     public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QLikedStore likedStore = QLikedStore.likedStore;
 
-        BooleanBuilder where = buildWhereClause(filter);
+        BooleanBuilder where = buildWhereClause(likedStore, filter);
 
         List<Tuple> tupleList = queryFactory
                 .select(likedStore.birthYear, likedStore.gender)
@@ -61,7 +61,7 @@ public class LikedStoreRepositoryCustomImpl implements LikedStoreRepositoryCusto
                 .toList();
     }
 
-    private BooleanBuilder buildWhereClause(RequestStore.LikedStoreStatFilter filter) {
+    private BooleanBuilder buildWhereClause(QLikedStore likedStore, RequestStore.LikedStoreStatFilter filter) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(likedStore.storeId.eq(filter.getStoreId()));
 

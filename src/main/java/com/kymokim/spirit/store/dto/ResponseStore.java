@@ -414,6 +414,24 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class GetPopularStoreDto {
+        private Long id;
+        private Boolean isCertified;
+        private String mainImgUrl;
+        private String name;
+
+        public static GetPopularStoreDto toDto(Store store) {
+            return GetPopularStoreDto.builder()
+                    .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class GetByRadiusDto {
         private Long id;
         private Boolean isCertified;

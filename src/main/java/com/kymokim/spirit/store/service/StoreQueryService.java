@@ -347,4 +347,11 @@ public class StoreQueryService {
             return new PageImpl<>(content, pageable, idPage.getTotalElements());
         }, 3);
     }
+
+    public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, Pageable pageable) {
+        double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
+
+        Page<Store> page = storeRepository.findPopularStore(criteria, weightView, weightLike, weightRate, pageable);
+        return page.map(ResponseStore.GetPopularStoreDto::toDto);
+    }
 }

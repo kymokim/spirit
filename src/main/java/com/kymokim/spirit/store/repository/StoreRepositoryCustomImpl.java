@@ -35,6 +35,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
+    // ===== Expressions =====
 
     // 하버사인 거리 계산식
     private NumberExpression<Double> distanceExpression(QStore store, LocationCriteria criteria) {
@@ -93,6 +94,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 store.reviewCount, priorSampleWeight, averageRate, Expressions.constant(globalAverageRate));
     }
 
+    // ===== Conditions =====
 
     // 삭제 여부에 해당하는 가게 조건식
     private BooleanExpression isDeletedCondition(QStore store) {
@@ -170,6 +172,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return store.isGroupAvailable.eq(isGroupAvailable);
     }
 
+    // ===== Orderings =====
 
     // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중순 정렬식
     private OrderSpecifier<Integer> orderByIsOpen(QStore store, QOperationInfo operationInfo) {
@@ -222,6 +225,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return isCertifiedPriority.desc();
     }
 
+    // ===== Queries =====
 
     // 검색어가 가게명, 메뉴명에 포함되는 가게 리스트 반환
     @Override

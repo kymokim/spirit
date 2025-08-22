@@ -401,6 +401,8 @@ public class ResponseStore {
         private Boolean isCertified;
         private String mainImgUrl;
         private String name;
+        private CommonStore.LocationDto locationDto;
+        private Set<Category> categories;
 
         public static GetViewedStoreDto toDto(Store store) {
             return GetViewedStoreDto.builder()
@@ -408,6 +410,8 @@ public class ResponseStore {
                     .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .categories(store.getCategories())
                     .build();
         }
     }

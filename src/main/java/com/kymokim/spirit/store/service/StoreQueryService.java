@@ -351,7 +351,7 @@ public class StoreQueryService {
     public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, Pageable pageable) {
         double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
 
-        Page<Store> page = storeRepository.findPopularStore(criteria, weightView, weightLike, weightRate, pageable);
-        return page.map(ResponseStore.GetPopularStoreDto::toDto);
+        Page<Store> storePage = storeRepository.findPopularStore(criteria, weightView, weightLike, weightRate, pageable);
+        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
     }
 }

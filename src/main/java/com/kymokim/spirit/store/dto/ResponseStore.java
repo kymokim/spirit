@@ -423,13 +423,56 @@ public class ResponseStore {
         private Boolean isCertified;
         private String mainImgUrl;
         private String name;
+        private Boolean isAlwaysOpen;
+        private CommonStore.LocationDto locationDto;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long storeLikeCount;
+        private List<MenuListDto> menuList;
 
-        public static GetPopularStoreDto toDto(Store store) {
+        public static GetPopularStoreDto toDto(Store store, Double storeRate) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()) {
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
+            }
+
+            List<MenuListDto> menuList = new ArrayList<>();
+            if (!store.getMenuList().isEmpty()) {
+                store.getMenuList().forEach(menu -> {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
+                        menuList.add(MenuListDto.toDto(menu));
+                    }
+                });
+            }
+
             return GetPopularStoreDto.builder()
                     .id(store.getId())
                     .isCertified(store.getOwnerId() != null)
                     .mainImgUrl(store.getMainImgUrl())
                     .name(store.getName())
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .operationInfoDtos(operationInfoDtos)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .storeLikeCount(store.getLikeCount())
+                    .menuList(menuList)
                     .build();
         }
     }

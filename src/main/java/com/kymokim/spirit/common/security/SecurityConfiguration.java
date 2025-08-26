@@ -41,7 +41,6 @@ public class SecurityConfiguration{
 
                 // 인증 및 권한 설정
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/merge").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers("/api/version/check").permitAll()

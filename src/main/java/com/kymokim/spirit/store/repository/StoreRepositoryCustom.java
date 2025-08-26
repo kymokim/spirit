@@ -30,5 +30,5 @@ public interface StoreRepositoryCustom {
 
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 
-    Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, Pageable pageable);
+    Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, DrinkType drinkType, Pageable pageable);
 }

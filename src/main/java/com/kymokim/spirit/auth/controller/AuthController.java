@@ -25,17 +25,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @Operation(summary = "회원 통합")
-    @PostMapping("/merge")
-    public ResponseEntity<ResponseDto> mergeUser(@Valid @RequestBody RequestAuth.MergeUserDto mergeUserDto) {
-        authService.mergeUser(mergeUserDto);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("User merged successfully.")
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @Operation(summary = "회원 탈퇴")
+    @Operation(summary = "회원 데이터 정리")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "성공"),
             @ApiResponse(responseCode = "401", description = "권한이 없을 경우(액세스 토큰 만료), 리프레시 토큰이 일치하지 않는 경우[21002]",
@@ -43,9 +33,9 @@ public class AuthController {
             @ApiResponse(responseCode = "404", description = "해당 유저 정보가 없을 경우[21005]",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping("/withdraw")
-    public ResponseEntity<ResponseDto> withdrawUser(){
-        authService.withdrawUser();
+    @PostMapping("/clean-up")
+    public ResponseEntity<ResponseDto> cleanUpUser(){
+        authService.cleanUpUser();
         ResponseDto responseDto = ResponseDto.builder()
                 .message("User withdrew successfully.")
                 .build();

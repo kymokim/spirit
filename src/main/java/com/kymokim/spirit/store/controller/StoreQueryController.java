@@ -300,9 +300,10 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getPopularStore(@RequestParam("latitude") double latitude,
                                                        @RequestParam("longitude") double longitude,
                                                        @RequestParam(value = "radius", defaultValue = "2") double radius,
-                                                       @PageableDefault(size = 20) Pageable pageable) {
+                                                       @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
+                                                       @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
-        Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, pageable);
+        Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Popular store list retrieved successfully.")
                 .data(dtoPage)

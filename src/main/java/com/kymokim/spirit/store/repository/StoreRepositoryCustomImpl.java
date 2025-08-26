@@ -490,7 +490,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 인기 매장 조회, 점수 기반 계산
     @Override
-    public Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, Pageable pageable) {
+    public Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, DrinkType drinkType, Pageable pageable) {
 
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
@@ -513,19 +513,31 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                         weightRate, bayesianAverageRateExpression(store, globalAverageRate) // 평점(베이지안)
                 );
 
-        List<Store> content = queryFactory.selectFrom(store)
-                .where(isDeletedCondition(store)
-                        .and(radiusCondition(store, criteria)))
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isDeletedCondition(store));
+        where.and(radiusCondition(store, criteria));
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory
+                .select(store.id.countDistinct())
+                .from(store);
+
+        if (drinkType != null) {
+            query.leftJoin(store.mainDrinks, mainDrink);
+            countQuery.leftJoin(store.mainDrinks, mainDrink);
+            where.and(mainDrink.type.eq(drinkType));
+        }
+
+        List<Store> content = query
+                .where(where)
                 .orderBy(score.desc())
                 .distinct()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = queryFactory.select(store.id.countDistinct())
-                .from(store)
-                .where(isDeletedCondition(store)
-                        .and(radiusCondition(store, criteria)))
+        Long total = countQuery
+                .where(where)
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0L : total);

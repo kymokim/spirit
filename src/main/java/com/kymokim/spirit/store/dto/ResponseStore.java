@@ -238,11 +238,17 @@ public class ResponseStore {
         private Boolean isAlwaysOpen;
         private CommonStore.LocationDto locationDto;
         private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
         private Long reviewCount;
 
         public static GetByDistanceDto toDto(Store store, Double storeRate) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()) {
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -266,6 +272,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
+                    .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .build();
         }
@@ -360,8 +367,10 @@ public class ResponseStore {
         private Set<Category> categories;
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
 
-        public static GetByBusinessHoursDto toDto(Store store) {
+        public static GetByBusinessHoursDto toDto(Store store, Double storeRate) {
 
             Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
             if (!store.getMainDrinks().isEmpty()) {
@@ -390,6 +399,8 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
                     .build();
         }
     }

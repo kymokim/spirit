@@ -134,7 +134,7 @@ public class StoreQueryService {
     public Page<ResponseStore.GetByBusinessHoursDto> getByBusinessHours(LocationCriteria criteria, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
-            return storePage.map(ResponseStore.GetByBusinessHoursDto::toDto);
+            return storePage.map(store -> ResponseStore.GetByBusinessHoursDto.toDto(store, calculateRate(store)));
         }, 3);
     }
 

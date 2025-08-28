@@ -442,6 +442,7 @@ public class ResponseStore {
         private Long reviewCount;
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
+        private Set<Category> categories;
 
         public static GetPopularStoreDto toDto(Store store, Double storeRate) {
 
@@ -484,6 +485,7 @@ public class ResponseStore {
                     .reviewCount(store.getReviewCount())
                     .storeLikeCount(store.getLikeCount())
                     .menuList(menuList)
+                    .categories(store.getCategories())
                     .build();
         }
     }

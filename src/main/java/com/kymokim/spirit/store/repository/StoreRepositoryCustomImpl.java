@@ -225,6 +225,19 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return isCertifiedPriority.desc();
     }
 
+    // 인기 점수 기반 정렬식
+    private OrderSpecifier<Double> orderByPopularScore(QStore store, QStoreViewLog storeViewLog, Double globalAverageRate) {
+        double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
+        NumberExpression<Double> score =
+                Expressions.numberTemplate(Double.class,
+                        "({0}*LOG(1+{1}) + {2}*{3} + {4}*{5})",
+                        weightView, viewScoreExpression(store, storeViewLog), // 조회
+                        weightLike, likeScoreExpression(store), // 좋아요
+                        weightRate, bayesianAverageRateExpression(store, globalAverageRate) // 평점(베이지안)
+                );
+        return score.desc();
+    }
+
     // ===== Queries =====
 
     // 검색어가 가게명, 메뉴명에 포함되는 가게 리스트 반환
@@ -457,11 +470,16 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
-        // 반경 내 술집 존재 여부
-        boolean hasNearbyStores = queryFactory.selectFrom(store)
+        // 반경 내 술집 10개 이상 존재 여부
+        int threshold = 10;
+        boolean hasEnoughStoresNearby = queryFactory
+                .select(store.id.countDistinct())
+                .from(store)
                 .where(isDeletedCondition(store)
                         .and(radiusCondition(store, criteria)))
-                .fetchFirst() != null;
+                .limit(threshold)
+                .fetch()
+                .size() >= threshold;
 
         // 카테고리 랜덤 순회
         List<Category> categories = Arrays.asList(Category.values());
@@ -472,7 +490,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                     .leftJoin(store.operationInfos, operationInfo)
                     .where(isDeletedCondition(store)
                             // 반경 안에 가게가 있으면 반경 내에서, 없으면 전체에서 조회
-                            .and(hasNearbyStores ? radiusCondition(store, criteria) : null)
+                            .and(hasEnoughStoresNearby ? radiusCondition(store, criteria) : null)
                             .and(store.categories.contains(category)))
                     .orderBy(orderByIsOpen(store, operationInfo))
                     .orderBy(orderByIsCertified(store))
@@ -490,32 +508,26 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 인기 매장 조회, 점수 기반 계산
     @Override
-    public Page<Store> findPopularStore(LocationCriteria criteria, double weightView, double weightLike, double weightRate, DrinkType drinkType, Pageable pageable) {
+    public Page<Store> findPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
 
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
 
-        Double globalAverageRate = queryFactory.select(globalAverageRateExpression(store))
+        // 반경 내 술집 10개 이상 존재 여부
+        int threshold = 10;
+        boolean hasEnoughStoresNearby = queryFactory
+                .select(store.id.countDistinct())
                 .from(store)
-                .where(store.reviewCount.gt(0))
-                .fetchOne();
-        if (globalAverageRate == null) {
-            globalAverageRate = 3.5;
-        }
-
-        // 최종 점수
-        NumberExpression<Double> score =
-                Expressions.numberTemplate(Double.class,
-                        "({0}*LOG(1+{1}) + {2}*{3} + {4}*{5})",
-                        weightView, viewScoreExpression(store, storeViewLog), // 조회
-                        weightLike, likeScoreExpression(store), // 좋아요
-                        weightRate, bayesianAverageRateExpression(store, globalAverageRate) // 평점(베이지안)
-                );
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
+                .limit(threshold)
+                .fetch()
+                .size() >= threshold;
 
         BooleanBuilder where = new BooleanBuilder();
         where.and(isDeletedCondition(store));
-        where.and(radiusCondition(store, criteria));
+        where.and(hasEnoughStoresNearby ? radiusCondition(store, criteria) : null);
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store);
         JPQLQuery<Long> countQuery = queryFactory
@@ -526,11 +538,22 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             query.leftJoin(store.mainDrinks, mainDrink);
             countQuery.leftJoin(store.mainDrinks, mainDrink);
             where.and(mainDrink.type.eq(drinkType));
+            if (priceOrder != null) {
+                query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
+            }
+        }
+
+        Double globalAverageRate = queryFactory.select(globalAverageRateExpression(store))
+                .from(store)
+                .where(store.reviewCount.gt(0))
+                .fetchOne();
+        if (globalAverageRate == null) {
+            globalAverageRate = 3.5;
         }
 
         List<Store> content = query
                 .where(where)
-                .orderBy(score.desc())
+                .orderBy(orderByPopularScore(store, storeViewLog, globalAverageRate))
                 .distinct()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

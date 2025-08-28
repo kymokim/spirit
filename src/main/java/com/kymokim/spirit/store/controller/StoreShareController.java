@@ -23,8 +23,7 @@ public class StoreShareController {
 
     // 인앱 브라우저 UA 키워드 (소문자 비교)
     private static final String[] INAPP_KEYWORDS = {
-            "kakaotalk", "instagram", "fbav", "facebook", "messenger",
-            "line", "naver", "tiktok", "telegram", "whatsapp"
+            "kakaotalk", "instagram", "fbav", "facebook", "messenger", "line", "naver", "tiktok", "telegram", "whatsapp"
     };
 
     record ShareLinkResponse(String url) { }
@@ -36,9 +35,7 @@ public class StoreShareController {
     }
 
     @GetMapping("/link/store/{storeId}")
-    public ResponseEntity<?> redirectByOS(
-            @PathVariable Long storeId,
-            @RequestHeader(value = "User-Agent", required = false) String ua) {
+    public ResponseEntity<?> redirectByOS(@PathVariable Long storeId, @RequestHeader(value = "User-Agent", required = false) String ua) {
         if (isInApp(ua)) {
             String html = shareService.buildInAppHtml(storeId);
             return ResponseEntity.ok()

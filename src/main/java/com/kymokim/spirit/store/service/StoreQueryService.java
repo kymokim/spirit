@@ -349,10 +349,8 @@ public class StoreQueryService {
         }, 3);
     }
 
-    public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Pageable pageable) {
-        double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
-
-        Page<Store> storePage = storeRepository.findPopularStore(criteria, weightView, weightLike, weightRate, drinkType, pageable);
+    public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
+        Page<Store> storePage = storeRepository.findPopularStore(criteria, drinkType, priceOrder, pageable);
         return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
     }
 }

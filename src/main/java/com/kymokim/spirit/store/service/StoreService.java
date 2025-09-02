@@ -317,6 +317,7 @@ public class StoreService {
     }
 
     public ResponseStore.ImageListDto deleteImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
+        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             StoreImage storeImage = storeImageRepository.findByUrl(imgUrl)
@@ -334,6 +335,7 @@ public class StoreService {
     }
 
     public List<ResponseStore.BoardImageListDto> deleteBoardImage(RequestStore.DeleteImageDto deleteImageDto, Long storeId) {
+        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
         for (String imgUrl : deleteImageDto.getImgUrlList()) {
             BoardImage boardImage = boardImageRepository.findByUrl(imgUrl)

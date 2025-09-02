@@ -7,6 +7,7 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import com.kymokim.spirit.log.service.LogService;
@@ -133,7 +134,7 @@ public class StoreQueryService {
     public Page<ResponseStore.GetByBusinessHoursDto> getByBusinessHours(LocationCriteria criteria, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
-            return storePage.map(ResponseStore.GetByBusinessHoursDto::toDto);
+            return storePage.map(store -> ResponseStore.GetByBusinessHoursDto.toDto(store, calculateRate(store)));
         }, 3);
     }
 
@@ -346,5 +347,10 @@ public class StoreQueryService {
 
             return new PageImpl<>(content, pageable, idPage.getTotalElements());
         }, 3);
+    }
+
+    public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
+        Page<Store> storePage = storeRepository.findPopularStore(criteria, drinkType, priceOrder, pageable);
+        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
     }
 }

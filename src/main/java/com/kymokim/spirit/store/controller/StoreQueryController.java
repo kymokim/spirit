@@ -294,4 +294,21 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @Operation(summary = "인기 매장 리스트 조회")
+    @GetMapping("/popular")
+    public ResponseEntity<ResponseDto> getPopularStore(@RequestParam("latitude") double latitude,
+                                                       @RequestParam("longitude") double longitude,
+                                                       @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                       @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
+                                                       @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
+                                                       @PageableDefault(size = 10) Pageable pageable) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Popular store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

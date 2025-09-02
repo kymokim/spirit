@@ -30,30 +30,28 @@ public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryC
     @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
 
-    private final QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
-
     private record GroupKey(String ageGroup, Gender gender) {
     }
 
     @Override
     public Page<Long> findViewedStoreIds(Long userId, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        QStoreViewLog svl = QStoreViewLog.storeViewLog;
+        QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
 
         List<Long> content = queryFactory
-                .select(svl.storeId)
-                .from(svl)
-                .where(svl.userId.eq(userId))
-                .groupBy(svl.storeId)
-                .orderBy(svl.viewDateTime.max().desc())
+                .select(storeViewLog.storeId)
+                .from(storeViewLog)
+                .where(storeViewLog.userId.eq(userId))
+                .groupBy(storeViewLog.storeId)
+                .orderBy(storeViewLog.viewDateTime.max().desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         Long total = queryFactory
-                .select(svl.storeId.countDistinct())
-                .from(svl)
-                .where(svl.userId.eq(userId))
+                .select(storeViewLog.storeId.countDistinct())
+                .from(storeViewLog)
+                .where(storeViewLog.userId.eq(userId))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0L : total);
@@ -62,8 +60,9 @@ public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryC
     @Override
     public List<ResponseLog.StoreViewLogStatListDto> getStoreViewLogStats(RequestLog.StoreViewLogStatFilter filter) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
 
-        BooleanBuilder where = buildWhereClause(filter);
+        BooleanBuilder where = buildWhereClause(storeViewLog, filter);
 
         List<StoreViewLog> storeViewLogList = queryFactory
                 .select(storeViewLog)
@@ -106,7 +105,7 @@ public class StoreViewLogRepositoryCustomImpl implements StoreViewLogRepositoryC
                 .toList();
     }
 
-    private BooleanBuilder buildWhereClause(RequestLog.StoreViewLogStatFilter filter) {
+    private BooleanBuilder buildWhereClause(QStoreViewLog storeViewLog, RequestLog.StoreViewLogStatFilter filter) {
         BooleanBuilder where = new BooleanBuilder();
         where.and(storeViewLog.storeId.eq(filter.getStoreId()));
         where.and(storeViewLog.viewDate.between(filter.getStartDate(), filter.getEndDate()));

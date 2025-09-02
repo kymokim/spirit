@@ -1,16 +1,16 @@
 package com.kymokim.spirit.store.repository;
 
 import com.kymokim.spirit.drink.entity.DrinkType;
+import com.kymokim.spirit.log.entity.QStoreViewLog;
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
-import com.kymokim.spirit.store.entity.Category;
-import com.kymokim.spirit.store.entity.QOperationInfo;
-import com.kymokim.spirit.store.entity.QStore;
-import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.entity.*;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -33,30 +34,85 @@ import static com.kymokim.spirit.store.entity.QMainDrink.mainDrink;
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
-    private NumberExpression<Double> distance;
-    private QStore store;
 
-    // 삭제 여부에 해당하는 가게 검색
-    private BooleanExpression isDeletedCondition() {
+    // ===== Expressions =====
+
+    // 하버사인 거리 계산식
+    private NumberExpression<Double> distanceExpression(QStore store, LocationCriteria criteria) {
+        return Expressions.numberTemplate(Double.class,
+                "6371 * acos(cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + sin(radians({4})) * sin(radians({5})))",
+                criteria.getLatitude(), store.location.latitude, store.location.longitude, criteria.getLongitude(), criteria.getLatitude(), store.location.latitude);
+    }
+
+    // 조회 점수 계산식, 30일 이내 조회 집계, 7일 이내는 가중치 1.0, 8일차부터 0.85 ^ (D-6) 감쇠, D = DATEDIFF(CURDATE(), view_date)
+    private NumberExpression<Double> viewScoreExpression(QStore store, QStoreViewLog storeViewLog) {
+        int nonDecayDate = 6;
+        double decayFactor = 0.85;
+        int dateRange = 30;
+
+        NumberExpression<Integer> dayDiff = Expressions.numberTemplate(Integer.class,
+                "datediff(current_date, {0})", storeViewLog.viewDate);
+
+        NumberExpression<Double> weight = new CaseBuilder()
+                .when(dayDiff.loe(nonDecayDate)).then(1.0)
+                .otherwise(Expressions.numberTemplate(Double.class,
+                        "power({0}, {1})", decayFactor, dayDiff.subtract(nonDecayDate)));
+
+        Expression<Double> subQuery = JPAExpressions
+                .select(weight.sum().coalesce(0.0))
+                .from(storeViewLog)
+                .where(storeViewLog.storeId.eq(store.id)
+                        .and(storeViewLog.viewDate.goe(LocalDate.now().minusDays(dateRange))));
+
+        return Expressions.numberTemplate(Double.class, "({0})", subQuery);
+    }
+
+    // 좋아요 점수 계산식, log(1 + likeCount)
+    private NumberExpression<Double> likeScoreExpression(QStore store) {
+        return Expressions.numberTemplate(Double.class, "LOG(1 + {0})", store.likeCount);
+    }
+
+    // 매장 전체 평균 평점 계산식, 평점 없을 시 기본 값 3.5로 계산
+    private NumberExpression<Double> globalAverageRateExpression(QStore store) {
+        return Expressions.numberTemplate(
+                Double.class,
+                "COALESCE(SUM({0})/NULLIF(SUM({1}),0), {2})",
+                store.totalRate, store.reviewCount, 3.5);
+    }
+
+    // 베이지안 평균 평점 계산식
+    private NumberExpression<Double> bayesianAverageRateExpression(QStore store, double globalAverageRate) {
+        // 매장 평균 평점 = totalRate / reviewCount (0 나눗셈 방지)
+        NumberExpression<Double> averageRate =
+                Expressions.numberTemplate(Double.class,
+                        "COALESCE({0} / NULLIF({1}, 0), 0.0)", store.totalRate, store.reviewCount);
+
+        // 베이지안 평균 평점 계산(샘플 가중치 = 5)
+        int priorSampleWeight = 5;
+        return Expressions.numberTemplate(Double.class,
+                "((({0} / ({0} + {1})) * {2}) + (({1} / ({0} + {1})) * {3}))",
+                store.reviewCount, priorSampleWeight, averageRate, Expressions.constant(globalAverageRate));
+    }
+
+    // ===== Conditions =====
+
+    // 삭제 여부에 해당하는 가게 조건식
+    private BooleanExpression isDeletedCondition(QStore store) {
         return store.isDeleted.eq(false);
     }
 
-    // 반경 내에 있는 가게 탐색
-    private BooleanExpression radiusCondition(LocationCriteria criteria) {
-        distance = Expressions.numberTemplate(Double.class,
-                "6371 * acos(cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + sin(radians({4})) * sin(radians({5})))",
-                criteria.getLatitude(), store.location.latitude, store.location.longitude, criteria.getLongitude(), criteria.getLatitude(), store.location.latitude);
-
-        return distance.loe(criteria.getRadius());
+    // 반경 내에 있는 가게 탐색 조건식
+    private BooleanExpression radiusCondition(QStore store, LocationCriteria criteria) {
+        return distanceExpression(store, criteria).loe(criteria.getRadius());
     }
 
-    // 현재 시간 기준 영업중인 가게 탐색
-    private BooleanExpression openCondition(QOperationInfo operationInfo) {
-        return openCondition(operationInfo, LocalDateTime.now());
+    // 현재 시간 기준 영업중인 가게 탐색 조건식
+    private BooleanExpression openCondition(QStore store, QOperationInfo operationInfo) {
+        return openCondition(store, operationInfo, LocalDateTime.now());
     }
 
-    // 영업중인 가게 탐색
-    private BooleanExpression openCondition(QOperationInfo operationInfo, LocalDateTime conditionTime) {
+    // 영업중인 가게 탐색 조건식
+    private BooleanExpression openCondition(QStore store, QOperationInfo operationInfo, LocalDateTime conditionTime) {
         // 0. 항상 영업중인지(24시간)
         BooleanExpression isAlwaysOpen = store.isAlwaysOpen.isTrue();
 
@@ -94,40 +150,42 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         );
     }
 
-    // 검색어가 공백 제외하고 이름에 포함되어 있는 가게 탐색
-    private BooleanExpression storeNameCondition(String searchKeyword) {
+    // 검색어가 공백 제외하고 이름에 포함되어 있는 가게 탐색 조건식
+    private BooleanExpression storeNameCondition(QStore store, String searchKeyword) {
         String formattedSearchKeyword = searchKeyword.trim().replaceAll("\\s+", "");
         return Expressions.stringTemplate("REPLACE({0}, ' ', '')", store.name).containsIgnoreCase(formattedSearchKeyword);
     }
 
-    // 검색어가 공백 제외하고 이름에 포함되어 있는 메뉴 탐색
+    // 검색어가 공백 제외하고 이름에 포함되어 있는 메뉴 탐색 조건식
     private BooleanExpression menuNameCondition(QMenu menu, String searchKeyword) {
         String formattedSearchKeyword = searchKeyword.trim().replaceAll("\\s+", "");
         return Expressions.stringTemplate("REPLACE({0}, ' ', '')", menu.name).containsIgnoreCase(formattedSearchKeyword);
     }
 
-    // 카테고리에 해당하는 가게 탐색
-    private BooleanExpression categoryCondition(String category) {
+    // 카테고리에 해당하는 가게 탐색 조건식
+    private BooleanExpression categoryCondition(QStore store, String category) {
         return store.categories.contains(Category.valueOf(category));
     }
 
-    // 단체 가능 여부에 해당하는 가게 탐색
-    private BooleanExpression isGroupAvailableCondition(Boolean isGroupAvailable) {
+    // 단체 가능 여부에 해당하는 가게 탐색 조건식
+    private BooleanExpression isGroupAvailableCondition(QStore store, Boolean isGroupAvailable) {
         return store.isGroupAvailable.eq(isGroupAvailable);
     }
 
-    // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중으로 정렬
-    private OrderSpecifier<Integer> orderByIsOpen(QOperationInfo operationInfo) {
-        return new CaseBuilder().when(openCondition(operationInfo)).then(1).otherwise(0).desc();
+    // ===== Orderings =====
+
+    // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중순 정렬식
+    private OrderSpecifier<Integer> orderByIsOpen(QStore store, QOperationInfo operationInfo) {
+        return new CaseBuilder().when(openCondition(store, operationInfo)).then(1).otherwise(0).desc();
     }
 
-    // 좋아요 많은 순서대로 정렬
-    private OrderSpecifier<Long> orderByLikeCount() {
+    // 좋아요 많은 순 정렬식
+    private OrderSpecifier<Long> orderByLikeCount(QStore store) {
         return store.likeCount.desc();
     }
 
-    // 24시간 영업일 경우 우선으로 정렬
-    private OrderSpecifier<Integer> orderByAlwaysOpen() {
+    // 24시간 영업일 경우 우선 정렬식
+    private OrderSpecifier<Integer> orderByAlwaysOpen(QStore store) {
 
         NumberExpression<Integer> alwaysOpenPriority = new CaseBuilder()
                 .when(store.isAlwaysOpen.isTrue())
@@ -136,7 +194,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return alwaysOpenPriority.desc();
     }
 
-    // 마감시간 늦는 순서대로 정렬
+    // 마감시간 늦는 순 정렬식
     private OrderSpecifier<Integer> orderByCloseTime(QOperationInfo operationInfo) {
         TimePath<LocalTime> openTime = operationInfo.openTime;
         TimePath<LocalTime> closeTime = operationInfo.closeTime;
@@ -153,13 +211,13 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return adjustedCloseTime.desc(); // 늦은 시간순으로 정렬
     }
 
-    // 가까운 순서대로 정렬
-    private OrderSpecifier<Double> orderByDistance() {
-        return distance.asc();
+    // 가까운 순 정렬식
+    private OrderSpecifier<Double> orderByDistance(QStore store, LocationCriteria criteria) {
+        return distanceExpression(store, criteria).asc();
     }
 
-    // 인증된 가게 우선 정렬
-    private OrderSpecifier<Integer> orderByIsCertified() {
+    // 인증된 가게 우선 정렬식
+    private OrderSpecifier<Integer> orderByIsCertified(QStore store) {
         NumberExpression<Integer> isCertifiedPriority = new CaseBuilder()
                 .when(store.ownerId.isNotNull())
                 .then(1)
@@ -167,196 +225,261 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return isCertifiedPriority.desc();
     }
 
+    // 인기 점수 기반 정렬식
+    private OrderSpecifier<Double> orderByPopularScore(QStore store, QStoreViewLog storeViewLog, Double globalAverageRate) {
+        double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
+        NumberExpression<Double> score =
+                Expressions.numberTemplate(Double.class,
+                        "({0}*LOG(1+{1}) + {2}*{3} + {4}*{5})",
+                        weightView, viewScoreExpression(store, storeViewLog), // 조회
+                        weightLike, likeScoreExpression(store), // 좋아요
+                        weightRate, bayesianAverageRateExpression(store, globalAverageRate) // 평점(베이지안)
+                );
+        return score.desc();
+    }
+
+    // ===== Queries =====
+
     // 검색어가 가게명, 메뉴명에 포함되는 가게 리스트 반환
     @Override
     public Page<Store> findByNameAndMenu(LocationCriteria criteria, String searchKeyword, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QMenu menu = QMenu.menu;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
+        List<Store> content = queryFactory.selectFrom(store)
                 .leftJoin(store.menuList, menu)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria))
-                        .and(storeNameCondition(searchKeyword)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria))
+                        .and(storeNameCondition(store, searchKeyword)
                                 .or(menuNameCondition(menu, searchKeyword))))
-                .orderBy(orderByIsOpen(operationInfo))
-                .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount())
-                .distinct();
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+                .orderBy(orderByIsOpen(store, operationInfo))
+                .orderBy(orderByIsCertified(store))
+                .orderBy(orderByLikeCount(store))
+                .distinct()
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = queryFactory.select(store.id.countDistinct())
+                .from(store)
+                .leftJoin(store.menuList, menu)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria))
+                        .and(storeNameCondition(store, searchKeyword)
+                                .or(menuNameCondition(menu, searchKeyword))))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 검색어가 가게명에 포함되는 가게 리스트 반환
     @Override
     public Page<Store> findByName(String searchKeyword, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .where(isDeletedCondition()
-                        .and(storeNameCondition(searchKeyword)))
-                .distinct();
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+        List<Store> content = queryFactory.selectFrom(store)
+                .where(isDeletedCondition(store)
+                        .and(storeNameCondition(store, searchKeyword)))
+                .distinct()
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = queryFactory.select(store.id.countDistinct())
+                .from(store)
+                .where(isDeletedCondition(store)
+                        .and(storeNameCondition(store, searchKeyword)))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 가까운 순 가게 리스트 반환
     @Override
     public Page<Store> findByDistance(LocationCriteria criteria, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
+        List<Store> content = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria)))
-                .orderBy(orderByIsOpen(operationInfo))
-                .orderBy(orderByDistance());
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
+                .orderBy(orderByIsOpen(store, operationInfo))
+                .orderBy(orderByDistance(store, criteria))
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = queryFactory.select(store.id.countDistinct())
+                .from(store)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 카테고리에 해당하는 가게 리스트 반환 + 동적 주종 필터
     @Override
     public Page<Store> findByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
         BooleanBuilder conditionBuilder = new BooleanBuilder();
-        conditionBuilder.and(isDeletedCondition());
-        conditionBuilder.and(radiusCondition(criteria));
-        conditionBuilder.and(categoryCondition(category));
+        conditionBuilder.and(isDeletedCondition(store));
+        conditionBuilder.and(radiusCondition(store, criteria));
+        conditionBuilder.and(categoryCondition(store, category));
         if (drinkType != null) {
             conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
         }
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .leftJoin(store.operationInfos, operationInfo);
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory
+                .select(store.id.countDistinct())
+                .from(store);
+
         if (drinkType != null) {
             query.leftJoin(store.mainDrinks, mainDrink);
+            countQuery.leftJoin(store.mainDrinks, mainDrink);
             conditionBuilder.and(mainDrink.type.eq(drinkType));
             if (priceOrder != null) {
                 query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
             }
         }
 
-        query.where(conditionBuilder)
-                .orderBy(orderByIsOpen(operationInfo))
-                .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount())
-                .distinct();
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+        List<Store> content = query.leftJoin(store.operationInfos, operationInfo)
+                .where(conditionBuilder)
+                .orderBy(orderByIsOpen(store, operationInfo))
+                .orderBy(orderByIsCertified(store))
+                .orderBy(orderByLikeCount(store))
+                .distinct()
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = countQuery
+                .where(conditionBuilder)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 현재 영업중인 가게중, 영업시간 늦는 순서 가게 리스트 반환
     @Override
     public Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
+        List<Store> content = queryFactory.selectFrom(store)
                 .leftJoin(store.operationInfos, operationInfo)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria))
-                        .and(openCondition(operationInfo)))
-                .orderBy(orderByAlwaysOpen())
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria))
+                        .and(openCondition(store, operationInfo)))
+                .orderBy(orderByAlwaysOpen(store))
                 .orderBy(orderByCloseTime(operationInfo))
-                .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount())
-                .distinct();
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+                .orderBy(orderByIsCertified(store))
+                .orderBy(orderByLikeCount(store))
+                .distinct()
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = queryFactory.select(store.id.countDistinct())
+                .from(store)
+                .leftJoin(store.operationInfos, operationInfo)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria))
+                        .and(openCondition(store, operationInfo)))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 근처 가게 리스트 반환(지도용)
     @Override
     public List<Store> findByRadius(LocationCriteria criteria) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
 
         return queryFactory.selectFrom(store)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria)))
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
                 .fetch();
     }
 
     @Override
     public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
 
-        BooleanBuilder builder = new BooleanBuilder();
-        builder.and(isDeletedCondition());
-        builder.and(radiusCondition(criteria));
+        BooleanBuilder conditionBuilder = new BooleanBuilder();
+        conditionBuilder.and(isDeletedCondition(store));
+        conditionBuilder.and(radiusCondition(store, criteria));
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory
+                .select(store.id.countDistinct())
+                .from(store);
 
         if (category != null) {
-            builder.and(categoryCondition(category));
+            conditionBuilder.and(categoryCondition(store, category));
         }
         if (isGroupAvailable != null) {
-            builder.and(isGroupAvailableCondition(isGroupAvailable));
+            conditionBuilder.and(isGroupAvailableCondition(store, isGroupAvailable));
         }
         if (conditionTime != null) {
-            builder.and(openCondition(operationInfo, conditionTime));
+            query.leftJoin(store.operationInfos, operationInfo);
+            countQuery.leftJoin(store.operationInfos, operationInfo);
+            conditionBuilder.and(openCondition(store, operationInfo, conditionTime));
         }
         if (drinkType != null) {
-            builder.and(store.mainDrinks.any().type.eq(drinkType));
+            query.leftJoin(store.mainDrinks, mainDrink);
+            countQuery.leftJoin(store.mainDrinks, mainDrink);
+            conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
         }
 
-        JPQLQuery<Store> query = queryFactory.selectFrom(store)
-                .leftJoin(store.operationInfos, operationInfo)
-                .where(builder)
-                .orderBy(orderByIsCertified())
-                .orderBy(orderByLikeCount())
-                .distinct();
-
-        List<Store> storeList = query.offset(pageable.getOffset())
+        List<Store> content = query
+                .where(conditionBuilder)
+                .orderBy(orderByIsCertified(store))
+                .orderBy(orderByLikeCount(store))
+                .distinct()
+                .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        return new PageImpl<>(storeList, pageable, query.fetchCount());
+        Long total = countQuery
+                .where(conditionBuilder)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 
     // 랜덤 카테고리 선정 후 10개 반환, 반경 내 없으면 전체에서 반환
     @Override
     public QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        store = QStore.store;
+        QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
 
-        // 반경 내 술집 존재 여부
-        boolean hasNearbyStores = queryFactory.selectFrom(store)
-                .where(isDeletedCondition()
-                        .and(radiusCondition(criteria)))
-                .fetchFirst() != null;
+        // 반경 내 술집 10개 이상 존재 여부
+        int threshold = 10;
+        boolean hasEnoughStoresNearby = queryFactory
+                .select(store.id.countDistinct())
+                .from(store)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
+                .limit(threshold)
+                .fetch()
+                .size() >= threshold;
 
         // 카테고리 랜덤 순회
         List<Category> categories = Arrays.asList(Category.values());
@@ -365,13 +488,13 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         for (Category category : categories) {
             JPQLQuery<Store> query = queryFactory.selectFrom(store)
                     .leftJoin(store.operationInfos, operationInfo)
-                    .where(isDeletedCondition()
+                    .where(isDeletedCondition(store)
                             // 반경 안에 가게가 있으면 반경 내에서, 없으면 전체에서 조회
-                            .and(hasNearbyStores ? radiusCondition(criteria) : null)
+                            .and(hasEnoughStoresNearby ? radiusCondition(store, criteria) : null)
                             .and(store.categories.contains(category)))
-                    .orderBy(orderByIsOpen(operationInfo))
-                    .orderBy(orderByIsCertified())
-                    .orderBy(orderByLikeCount())
+                    .orderBy(orderByIsOpen(store, operationInfo))
+                    .orderBy(orderByIsCertified(store))
+                    .orderBy(orderByLikeCount(store))
                     .limit(10);
 
             List<Store> result = query.fetch();
@@ -381,5 +504,65 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             }
         }
         return null;
+    }
+
+    // 인기 매장 조회, 점수 기반 계산
+    @Override
+    public Page<Store> findPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
+
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
+
+        // 반경 내 술집 10개 이상 존재 여부
+        int threshold = 10;
+        boolean hasEnoughStoresNearby = queryFactory
+                .select(store.id.countDistinct())
+                .from(store)
+                .where(isDeletedCondition(store)
+                        .and(radiusCondition(store, criteria)))
+                .limit(threshold)
+                .fetch()
+                .size() >= threshold;
+
+        BooleanBuilder where = new BooleanBuilder();
+        where.and(isDeletedCondition(store));
+        where.and(hasEnoughStoresNearby ? radiusCondition(store, criteria) : null);
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory
+                .select(store.id.countDistinct())
+                .from(store);
+
+        if (drinkType != null) {
+            query.leftJoin(store.mainDrinks, mainDrink);
+            countQuery.leftJoin(store.mainDrinks, mainDrink);
+            where.and(mainDrink.type.eq(drinkType));
+            if (priceOrder != null) {
+                query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
+            }
+        }
+
+        Double globalAverageRate = queryFactory.select(globalAverageRateExpression(store))
+                .from(store)
+                .where(store.reviewCount.gt(0))
+                .fetchOne();
+        if (globalAverageRate == null) {
+            globalAverageRate = 3.5;
+        }
+
+        List<Store> content = query
+                .where(where)
+                .orderBy(orderByPopularScore(store, storeViewLog, globalAverageRate))
+                .distinct()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = countQuery
+                .where(where)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0L : total);
     }
 }

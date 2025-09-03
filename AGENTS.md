@@ -20,6 +20,8 @@ This guide helps contributors work consistently across the Spring Boot/Gradle co
 - Packages: lowercase; Classes: PascalCase; methods/fields: camelCase; constants: UPPER_SNAKE_CASE.
 - Prefer constructor injection (Lombok `@RequiredArgsConstructor`), avoid field injection.
 - Keep controllers thin; put business logic in `service` and persistence in `repository`.
+- Do not use var for local variables; always declare explicit types.
+- Do not use abbreviated or cryptic variable names; use clear, descriptive, domain-specific names.
 
 ## Testing Guidelines
 - Frameworks: Spring Boot Test (JUnit 5), Mockito; H2 is used for tests.
@@ -36,5 +38,5 @@ This guide helps contributors work consistently across the Spring Boot/Gradle co
 - Do not commit secrets. Configure AWS, Firebase, and DB via environment variables/Spring config.
 - Avoid logging PII or tokens; validate all inputs; prefer safe defaults.
 
-## Language
+## Language & Response
 - Always answer in korean, politely.

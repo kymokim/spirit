@@ -9,7 +9,6 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-
 @Table(name = "storeManager")
 @Entity
 @Getter
@@ -32,7 +31,7 @@ public class StoreManager {
     private LocalDateTime approvedAt;
 
     @Builder
-    public StoreManager(Long storeId, Long userId){
+    public StoreManager(Long storeId, Long userId) {
         this.storeId = storeId;
         this.userId = userId;
     }

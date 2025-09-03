@@ -54,6 +54,7 @@ public class StoreQueryService {
     private final AESUtil aesUtil;
     private final ReportRepository reportRepository;
     private final StoreSuggestionRepository storeSuggestionRepository;
+    private final ManagerInvitationRepository managerInvitationRepository;
     private final LogService logService;
     private final StoreViewLogRepository storeViewLogRepository;
 
@@ -65,6 +66,15 @@ public class StoreQueryService {
     private OwnershipRequest resolveOwnership(Long ownershipId) {
         return ownershipRequestRepository.findById(ownershipId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.OWNERSHIP_NOT_FOUND));
+    }
+
+    public void validateStoreAccess(Long storeId) {
+        Auth user = AuthResolver.resolveUser();
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+        boolean isManager = storeManagerRepository.existsByUserIdAndStoreId(user.getId(), storeId);
+        if (!(isAdmin || isManager)) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
+        }
     }
 
     private double calculateRate(Store store) {
@@ -320,6 +330,22 @@ public class StoreQueryService {
         }, 3);
     }
 
+    public List<ResponseStore.StoreManagerListDto> getStoreManagers(Long storeId) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            validateStoreAccess(storeId);
+            Store store = resolveStore(storeId);
+            List<StoreManager> managers = storeManagerRepository.findByStoreIdOrderByApprovedAtAsc(storeId);
+            return managers.stream()
+                    .map(storeManager -> {
+                        Auth managerUser = AuthResolver.resolveUser(storeManager.getUserId());
+                        return ResponseStore.StoreManagerListDto.toDto(
+                                storeManager, store.getOwnerId(), managerUser.getNickname(), managerUser.getImgUrl()
+                        );
+                    })
+                    .toList();
+        }, 3);
+    }
+
     public List<ResponseStore.LikedStoreStatDto> getLikedStoreStats(RequestStore.LikedStoreStatFilter filter) {
         return TransactionRetryUtil.executeWithRetry(() -> likedStoreRepository.getLikedStoreStats(filter), 3);
     }
@@ -352,5 +378,13 @@ public class StoreQueryService {
     public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         Page<Store> storePage = storeRepository.findPopularStore(criteria, drinkType, priceOrder, pageable);
         return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
+    }
+
+    public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            ManagerInvitation invitation = managerInvitationRepository.findById(managerInvitationId)
+                    .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
+            return ResponseStore.ManagerInvitationPreviewDto.toDto(invitation);
+        }, 3);
     }
 }

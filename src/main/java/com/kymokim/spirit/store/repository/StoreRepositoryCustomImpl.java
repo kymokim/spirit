@@ -28,9 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.kymokim.spirit.store.entity.QMainDrink.mainDrink;
-
-
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext(unitName = "main")
     private EntityManager entityManager;
@@ -330,6 +327,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
 
         BooleanBuilder conditionBuilder = new BooleanBuilder();
         conditionBuilder.and(isDeletedCondition(store));
@@ -513,6 +511,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QStoreViewLog storeViewLog = QStoreViewLog.storeViewLog;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
 
         // 반경 내 술집 10개 이상 존재 여부
         int threshold = 10;

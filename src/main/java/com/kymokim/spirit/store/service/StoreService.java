@@ -14,6 +14,8 @@ import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreManagerInviteAcceptedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnerChangedNotificationEvent;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -505,6 +507,9 @@ public class StoreService {
         storeManagerRepository.save(storeManager);
         authService.addRole(user, Role.MANAGER);
         managerInvitationRepository.delete(managerInvitation);
+
+        Store store = resolveStore(storeManager.getStoreId());
+        NotificationEvent.raise(new StoreManagerInviteAcceptedNotificationEvent(store));
     }
 
     public void changeStoreOwner(Long storeManagerId) {
@@ -518,6 +523,8 @@ public class StoreService {
         }
         store.setOwnerId(storeManager.getUserId());
         storeRepository.save(store);
+
+        NotificationEvent.raise(new StoreOwnerChangedNotificationEvent(store));
     }
 
     public void removeStoreManager(Long storeManagerId) {

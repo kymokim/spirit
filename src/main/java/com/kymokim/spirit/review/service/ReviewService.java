@@ -7,6 +7,8 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
 import com.kymokim.spirit.review.dto.RequestReview;
 import com.kymokim.spirit.review.dto.ResponseReview;
 import com.kymokim.spirit.review.entity.Review;
@@ -15,7 +17,6 @@ import com.kymokim.spirit.review.exception.ReviewErrorCode;
 import com.kymokim.spirit.review.repository.ReviewImageRepository;
 import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.entity.Store;
-import com.kymokim.spirit.store.entity.StoreManager;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreManagerRepository;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -25,7 +26,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
@@ -37,7 +37,6 @@ import java.util.*;
 public class ReviewService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
-    private final StoreManagerRepository storeManagerRepository;
     private final ReviewImageRepository reviewImageRepository;
     private final S3Service s3Service;
     private final StoreService storeService;
@@ -71,6 +70,8 @@ public class ReviewService {
         store.setTotalRate(totalRate);
         store.increaseReviewCount();
         storeRepository.save(store);
+
+        NotificationEvent.raise(new ReviewCreatedNotificationEvent(store, review.getId()));
     }
 
 

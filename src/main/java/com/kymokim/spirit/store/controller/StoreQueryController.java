@@ -78,6 +78,28 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "현재 운영자 조회")
+    @GetMapping("/managers/{storeId}")
+    public ResponseEntity<ResponseDto> getStoreManagers(@PathVariable("storeId") Long storeId) {
+        List<ResponseStore.StoreManagerListDto> list = storeQueryService.getStoreManagers(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store manager list retrieved successfully.")
+                .data(list)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "운영자 초대 프리뷰 조회")
+    @GetMapping("/manager-invitation/preview/{managerInvitationId}")
+    public ResponseEntity<ResponseDto> getManagerInvitationPreview(@PathVariable("managerInvitationId") String managerInvitationId) {
+        ResponseStore.ManagerInvitationPreviewDto dto = storeQueryService.getManagerInvitationPreview(managerInvitationId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Manager invitation preview retrieved successfully.")
+                .data(dto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "가까운 순서 가게 리스트 조회")
     @GetMapping("/distance")
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,

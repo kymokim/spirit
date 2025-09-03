@@ -14,6 +14,7 @@ public interface StoreManagerRepository extends JpaRepository<StoreManager, Long
     List<StoreManager> findByStoreIdOrderByApprovedAtAsc(Long storeId);
     void deleteAllByUserId(Long userId);
     List<StoreManager> findAllByStoreId(Long storeId);
+    List<StoreManager> findAllByUserId(Long userId);
     boolean existsByUserIdAndStoreId(Long userId, Long storeId);
     Long countByApprovedAtBetween(LocalDateTime start, LocalDateTime end);
     Long countByApprovedAtIsNotNull();

@@ -471,11 +471,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         // 반경 내 술집 10개 이상 존재 여부
         int threshold = 10;
         boolean hasEnoughStoresNearby = queryFactory
-                .select(store.id.countDistinct())
+                .select(store.id)
                 .from(store)
                 .where(isDeletedCondition(store)
                         .and(radiusCondition(store, criteria)))
                 .limit(threshold)
+                .distinct()
                 .fetch()
                 .size() >= threshold;
 
@@ -516,10 +517,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         // 반경 내 술집 10개 이상 존재 여부
         int threshold = 10;
         boolean hasEnoughStoresNearby = queryFactory
-                .select(store.id.countDistinct())
+                .select(store.id)
                 .from(store)
                 .where(isDeletedCondition(store)
                         .and(radiusCondition(store, criteria)))
+                .distinct()
                 .limit(threshold)
                 .fetch()
                 .size() >= threshold;

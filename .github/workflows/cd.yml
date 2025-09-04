@@ -104,6 +104,13 @@ jobs:
             echo "    enabled: false" >> ${APP_CONFIG_FILE}
             echo "  api-docs:" >> ${APP_CONFIG_FILE}
             echo "    enabled: false" >> ${APP_CONFIG_FILE}
+            echo "app:" >> ${APP_CONFIG_FILE}
+            echo "  share:" >> ${APP_CONFIG_FILE}
+            echo "    domain: https://team-spirit.click" >> ${APP_CONFIG_FILE}
+          elif [[ "${{ env.PROFILE }}" == "dev" ]]; then
+            echo "app:" >> ${APP_CONFIG_FILE}
+            echo "  share:" >> ${APP_CONFIG_FILE}
+            echo "    domain: https://dev.team-spirit.click" >> ${APP_CONFIG_FILE}
           fi
           
       # application-S3.properties 생성

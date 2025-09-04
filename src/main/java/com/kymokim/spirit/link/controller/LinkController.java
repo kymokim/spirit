@@ -27,10 +27,7 @@ public class LinkController {
     @GetMapping("/link/{type}/{id}")
     public ResponseEntity<?> redirectByUserAgent(@PathVariable String type, @PathVariable String id,
                                                  @RequestHeader(value = "User-Agent", required = false) String userAgent) {
-        System.out.println("type:" + type + " id:" + id + " ua:" + userAgent);
-        ResponseEntity<?> response = linkService.redirectByUserAgent(LinkData.PathData.builder().type(PathType.fromUrl(type)).id(id).build(), userAgent);
-        System.out.println(response);
-        return response;
+        return linkService.redirectByUserAgent(LinkData.PathData.builder().type(PathType.fromUrl(type)).id(id).build(), userAgent);
     }
 
     @GetMapping("/ul/**")

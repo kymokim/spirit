@@ -28,7 +28,7 @@ public class TemplateProvider {
         LinkData.MetaData metaData = LinkData.MetaData.builder().build();
         switch (pathData.getType()) {
             case STORE -> {
-                metaData.setDescription("한잔할까에서 매장 정보를 확인해보세요.");
+                metaData.setDescription("매장 정보");
                 Store store = storeRepository.findById(Long.valueOf(pathData.getId())).orElse(null);
                 if (store != null) {
                     metaData.setTitle(store.getName() + " | 한잔할까");
@@ -37,10 +37,10 @@ public class TemplateProvider {
                 }
             }
             case STORE_MANAGER_INVITE -> {
-                metaData.setDescription("운영자 초대를 수락하고 한잔할까에서 매장을 관리하세요.");
+                metaData.setDescription("운영진 초대");
                 ManagerInvitation managerInvitation = managerInvitationRepository.findById(pathData.getId()).orElse(null);
                 if (managerInvitation != null) {
-                    metaData.setTitle(managerInvitation.getStoreName() + " - 운영자 초대 | 한잔할까");
+                    metaData.setTitle(managerInvitation.getStoreName() + " | 한잔할까");
                     if (!Objects.equals(managerInvitation.getStoreImage(), null))
                         metaData.setImage(managerInvitation.getStoreImage());
                 }

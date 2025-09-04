@@ -493,7 +493,6 @@ public class StoreService {
         ManagerInvitation managerInvitation = managerInvitationRepository.findById(invitationId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
         if (managerInvitation.getExpiresAt() != null && managerInvitation.getExpiresAt().isBefore(LocalDateTime.now())) {
-            managerInvitationRepository.delete(managerInvitation);
             throw new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE);
         }
         Auth user = AuthResolver.resolveUser();

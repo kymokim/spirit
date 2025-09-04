@@ -382,9 +382,12 @@ public class StoreQueryService {
 
     public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            ManagerInvitation invitation = managerInvitationRepository.findById(managerInvitationId)
+            ManagerInvitation managerInvitation = managerInvitationRepository.findById(managerInvitationId)
                     .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
-            return ResponseStore.ManagerInvitationPreviewDto.toDto(invitation);
+            if (managerInvitation.getExpiresAt() != null && managerInvitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE);
+            }
+            return ResponseStore.ManagerInvitationPreviewDto.toDto(managerInvitation);
         }, 3);
     }
 }

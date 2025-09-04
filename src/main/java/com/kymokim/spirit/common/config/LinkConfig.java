@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class LinkConfig {
 
-    @Value("${app.share.domain:https://dev.team-spirit.click}")
+    @Value("${app.share.domain:https://dev.team-spirit.click}") //dev
+//    @Value("${app.share.domain:https://team-spirit.click}") //prod
     public String shareDomain;
 
     @Value("${app.android.package:com.spiritfront}")

@@ -22,6 +22,7 @@ import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
+import com.kymokim.spirit.log.service.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +46,7 @@ public class StoreService {
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
     private final StoreSuggestionRepository storeSuggestionRepository;
+    private final LogService logService;
     private final BoardImageRepository boardImageRepository;
     private final AuthService authService;
     private final LinkBuilder linkBuilder;
@@ -455,6 +457,8 @@ public class StoreService {
         storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(requester.getId()).build();
         storeManagerRepository.save(storeManager);
 
+        logService.createOwnershipLog(ownershipRequest.getStore().getId());
+
         NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(requester, ownershipRequest.getStore()));
     }
 
@@ -489,7 +493,7 @@ public class StoreService {
         return ResponseStore.InviteStoreManagerDto.builder().inviteLink(linkBuilder.serverLink(pathData)).build();
     }
 
-    public ResponseStore.AcceptManagerInvitationDto acceptManagerInvitation(String invitationId) {
+    public void acceptManagerInvitation(String invitationId) {
         ManagerInvitation managerInvitation = managerInvitationRepository.findById(invitationId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
         if (managerInvitation.getExpiresAt() != null && managerInvitation.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -509,7 +513,6 @@ public class StoreService {
 
         Store store = resolveStore(storeManager.getStoreId());
         NotificationEvent.raise(new StoreManagerInviteAcceptedNotificationEvent(store));
-        return ResponseStore.AcceptManagerInvitationDto.toDto(store);
     }
 
     public void changeStoreOwner(Long storeManagerId) {

@@ -822,26 +822,6 @@ public class ResponseStore {
     }
 
     @Getter
-    @Builder
-    public static class OwnershipStatDto {
-        private Long dayCount;
-        private Long weekCount;
-        private Long monthCount;
-        private Long yearCount;
-        private Long totalCount;
-
-        public static OwnershipStatDto toDto(Long dayCount, Long weekCount, Long monthCount, Long yearCount, Long totalCount) {
-            return OwnershipStatDto.builder()
-                    .dayCount(dayCount)
-                    .weekCount(weekCount)
-                    .monthCount(monthCount)
-                    .yearCount(yearCount)
-                    .totalCount(totalCount)
-                    .build();
-        }
-    }
-
-    @Getter
     @AllArgsConstructor
     public static class LikedStoreStatDto {
         private String ageGroup;
@@ -905,18 +885,6 @@ public class ResponseStore {
             return ManagerInvitationPreviewDto.builder()
                     .storeName(invitation.getStoreName())
                     .storeImage(invitation.getStoreImage())
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
-    public static class AcceptManagerInvitationDto {
-        private Long storeId;
-
-        public static AcceptManagerInvitationDto toDto(Store store) {
-            return AcceptManagerInvitationDto.builder()
-                    .storeId(store.getId())
                     .build();
         }
     }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,21 @@ public class LogController {
         List<ResponseLog.StoreViewLogStatListDto> dtoList =  logService.getStoreViewLogStats(storeId, period, gender, ageGroup, groupBy, showBy);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store view log stats retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "매장 권한 승인 통계")
+    @GetMapping("/ownership/stats")
+    public ResponseEntity<ResponseDto> getOwnershipStats(
+            @RequestParam String period,
+            @RequestParam String showBy
+    ) {
+        List<ResponseLog.OwnershipStatListDto> dtoList = logService.getOwnershipStats(period, showBy);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Ownership stats retrieved successfully.")
                 .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

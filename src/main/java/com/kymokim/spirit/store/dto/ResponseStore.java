@@ -908,4 +908,16 @@ public class ResponseStore {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class AcceptManagerInvitationDto {
+        private Long storeId;
+
+        public static AcceptManagerInvitationDto toDto(Store store) {
+            return AcceptManagerInvitationDto.builder()
+                    .storeId(store.getId())
+                    .build();
+        }
+    }
 }

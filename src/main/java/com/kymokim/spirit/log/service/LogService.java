@@ -8,8 +8,10 @@ import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.log.dto.RequestLog;
 import com.kymokim.spirit.log.dto.ResponseLog;
+import com.kymokim.spirit.log.entity.OwnershipLog;
 import com.kymokim.spirit.log.entity.StoreViewLog;
 import com.kymokim.spirit.log.exception.LogErrorCode;
+import com.kymokim.spirit.log.repository.OwnershipLogRepository;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ import java.util.Set;
 @MainTransactional
 public class LogService {
     private final StoreViewLogRepository storeViewLogRepository;
+    private final OwnershipLogRepository ownershipLogRepository;
     private final AESUtil aesUtil;
 
     public void createStoreViewLog(Long storeId) {
@@ -81,5 +84,36 @@ public class LogService {
 
         RequestLog.StoreViewLogStatFilter filter = new RequestLog.StoreViewLogStatFilter(storeId, startDate, now, gender, ageGroup, groupBy, showBy);
         return storeViewLogRepository.getStoreViewLogStats(filter);
+    }
+
+    public void createOwnershipLog(Long storeId) {
+        ownershipLogRepository.save(OwnershipLog.builder().storeId(storeId).build());
+    }
+
+    public List<ResponseLog.OwnershipStatListDto> getOwnershipStats(String period, String showBy) {
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = switch (period) {
+            case "day" -> now;
+            case "week" -> now.minusDays(6);
+            case "month" -> now.minusDays(29);
+            case "year" -> now.minusDays(364);
+            default -> throw new CustomException(LogErrorCode.INVALID_PERIOD);
+        };
+
+        Map<String, Integer> unitOrder = Map.of(
+                "day", 1,
+                "week", 2,
+                "month", 3,
+                "year", 4
+        );
+
+        Integer periodOrder = unitOrder.get(period);
+        Integer showByOrder = unitOrder.get(showBy);
+        if (showByOrder == null || showByOrder > periodOrder) {
+            throw new CustomException(LogErrorCode.INVALID_SHOW_BY);
+        }
+
+        RequestLog.OwnershipLogStatFilter filter = new RequestLog.OwnershipLogStatFilter(startDate, now, showBy);
+        return ownershipLogRepository.getOwnershipStats(filter);
     }
 }

@@ -19,4 +19,12 @@ public class RequestLog {
         private List<String> groupBy;
         private String showBy;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OwnershipLogStatFilter {
+        private LocalDate startDate;
+        private LocalDate endDate;
+        private String showBy;
+    }
 }

@@ -233,10 +233,9 @@ public class StoreController {
 
     @PostMapping(value = "/manager-invitation/accept/{managerInvitationId}")
     public ResponseEntity<ResponseDto> acceptStoreManager(@PathVariable("managerInvitationId") String managerInvitationId) {
-        ResponseStore.AcceptManagerInvitationDto dto = storeService.acceptManagerInvitation(managerInvitationId);
+        storeService.acceptManagerInvitation(managerInvitationId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store manager invitation accepted successfully.")
-                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

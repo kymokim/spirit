@@ -22,4 +22,11 @@ public class ResponseLog {
         private Gender gender;
         private long count;
     }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OwnershipStatListDto {
+        private LocalDate date;
+        private long count;
+    }
 }

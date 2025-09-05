@@ -301,34 +301,6 @@ public class StoreQueryService {
         }, 3);
     }
 
-    public ResponseStore.OwnershipStatDto getOwnershipStats() {
-        return TransactionRetryUtil.executeWithRetry(() -> {
-            LocalDate now = LocalDate.now();
-            LocalDateTime end = now.atTime(LocalTime.MAX);
-
-            LocalDateTime dayStart = now.atStartOfDay();
-            Long dayCount = storeManagerRepository.countByApprovedAtBetween(dayStart, end);
-
-            LocalDateTime weekStart = now.minusDays(6).atStartOfDay();
-            Long weekCount = storeManagerRepository.countByApprovedAtBetween(weekStart, end);
-
-            LocalDateTime monthStart = now.minusDays(29).atStartOfDay();
-            Long monthCount = storeManagerRepository.countByApprovedAtBetween(monthStart, end);
-
-            LocalDateTime yearStart = now.minusDays(364).atStartOfDay();
-            Long yearCount = storeManagerRepository.countByApprovedAtBetween(yearStart, end);
-
-            Long totalCount = storeManagerRepository.countByApprovedAtIsNotNull();
-
-            return ResponseStore.OwnershipStatDto.builder()
-                    .dayCount(dayCount)
-                    .weekCount(weekCount)
-                    .monthCount(monthCount)
-                    .yearCount(yearCount)
-                    .totalCount(totalCount)
-                    .build();
-        }, 3);
-    }
 
     public List<ResponseStore.StoreManagerListDto> getStoreManagers(Long storeId) {
         return TransactionRetryUtil.executeWithRetry(() -> {

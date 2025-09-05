@@ -277,17 +277,6 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "매장 권한 인증 통계")
-    @GetMapping("/ownership/stats")
-    public ResponseEntity<ResponseDto> getOwnershipStats() {
-        ResponseStore.OwnershipStatDto ownershipStatDto = storeQueryService.getOwnershipStats();
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store ownership stats retrieved successfully.")
-                .data(ownershipStatDto)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
 
     @Operation(summary = "가게 좋아요 통계")
     @GetMapping("/liked/stats")

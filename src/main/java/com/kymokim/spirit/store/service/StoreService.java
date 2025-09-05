@@ -489,7 +489,7 @@ public class StoreService {
         return ResponseStore.InviteStoreManagerDto.builder().inviteLink(linkBuilder.serverLink(pathData)).build();
     }
 
-    public void acceptManagerInvitation(String invitationId) {
+    public ResponseStore.AcceptManagerInvitationDto acceptManagerInvitation(String invitationId) {
         ManagerInvitation managerInvitation = managerInvitationRepository.findById(invitationId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
         if (managerInvitation.getExpiresAt() != null && managerInvitation.getExpiresAt().isBefore(LocalDateTime.now())) {
@@ -509,6 +509,7 @@ public class StoreService {
 
         Store store = resolveStore(storeManager.getStoreId());
         NotificationEvent.raise(new StoreManagerInviteAcceptedNotificationEvent(store));
+        return ResponseStore.AcceptManagerInvitationDto.toDto(store);
     }
 
     public void changeStoreOwner(Long storeManagerId) {

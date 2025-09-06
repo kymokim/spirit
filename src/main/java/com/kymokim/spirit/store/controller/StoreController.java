@@ -210,4 +210,51 @@ public class StoreController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @PostMapping(value = "/share/{storeId}")
+    public ResponseEntity<ResponseDto> shareStore(@PathVariable("storeId") Long storeId) {
+        ResponseStore.ShareStoreDto shareStoreDto = storeService.shareStore(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store share link created successfully.")
+                .data(shareStoreDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/manager-invitation/create/{storeId}")
+    public ResponseEntity<ResponseDto> inviteStoreManager(@PathVariable("storeId") Long storeId) {
+        ResponseStore.InviteStoreManagerDto inviteStoreManagerDto = storeService.inviteStoreManager(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store manager invitation created successfully.")
+                .data(inviteStoreManagerDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/manager-invitation/accept/{managerInvitationId}")
+    public ResponseEntity<ResponseDto> acceptStoreManager(@PathVariable("managerInvitationId") String managerInvitationId) {
+        storeService.acceptManagerInvitation(managerInvitationId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store manager invitation accepted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PatchMapping(value = "/owner/change/{storeManagerId}")
+    public ResponseEntity<ResponseDto> changeStoreOwner(@PathVariable("storeManagerId") Long storeManagerId) {
+        storeService.changeStoreOwner(storeManagerId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store owner changed successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @DeleteMapping(value = "/manager/delete/{storeManagerId}")
+    public ResponseEntity<ResponseDto> removeStoreManager(@PathVariable("storeManagerId") Long storeManagerId) {
+        storeService.removeStoreManager(storeManagerId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store manager removed successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class ResponseStore {
@@ -791,7 +792,6 @@ public class ResponseStore {
     @Getter
     @Builder
     public static class ManagedStoreListDto {
-        private Long id;
         private Long storeId;
         private String mainImgUrl;
         private String storeName;
@@ -806,7 +806,6 @@ public class ResponseStore {
 
         public static ManagedStoreListDto toDto(StoreManager storeManager, Store store, Double storeRate, Long normalReportCount, Long priorityReportCount) {
             return ManagedStoreListDto.builder()
-                    .id(storeManager.getId())
                     .storeId(store.getId())
                     .storeName(store.getName())
                     .mainImgUrl(store.getMainImgUrl())
@@ -823,30 +822,70 @@ public class ResponseStore {
     }
 
     @Getter
-    @Builder
-    public static class OwnershipStatDto {
-        private Long dayCount;
-        private Long weekCount;
-        private Long monthCount;
-        private Long yearCount;
-        private Long totalCount;
-
-        public static OwnershipStatDto toDto(Long dayCount, Long weekCount, Long monthCount, Long yearCount, Long totalCount) {
-            return OwnershipStatDto.builder()
-                    .dayCount(dayCount)
-                    .weekCount(weekCount)
-                    .monthCount(monthCount)
-                    .yearCount(yearCount)
-                    .totalCount(totalCount)
-                    .build();
-        }
-    }
-
-    @Getter
     @AllArgsConstructor
     public static class LikedStoreStatDto {
         private String ageGroup;
         private Gender gender;
         private long count;
+    }
+
+    @Getter
+    @Builder
+    public static class ShareStoreDto {
+        private String shareLink;
+
+        public static ShareStoreDto toDto(String shareLink) {
+            return ShareStoreDto.builder()
+                    .shareLink(shareLink)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class InviteStoreManagerDto {
+        private String inviteLink;
+
+        public static InviteStoreManagerDto toDto(String inviteLink) {
+            return InviteStoreManagerDto.builder()
+                    .inviteLink(inviteLink)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class StoreManagerListDto {
+        private Long storeManagerId;
+        private Long userId;
+        private LocalDateTime approvedAt;
+        private Boolean isOwner;
+        private String nickname;
+        private String profileImgUrl;
+
+        public static StoreManagerListDto toDto(StoreManager storeManager, Long ownerId, String nickname, String profileImgUrl) {
+            return StoreManagerListDto.builder()
+                    .storeManagerId(storeManager.getId())
+                    .userId(storeManager.getUserId())
+                    .approvedAt(storeManager.getApprovedAt())
+                    .isOwner(Objects.equals(ownerId, storeManager.getUserId()))
+                    .nickname(nickname)
+                    .profileImgUrl(profileImgUrl)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class ManagerInvitationPreviewDto {
+        private String storeName;
+        private String storeImage;
+
+        public static ManagerInvitationPreviewDto toDto(ManagerInvitation invitation) {
+            return ManagerInvitationPreviewDto.builder()
+                    .storeName(invitation.getStoreName())
+                    .storeImage(invitation.getStoreImage())
+                    .build();
+        }
     }
 }

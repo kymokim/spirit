@@ -8,20 +8,26 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.link.dto.LinkData;
+import com.kymokim.spirit.link.dto.PathType;
+import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
 import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreManagerInviteAcceptedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.StoreOwnerChangedNotificationEvent;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
+import com.kymokim.spirit.log.service.LogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -40,8 +46,11 @@ public class StoreService {
     private final BusinessRegistrationValidator businessRegistrationValidator;
     private final AESUtil aesUtil;
     private final StoreSuggestionRepository storeSuggestionRepository;
+    private final LogService logService;
     private final BoardImageRepository boardImageRepository;
     private final AuthService authService;
+    private final LinkBuilder linkBuilder;
+    private final ManagerInvitationRepository managerInvitationRepository;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -448,6 +457,8 @@ public class StoreService {
         storeManager = StoreManager.builder().storeId(ownershipRequest.getStore().getId()).userId(requester.getId()).build();
         storeManagerRepository.save(storeManager);
 
+        logService.createOwnershipLog(ownershipRequest.getStore().getId());
+
         NotificationEvent.raise(new StoreOwnershipApprovedNotificationEvent(requester, ownershipRequest.getStore()));
     }
 
@@ -464,5 +475,78 @@ public class StoreService {
         NotificationEvent.raise(new StoreOwnershipRejectedNotificationEvent(AuthResolver.resolveUser(ownershipRequest.getRequesterId()), ownershipRequest.getStore(), rejectionReason));
     }
 
+    public ResponseStore.ShareStoreDto shareStore(Long storeId) {
+        LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.STORE).id(storeId.toString()).build();
+        return ResponseStore.ShareStoreDto.builder().shareLink(linkBuilder.serverLink(pathData)).build();
+    }
 
+    public ResponseStore.InviteStoreManagerDto inviteStoreManager(Long storeId) {
+        validateStoreAccess(storeId);
+        Store store = resolveStore(storeId);
+        ManagerInvitation managerInvitation = ManagerInvitation.builder()
+                .storeId(storeId)
+                .storeName(store.getName())
+                .storeImage(!Objects.equals(store.getMainImgUrl(), null) ? store.getMainImgUrl() : null)
+                .build();
+        managerInvitationRepository.save(managerInvitation);
+        LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.STORE_MANAGER_INVITE).id(managerInvitation.getId()).build();
+        return ResponseStore.InviteStoreManagerDto.builder().inviteLink(linkBuilder.serverLink(pathData)).build();
+    }
+
+    public void acceptManagerInvitation(String invitationId) {
+        ManagerInvitation managerInvitation = managerInvitationRepository.findById(invitationId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE));
+        if (managerInvitation.getExpiresAt() != null && managerInvitation.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new CustomException(StoreErrorCode.INVALID_MANAGER_INVITATION_CODE);
+        }
+        Auth user = AuthResolver.resolveUser();
+        if (storeManagerRepository.existsByUserIdAndStoreId(user.getId(), managerInvitation.getStoreId())) {
+            throw new CustomException(StoreErrorCode.STORE_MANAGER_ALREADY_EXIST);
+        }
+        StoreManager storeManager = StoreManager.builder()
+                .storeId(managerInvitation.getStoreId())
+                .userId(user.getId())
+                .build();
+        storeManagerRepository.save(storeManager);
+        authService.addRole(user, Role.MANAGER);
+        managerInvitationRepository.delete(managerInvitation);
+
+        Store store = resolveStore(storeManager.getStoreId());
+        NotificationEvent.raise(new StoreManagerInviteAcceptedNotificationEvent(store));
+    }
+
+    public void changeStoreOwner(Long storeManagerId) {
+        StoreManager storeManager = storeManagerRepository.findById(storeManagerId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_MANAGER_NOT_FOUND));
+        Auth user = AuthResolver.resolveUser();
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+        Store store = resolveStore(storeManager.getStoreId());
+        if (!(isAdmin || Objects.equals(store.getOwnerId(), user.getId()))) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
+        }
+        store.setOwnerId(storeManager.getUserId());
+        storeRepository.save(store);
+
+        NotificationEvent.raise(new StoreOwnerChangedNotificationEvent(store));
+    }
+
+    public void removeStoreManager(Long storeManagerId) {
+        StoreManager storeManager = storeManagerRepository.findById(storeManagerId)
+                .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_MANAGER_NOT_FOUND));
+        Auth user = AuthResolver.resolveUser();
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+        Store store = resolveStore(storeManager.getStoreId());
+        if (!(isAdmin || Objects.equals(store.getOwnerId(), user.getId()))) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS);
+        }
+        if (Objects.equals(store.getOwnerId(), storeManager.getUserId())) {
+            throw new CustomException(StoreErrorCode.STORE_UNAUTHORIZED_ACCESS, "Owner cannot be removed.");
+        }
+        Long deletedManagerId = storeManager.getUserId();
+        storeManagerRepository.delete(storeManager);
+        List<StoreManager> storeManagerList = storeManagerRepository.findAllByUserId(deletedManagerId);
+        if (storeManagerList == null || storeManagerList.isEmpty()) {
+            authService.removeRole(AuthResolver.resolveUser(deletedManagerId), Role.MANAGER);
+        }
+    }
 }

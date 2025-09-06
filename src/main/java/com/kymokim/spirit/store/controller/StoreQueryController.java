@@ -78,6 +78,28 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "현재 운영자 조회")
+    @GetMapping("/managers/{storeId}")
+    public ResponseEntity<ResponseDto> getStoreManagers(@PathVariable("storeId") Long storeId) {
+        List<ResponseStore.StoreManagerListDto> list = storeQueryService.getStoreManagers(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store manager list retrieved successfully.")
+                .data(list)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "운영자 초대 프리뷰 조회")
+    @GetMapping("/manager-invitation/preview/{managerInvitationId}")
+    public ResponseEntity<ResponseDto> getManagerInvitationPreview(@PathVariable("managerInvitationId") String managerInvitationId) {
+        ResponseStore.ManagerInvitationPreviewDto dto = storeQueryService.getManagerInvitationPreview(managerInvitationId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Manager invitation preview retrieved successfully.")
+                .data(dto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "가까운 순서 가게 리스트 조회")
     @GetMapping("/distance")
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
@@ -255,17 +277,6 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "매장 권한 인증 통계")
-    @GetMapping("/ownership/stats")
-    public ResponseEntity<ResponseDto> getOwnershipStats() {
-        ResponseStore.OwnershipStatDto ownershipStatDto = storeQueryService.getOwnershipStats();
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store ownership stats retrieved successfully.")
-                .data(ownershipStatDto)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
 
     @Operation(summary = "가게 좋아요 통계")
     @GetMapping("/liked/stats")

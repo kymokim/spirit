@@ -47,4 +47,14 @@ public class NotificationController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @GetMapping("/has-unread")
+    public ResponseEntity<ResponseDto> hasUnreadNotification() {
+        ResponseNotification.HasUnreadResponseDto data = notificationService.hasUnreadNotification();
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Unread notification presence fetched successfully.")
+                .data(data)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

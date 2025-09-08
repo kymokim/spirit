@@ -36,4 +36,16 @@ public class ResponseNotification {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    public static class HasUnreadResponseDto {
+        private boolean hasUnread;
+
+        public static HasUnreadResponseDto toDto(boolean hasUnread) {
+            return HasUnreadResponseDto.builder()
+                    .hasUnread(hasUnread)
+                    .build();
+        }
+    }
 }

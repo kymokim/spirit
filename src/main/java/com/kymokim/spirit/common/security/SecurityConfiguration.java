@@ -43,6 +43,7 @@ public class SecurityConfiguration{
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        .requestMatchers("/api/auth/clean-up").permitAll()
                         .requestMatchers("/api/version/check").permitAll()
                         .requestMatchers("/link/**", "/ul/**").permitAll()
                         .requestMatchers("/.well-known/**").permitAll()

@@ -45,4 +45,10 @@ public class NotificationService {
         return notificationRepository.findAllByUserIdOrderByCreatedAtDesc(AuthResolver.resolveUserId(), pageable)
                 .map(ResponseNotification.NotificationResponseDto::toDto);
     }
+
+    @Transactional(readOnly = true)
+    public ResponseNotification.HasUnreadResponseDto hasUnreadNotification() {
+        boolean hasUnread = notificationRepository.existsByUserIdAndHasReadFalse(AuthResolver.resolveUserId());
+        return ResponseNotification.HasUnreadResponseDto.toDto(hasUnread);
+    }
 }

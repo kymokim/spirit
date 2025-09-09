@@ -13,4 +13,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findAllByUserId(Long userId);
     void deleteAllByUserId(Long userId);
     void deleteByCreatedAtBefore(LocalDateTime expireDate);
+    boolean existsByUserIdAndHasReadFalse(Long userId);
 }

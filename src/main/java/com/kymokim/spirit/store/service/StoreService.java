@@ -118,6 +118,15 @@ public class StoreService {
         StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
         Store store = storeSuggestion.getStore();
+        if (Objects.equals(store.getHasScreen(), null)
+                || Objects.equals(store.getIsGroupAvailable(), null)
+                || Objects.equals(store.getIsAlwaysOpen(), null)
+                || Objects.equals(store.getCategories(), null)
+                || store.getCategories().isEmpty()
+                || Objects.equals(store.getMainDrinks(), null)
+                || store.getMainDrinks().isEmpty()) {
+            throw new CustomException(StoreErrorCode.STORE_REQUIRED_INFO_EMPTY);
+        }
         store.setIsDeleted(false);
         storeRepository.save(store);
         storeSuggestionRepository.delete(storeSuggestion);

@@ -169,6 +169,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return store.isGroupAvailable.eq(isGroupAvailable);
     }
 
+    // 대표 이미지 보유 가게 탐색 조건식
+    private BooleanExpression hasMainImageCondition(QStore store) {
+        return store.mainImgUrl.isNotNull().and(store.mainImgUrl.isNotEmpty());
+    }
+
     // ===== Orderings =====
 
     // 영업중인 가게가 먼저, 그렇지 않은 가게는 나중순 정렬식
@@ -431,8 +436,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         if (category != null) {
             conditionBuilder.and(categoryCondition(store, category));
         }
-        if (isGroupAvailable != null) {
-            conditionBuilder.and(isGroupAvailableCondition(store, isGroupAvailable));
+        if (isGroupAvailable != null && isGroupAvailable) {
+            conditionBuilder.and(isGroupAvailableCondition(store, true));
         }
         if (conditionTime != null) {
             query.leftJoin(store.operationInfos, operationInfo);
@@ -490,6 +495,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                     .where(isDeletedCondition(store)
                             // 반경 안에 가게가 있으면 반경 내에서, 없으면 전체에서 조회
                             .and(hasEnoughStoresNearby ? radiusCondition(store, criteria) : null)
+                            .and(hasMainImageCondition(store))
                             .and(store.categories.contains(category)))
                     .orderBy(orderByIsOpen(store, operationInfo))
                     .orderBy(orderByIsCertified(store))

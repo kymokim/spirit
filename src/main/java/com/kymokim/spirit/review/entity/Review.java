@@ -24,7 +24,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "content")
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "rate")
@@ -46,7 +46,7 @@ public class Review {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
-    @Column(name = "reply")
+    @Column(name = "reply", columnDefinition = "TEXT")
     private String reply;
 
     @Column(name = "replied_at")

@@ -35,7 +35,7 @@ public class Report {
     @Enumerated(EnumType.STRING)
     private ReportReason reportReason;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ColumnDefault("'PENDING'")

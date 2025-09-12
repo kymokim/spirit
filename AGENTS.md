@@ -40,3 +40,9 @@ This guide helps contributors work consistently across the Spring Boot/Gradle co
 
 ## Language & Response
 - Always answer in korean, politely.
+
+## User Input File Search Guidelines
+- Base directory: /mnt/c/Users/User/codex-upload
+- Depth: max depth=1
+- Trigger: Auto detect when user mention photo or file uploaded.
+- Read-only access to files; never move or delete.

@@ -37,7 +37,7 @@ public class Store {
     @Column(name = "contact")
     private String contact;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
     @Column(name = "has_screen")

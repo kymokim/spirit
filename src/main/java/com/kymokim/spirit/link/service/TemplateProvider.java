@@ -45,6 +45,11 @@ public class TemplateProvider {
                         metaData.setImage(managerInvitation.getStoreImage());
                 }
             }
+            case INSTALL -> {
+                metaData.setTitle("한잔할까 설치");
+                metaData.setDescription("한잔하고 싶은 당신을 위한 서비스");
+                metaData.setImage("https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png");
+            }
         }
         return inAppHtml(pathData, metaData);
     }

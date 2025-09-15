@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PathType {
     STORE("store"),
-    STORE_MANAGER_INVITE("store-manager-invite");
+    STORE_MANAGER_INVITE("store-manager-invite"),
+    INSTALL("install");
 
     private final String url;
 

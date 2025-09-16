@@ -24,11 +24,14 @@ public class LinkService {
 
     public ResponseEntity<?> redirectByUserAgent(LinkData.PathData pathData, String userAgent) {
 
-        if (pathData.getType().equals(PathType.INSTALL))
-            return redirectToStore(userAgent);
+        String lowerUserAgent = userAgent != null ? userAgent.toLowerCase() : "";
+        boolean isInApp = isInApp(lowerUserAgent);
+        String agent = detectAgent(lowerUserAgent);
 
-        String agent = detectAgent(userAgent);
-        if (agent.equals("inApp")) {
+        if (pathData.getType().equals(PathType.INSTALL))
+            return redirectToStore(isInApp, agent);
+
+        if (isInApp) {
             String html = templateProvider.inAppHtml(pathData);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
@@ -47,9 +50,8 @@ public class LinkService {
                 .build();
     }
 
-    private ResponseEntity<?> redirectToStore(String userAgent) {
-        String agent = detectAgent(userAgent);
-        if (agent.equals("inApp")) {
+    private ResponseEntity<?> redirectToStore(boolean isInApp, String agent) {
+        if (isInApp) {
             String html = templateProvider.inAppStoreHtml(agent);
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
@@ -65,21 +67,23 @@ public class LinkService {
                 .build();
     }
 
-    private String detectAgent(String userAgent) {
-        String lowerUserAgent = userAgent != null ? userAgent.toLowerCase() : "";
-        if (lowerUserAgent.contains("android"))
-            return "android";
-        if (lowerUserAgent.contains("iphone") || lowerUserAgent.contains("ipad") || lowerUserAgent.contains("mac"))
-            return "ios";
-
+    private boolean isInApp(String lowerUserAgent) {
         String[] IN_APP_KEYWORDS = {
                 "kakaotalk", "instagram", "fbav", "facebook", "messenger", "line", "naver", "tiktok", "telegram", "whatsapp"
         };
         for (String keyword : IN_APP_KEYWORDS) {
             if (lowerUserAgent.contains(keyword)) {
-                return "inApp";
+                return true;
             }
         }
+        return false;
+    }
+
+    private String detectAgent(String lowerUserAgent) {
+        if (lowerUserAgent.contains("android"))
+            return "android";
+        if (lowerUserAgent.contains("iphone") || lowerUserAgent.contains("ipad") || lowerUserAgent.contains("macintosh"))
+            return "ios";
         return "etc";
     }
 }

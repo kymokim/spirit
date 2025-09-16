@@ -45,13 +45,14 @@ public class TemplateProvider {
                         metaData.setImage(managerInvitation.getStoreImage());
                 }
             }
-            case INSTALL -> {
-                metaData.setTitle("한잔할까 설치");
-                metaData.setDescription("한잔하고 싶은 당신을 위한 서비스");
-                metaData.setImage("https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png");
-            }
         }
         return inAppHtml(pathData, metaData);
+    }
+
+    public String inAppStoreHtml(String agent) {
+        if (agent.equals("ios"))
+            return iosStoreHtml();
+        return androidStoreHtml();
     }
 
     private String inAppHtml(LinkData.PathData pathData, LinkData.MetaData metaData) {
@@ -187,6 +188,11 @@ public class TemplateProvider {
                 <head>
                   <meta charset='utf-8'>
                   <meta name='viewport' content='width=device-width, initial-scale=1'>
+                  <meta property="og:title"       content="%2$s"/>
+                  <meta property="og:description" content="%3$s"/>
+                  <meta property="og:image"       content="%4$s"/>
+                  <meta property="og:image:width" content="1200"/>
+                  <meta property="og:image:height" content="630"/>
                   <title>App Store Redirect</title>
                   <style>
                     :root {
@@ -232,7 +238,77 @@ public class TemplateProvider {
                   </script>
                 </body>
                 </html>
-                """.formatted(linkConfig.getIosStoreUrl());
+                """.formatted(
+                linkConfig.getIosStoreUrl(),
+                "한잔할까 설치",
+                "한잔하고 싶은 당신을 위한 서비스",
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png"
+        );
+    }
+
+    public String androidStoreHtml() {
+        return """
+                <!doctype html>
+                <html lang='ko'>
+                <head>
+                  <meta charset='utf-8'>
+                  <meta name='viewport' content='width=device-width, initial-scale=1'>
+                  <meta property="og:title"       content="%2$s"/>
+                  <meta property="og:description" content="%3$s"/>
+                  <meta property="og:image"       content="%4$s"/>
+                  <meta property="og:image:width" content="1200"/>
+                  <meta property="og:image:height" content="630"/>
+                  <title>Play Store Redirect</title>
+                  <style>
+                    :root {
+                      --accent:#45C9FF;
+                      --text-main:#222;
+                      --text-sub:#666;
+                      --bg:#fff;
+                    }
+                    body {
+                      margin:0;
+                      padding:0;
+                      background:var(--bg);
+                      color:var(--text-main);
+                      font-family:system-ui,apple-system,'Helvetica Neue',sans-serif;
+                      text-align:center;
+                      line-height:1.4;
+                    }
+                    .wrap{padding-top:5rem;max-width:320px;margin:0 auto;}
+                    .spinner{margin:2rem auto;width:32px;height:32px;border-radius:50%%;
+                             border:4px solid rgba(69,201,255,.25);border-top-color:var(--accent);
+                             animation:spin 1s linear infinite;}
+                    @keyframes spin{to{transform:rotate(360deg)}}
+                    .hint{margin-top:1.5rem;color:var(--text-sub);font-size:.9rem;}
+                    a.btn-store{
+                      display:inline-block;margin-top:2rem;padding:.75rem 2rem;
+                      font-size:1rem;font-weight:600;color:#fff;background:var(--accent);
+                      border:none;border-radius:8px;text-decoration:none;
+                    }
+                    a.btn-store:focus{outline:2px solid var(--accent);outline-offset:2px;}
+                  </style>
+                </head>
+                <body>
+                  <div class='wrap'>
+                    <div>Play Store로 이동 중입니다.</div>
+                    <div class='spinner'></div>
+                    <div class='hint'>잠시만 기다려 주세요.<br/>자동으로 이동되지 않으면 아래 버튼을 눌러주세요.</div>
+                    <a class='btn-store' href='%1$s' rel='noopener'>Play Store 열기</a>
+                  </div>
+                  <script>
+                    setTimeout(function(){
+                      window.location.href='%1$s';
+                    },300);
+                  </script>
+                </body>
+                </html>
+                """.formatted(
+                linkConfig.getAndroidStoreUrl(),
+                "한잔할까 설치",
+                "한잔하고 싶은 당신을 위한 서비스",
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png"
+        );
     }
 
     public String androidAssetLinks() {

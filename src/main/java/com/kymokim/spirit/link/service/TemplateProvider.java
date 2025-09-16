@@ -132,7 +132,7 @@ public class TemplateProvider {
                 
                       function isIOS() {
                         var ua = navigator.userAgent.toLowerCase();
-                        return /iphone|ipad|mac/.test(ua);
+                        return /iphone|ipad|macintosh/.test(ua);
                       }
                       function isAndroid() {
                         return navigator.userAgent.toLowerCase().indexOf('android') > -1;

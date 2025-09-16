@@ -193,6 +193,9 @@ public class TemplateProvider {
                   <meta property="og:image"       content="%4$s"/>
                   <meta property="og:image:width" content="1200"/>
                   <meta property="og:image:height" content="630"/>
+                  <meta property="og:image"       content="%5$s"/>
+                  <meta property="og:image:width" content="1200"/>
+                  <meta property="og:image:height" content="1200"/>
                   <title>App Store Redirect</title>
                   <style>
                     :root {
@@ -242,7 +245,8 @@ public class TemplateProvider {
                 linkConfig.getIosStoreUrl(),
                 "한잔할까 설치",
                 "한잔하고 싶은 당신을 위한 서비스",
-                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png"
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail_1200x630.png",
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail_1200x1200.png"
         );
     }
 
@@ -258,6 +262,9 @@ public class TemplateProvider {
                   <meta property="og:image"       content="%4$s"/>
                   <meta property="og:image:width" content="1200"/>
                   <meta property="og:image:height" content="630"/>
+                  <meta property="og:image"       content="%5$s"/>
+                  <meta property="og:image:width" content="1200"/>
+                  <meta property="og:image:height" content="1200"/>
                   <title>Play Store Redirect</title>
                   <style>
                     :root {
@@ -307,7 +314,8 @@ public class TemplateProvider {
                 linkConfig.getAndroidStoreUrl(),
                 "한잔할까 설치",
                 "한잔하고 싶은 당신을 위한 서비스",
-                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail.png"
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail_1200x630.png",
+                "https://spirit19-bucket.s3.ap-northeast-2.amazonaws.com/app/thumbnail_1200x1200.png"
         );
     }
 

@@ -13,7 +13,9 @@ public enum NotificationType {
     STORE_MANAGER_INVITE_ACCEPTED("매장 운영자 추가 알림", "{storeName} 매장에 새 운영자가 추가되었습니다."),
     STORE_OWNER_CHANGED("매장 소유자 변경 알림", "{storeName} 매장의 소유자가 변경되었습니다."),
     // 리뷰 생성 관련
-    STORE_REVIEW_CREATED("새 리뷰 알림", "{storeName} 매장에 새로운 리뷰가 등록되었습니다.");
+    STORE_REVIEW_CREATED("새 리뷰 알림", "{storeName} 매장에 새로운 리뷰가 등록되었습니다."),
+    STORE_OWNERSHIP_REQUEST_CREATED("사장님 인증 요청 알림", "{storeName} 매장의 사장님 인증 요청이 접수되었습니다."),
+    STORE_SUGGESTION_CREATED("매장 제보 알림", "새 매장 제보가 접수되었습니다.");
 
     private final String title;
     private final String body;
@@ -29,5 +31,9 @@ public enum NotificationType {
             msg = msg.replace("{" + entry.getKey() + "}", entry.getValue());
         }
         return msg;
+    }
+
+    public String format() {
+        return body;
     }
 }

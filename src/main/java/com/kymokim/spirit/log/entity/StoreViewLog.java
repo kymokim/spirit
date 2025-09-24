@@ -40,4 +40,9 @@ public class StoreViewLog {
         this.gender = gender;
         this.birthYear = birthYear;
     }
+
+    public void updateViewTime() {
+        this.viewDate = LocalDate.now();
+        this.viewDateTime = LocalDateTime.now();
+    }
 }

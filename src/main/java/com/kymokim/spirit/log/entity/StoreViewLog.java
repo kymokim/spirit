@@ -42,7 +42,6 @@ public class StoreViewLog {
     }
 
     public void updateViewTime() {
-        this.viewDate = LocalDate.now();
         this.viewDateTime = LocalDateTime.now();
     }
 }

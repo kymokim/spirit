@@ -12,10 +12,7 @@ import com.kymokim.spirit.link.dto.LinkData;
 import com.kymokim.spirit.link.dto.PathType;
 import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreManagerInviteAcceptedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreOwnerChangedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.*;
 import com.kymokim.spirit.store.dto.CommonStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -112,6 +109,7 @@ public class StoreService {
 
         StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(user.getId()).build();
         storeSuggestionRepository.save(storeSuggestion);
+        NotificationEvent.raise(new StoreSuggestionCreatedNotificationEvent(store));
     }
 
     public void approveStoreSuggestion(Long storeSuggestionId) {
@@ -151,6 +149,7 @@ public class StoreService {
         RequestStore.CreateOwnershipRqDto createOwnershipRqDto = createStoreWithOwnershipRqDto.getCreateOwnershipRqDto();
         createOwnershipRqDto.setStoreId(storeId);
         createOwnership(businessRegistrationCertificateImage, createOwnershipRqDto);
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
@@ -448,6 +447,7 @@ public class StoreService {
             String imageUrl = s3Service.upload(file, "store/ownership/" + ownershipRequest.getId());
             ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
         }
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
     public void approveOwnership(Long ownershipId) {

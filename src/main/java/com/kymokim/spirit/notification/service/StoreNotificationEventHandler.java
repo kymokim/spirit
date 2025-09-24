@@ -2,10 +2,7 @@ package com.kymokim.spirit.notification.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.annotation.MainTransactional;
-import com.kymokim.spirit.notification.dto.store.StoreOwnershipApprovedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreOwnershipRejectedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreManagerInviteAcceptedNotificationEvent;
-import com.kymokim.spirit.notification.dto.store.StoreOwnerChangedNotificationEvent;
+import com.kymokim.spirit.notification.dto.store.*;
 import com.kymokim.spirit.notification.entity.Notification;
 import com.kymokim.spirit.notification.entity.NotificationType;
 import com.kymokim.spirit.notification.entity.RedirectTarget;
@@ -18,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -77,7 +75,7 @@ public class StoreNotificationEventHandler {
                 .redirectId(event.getStore().getId())
                 .build();
 
-        java.util.List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
+        List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
         for (StoreManager storeManager : storeManagers) {
             String body = notificationType.format(Map.of(
                     "storeName", event.getStore().getName()
@@ -103,7 +101,7 @@ public class StoreNotificationEventHandler {
                 .redirectId(event.getStore().getId())
                 .build();
 
-        java.util.List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
+        List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
         for (StoreManager storeManager : storeManagers) {
             String body = notificationType.format(Map.of(
                     "storeName", event.getStore().getName()
@@ -116,6 +114,56 @@ public class StoreNotificationEventHandler {
                     .build();
             notification = notificationRepository.save(notification);
             if (Boolean.TRUE.equals(AuthResolver.resolveUser(storeManager.getUserId()).getNotificationConsent().getPushConsent())) {
+                fcmNotificationService.pushAlarmToToken(notification);
+            }
+        }
+    }
+
+    @EventListener(StoreOwnershipRequestCreatedNotificationEvent.class)
+    public void handle(StoreOwnershipRequestCreatedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.STORE_OWNERSHIP_REQUEST_CREATED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.STORE_DETAIL)
+                .redirectId(event.getStore().getId())
+                .build();
+
+        List<Auth> adminList = AuthResolver.resolveAdmin();
+        for (Auth admin : adminList) {
+            String body = notificationType.format(Map.of(
+                    "storeName", event.getStore().getName()
+            ));
+            Notification notification = Notification.builder()
+                    .userId(admin.getId())
+                    .notificationType(notificationType)
+                    .notificationBody(body)
+                    .redirectTarget(redirectTarget)
+                    .build();
+            notification = notificationRepository.save(notification);
+            if (Boolean.TRUE.equals(admin.getNotificationConsent().getPushConsent())) {
+                fcmNotificationService.pushAlarmToToken(notification);
+            }
+        }
+    }
+
+    @EventListener(StoreSuggestionCreatedNotificationEvent.class)
+    public void handle(StoreSuggestionCreatedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.STORE_SUGGESTION_CREATED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.STORE_DETAIL)
+                .redirectId(event.getStore().getId())
+                .build();
+
+        List<Auth> adminList = AuthResolver.resolveAdmin();
+        for (Auth admin : adminList) {
+            String body = notificationType.format();
+            Notification notification = Notification.builder()
+                    .userId(admin.getId())
+                    .notificationType(notificationType)
+                    .notificationBody(body)
+                    .redirectTarget(redirectTarget)
+                    .build();
+            notification = notificationRepository.save(notification);
+            if (Boolean.TRUE.equals(admin.getNotificationConsent().getPushConsent())) {
                 fcmNotificationService.pushAlarmToToken(notification);
             }
         }

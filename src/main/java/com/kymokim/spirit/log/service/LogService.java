@@ -35,10 +35,12 @@ public class LogService {
         if (Objects.equals(user.getPersonalInfo(), null) || user.getPersonalInfo().getGender().equals(Gender.UNKNOWN)) {
             return;
         }
-        boolean alreadyExists = storeViewLogRepository.existsByUserIdAndStoreIdAndViewDate(
+        StoreViewLog originStoreViewLog = storeViewLogRepository.getByUserIdAndStoreIdAndViewDate(
                 user.getId(), storeId, LocalDate.now()
         );
-        if (alreadyExists) {
+        if (originStoreViewLog != null) {
+            originStoreViewLog.updateViewTime();
+            storeViewLogRepository.save(originStoreViewLog);
             return;
         }
         StoreViewLog storeViewLog = StoreViewLog.builder()

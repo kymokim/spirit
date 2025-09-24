@@ -28,7 +28,9 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -53,7 +55,9 @@ public class ReviewService {
 
     public void createReview(MultipartFile[] files, RequestReview.CreateReviewDto createReviewDto) {
         Store store = resolveStore(createReviewDto.getStoreId());
-        Review review = createReviewDto.toEntity(store, AuthResolver.resolveUserId());
+        Long writerId = AuthResolver.resolveUserId();
+        validateReviewCreationLimits(writerId, store.getId());
+        Review review = createReviewDto.toEntity(store, writerId);
         reviewRepository.save(review);
 
         if (files != null) {
@@ -72,6 +76,22 @@ public class ReviewService {
         storeRepository.save(store);
 
         NotificationEvent.raise(new ReviewCreatedNotificationEvent(store, review.getId()));
+    }
+
+    private void validateReviewCreationLimits(Long writerId, Long storeId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        long reviewCountToday = reviewRepository.countByWriterIdAndHistoryInfo_CreatedAtBetween(writerId, startOfDay, endOfDay);
+        if (reviewCountToday > 5) {
+            throw new CustomException(ReviewErrorCode.REVIEW_DAILY_LIMIT_EXCEEDED);
+        }
+
+        boolean alreadyReviewedStoreToday = reviewRepository.existsByWriterIdAndStoreIdAndHistoryInfo_CreatedAtBetween(writerId, storeId, startOfDay, endOfDay);
+        if (alreadyReviewedStoreToday) {
+            throw new CustomException(ReviewErrorCode.REVIEW_ALREADY_WRITTEN_TODAY);
+        }
     }
 
 

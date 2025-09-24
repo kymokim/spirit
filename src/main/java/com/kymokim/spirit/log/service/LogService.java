@@ -15,6 +15,7 @@ import com.kymokim.spirit.log.repository.OwnershipLogRepository;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,15 +31,18 @@ public class LogService {
     private final OwnershipLogRepository ownershipLogRepository;
     private final AESUtil aesUtil;
 
+    @MainTransactional(propagation = Propagation.REQUIRES_NEW)
     public void createStoreViewLog(Long storeId) {
         Auth user = AuthResolver.resolveUser();
         if (Objects.equals(user.getPersonalInfo(), null) || user.getPersonalInfo().getGender().equals(Gender.UNKNOWN)) {
             return;
         }
-        boolean alreadyExists = storeViewLogRepository.existsByUserIdAndStoreIdAndViewDate(
+        StoreViewLog originStoreViewLog = storeViewLogRepository.getByUserIdAndStoreIdAndViewDate(
                 user.getId(), storeId, LocalDate.now()
         );
-        if (alreadyExists) {
+        if (originStoreViewLog != null) {
+            originStoreViewLog.updateViewTime();
+            storeViewLogRepository.save(originStoreViewLog);
             return;
         }
         StoreViewLog storeViewLog = StoreViewLog.builder()

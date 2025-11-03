@@ -116,9 +116,16 @@ public class StoreService {
         StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
         Store store = storeSuggestion.getStore();
-        if (Objects.equals(store.getHasScreen(), null)
-                || Objects.equals(store.getIsGroupAvailable(), null)
-                || Objects.equals(store.getIsAlwaysOpen(), null)
+        FacilitiesInfo facilitiesInfo = store.getFacilitiesInfo();
+        if (facilitiesInfo == null
+                || facilitiesInfo.getHasScreen() == null
+                || facilitiesInfo.getHasRoom() == null
+                || facilitiesInfo.getIsGroupAvailable() == null
+                || facilitiesInfo.getIsParkingAvailable() == null
+                || facilitiesInfo.getIsCorkageAvailable() == null) {
+            throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
+        }
+        if (Objects.equals(store.getIsAlwaysOpen(), null)
                 || Objects.equals(store.getCategories(), null)
                 || store.getCategories().isEmpty()
                 || Objects.equals(store.getMainDrinks(), null)
@@ -160,8 +167,7 @@ public class StoreService {
         updateIfNotNullOrEmpty(updateStoreDto.getName(), store::setName);
         updateIfNotNullOrEmpty(updateStoreDto.getContact(), store::setContact);
         updateIfNotNullOrEmpty(updateStoreDto.getDescription(), store::setDescription);
-        updateIfNotNullOrEmpty(updateStoreDto.getHasScreen(), store::setHasScreen);
-        updateIfNotNullOrEmpty(updateStoreDto.getIsGroupAvailable(), store::setIsGroupAvailable);
+        updateIfNotNullOrEmpty(updateStoreDto.getFacilitiesInfoDto(), facilitiesInfoDto -> store.setFacilitiesInfo(facilitiesInfoDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
         updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkDtos(), mainDrinkDtos -> {

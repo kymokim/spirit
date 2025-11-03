@@ -198,8 +198,9 @@ public class StoreQueryService {
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByMultipleCondition(
-                    criteria, conditionSearchDto.getCategory(),
-                    conditionSearchDto.getIsGroupAvailable(),
+                    criteria,
+                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.toFacilitiesCondition(),
                     conditionSearchDto.getConditionTime(),
                     conditionSearchDto.getDrinkType(),
                     pageable

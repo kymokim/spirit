@@ -40,12 +40,6 @@ public class Store {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "has_screen")
-    private Boolean hasScreen;
-
-    @Column(name = "is_group_available")
-    private Boolean isGroupAvailable;
-
     @Column(name = "is_always_open")
     private Boolean isAlwaysOpen;
 
@@ -58,6 +52,9 @@ public class Store {
 
     @Embedded
     private Location location;
+
+    @Embedded
+    private FacilitiesInfo facilitiesInfo;
 
     @CollectionTable(name = "categories", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = Category.class)
@@ -99,27 +96,25 @@ public class Store {
     private List<BoardImage> boardImgUrlList = new ArrayList<>();
 
     @Builder
-    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
+    public Store(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
                  Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
         setName(name);
         this.contact = contact;
         this.description = description;
-        setHasScreen(hasScreen);
-        setIsGroupAvailable(isGroupAvailable);
+        setFacilitiesInfo(facilitiesInfo);
         this.historyInfo = new HistoryInfo(creatorId);
         this.location = location;
         setCategories(categories);
         this.mainDrinks = mainDrinks;
     }
 
-    public static Store fromSuggestion(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
+    public static Store fromSuggestion(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
                                        Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
         Store store = new Store();
         store.setName(name);
         store.contact = contact;
         store.description = description;
-        store.hasScreen = hasScreen;
-        store.isGroupAvailable = isGroupAvailable;
+        store.setFacilitiesInfo(facilitiesInfo);
         store.historyInfo = new HistoryInfo(creatorId);
         store.location = location;
         store.categories = categories;
@@ -133,18 +128,6 @@ public class Store {
             throw new CustomException(StoreErrorCode.STORE_NAME_EMPTY);
         }
         this.name = name;
-    }
-    public void setHasScreen(Boolean hasScreen){
-        if (hasScreen == null ){
-            throw new CustomException(StoreErrorCode.HAS_SCREEN_EMPTY);
-        }
-        this.hasScreen = hasScreen;
-    }
-    public void setIsGroupAvailable(Boolean isGroupAvailable){
-        if (isGroupAvailable == null ){
-            throw new CustomException(StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
-        }
-        this.isGroupAvailable = isGroupAvailable;
     }
     public void setCategories(Set<Category> categories){
         if (categories == null || categories.isEmpty()){
@@ -196,5 +179,12 @@ public class Store {
     }
     public void delete(){
         this.isDeleted = true;
+    }
+
+    public void setFacilitiesInfo(FacilitiesInfo facilitiesInfo) {
+        if (facilitiesInfo == null) {
+            throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
+        }
+        this.facilitiesInfo = facilitiesInfo;
     }
 }

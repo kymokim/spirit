@@ -1,16 +1,20 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.drink.entity.DrinkType;
+import com.kymokim.spirit.common.exception.CustomException;
+import com.kymokim.spirit.store.entity.FacilitiesInfo;
 import com.kymokim.spirit.store.entity.Location;
 import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.store.entity.OperationInfo;
 import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.exception.StoreErrorCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
+import jakarta.validation.constraints.NotNull;
 
 public class CommonStore {
     @Data
@@ -40,6 +44,49 @@ public class CommonStore {
                     .addressDetail(this.addressDetail)
                     .latitude(this.latitude)
                     .longitude(this.longitude)
+                    .build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class FacilitiesInfoDto {
+        @Schema(description = "스크린 보유 여부")
+        @NotNull(message = "스크린 보유 여부가 비었습니다.")
+        private Boolean hasScreen;
+        @Schema(description = "룸 보유 여부")
+        @NotNull(message = "룸 보유 여부가 비었습니다.")
+        private Boolean hasRoom;
+        @Schema(description = "단체석 보유 여부")
+        @NotNull(message = "단체석 보유 여부가 비었습니다.")
+        private Boolean isGroupAvailable;
+        @Schema(description = "주차 가능 여부")
+        @NotNull(message = "주차 가능 여부가 비었습니다.")
+        private Boolean isParkingAvailable;
+        @Schema(description = "콜키지 가능 여부")
+        @NotNull(message = "콜키지 가능 여부가 비었습니다.")
+        private Boolean isCorkageAvailable;
+
+        public static FacilitiesInfoDto toDto(FacilitiesInfo facilitiesInfo) {
+            if (facilitiesInfo == null) {
+                throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
+            }
+            return FacilitiesInfoDto.builder()
+                    .hasScreen(facilitiesInfo.getHasScreen())
+                    .hasRoom(facilitiesInfo.getHasRoom())
+                    .isGroupAvailable(facilitiesInfo.getIsGroupAvailable())
+                    .isParkingAvailable(facilitiesInfo.getIsParkingAvailable())
+                    .isCorkageAvailable(facilitiesInfo.getIsCorkageAvailable())
+                    .build();
+        }
+
+        public FacilitiesInfo toEntity() {
+            return FacilitiesInfo.builder()
+                    .hasScreen(this.hasScreen)
+                    .hasRoom(this.hasRoom)
+                    .isGroupAvailable(this.isGroupAvailable)
+                    .isParkingAvailable(this.isParkingAvailable)
+                    .isCorkageAvailable(this.isCorkageAvailable)
                     .build();
         }
     }

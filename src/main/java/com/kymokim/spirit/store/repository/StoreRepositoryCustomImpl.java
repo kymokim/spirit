@@ -4,6 +4,7 @@ import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.log.entity.QStoreViewLog;
 import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.LocationCriteria;
+import com.kymokim.spirit.store.dto.FacilitiesCondition;
 import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.*;
 import com.querydsl.core.BooleanBuilder;
@@ -164,9 +165,26 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return store.categories.contains(Category.valueOf(category));
     }
 
-    // 단체 가능 여부에 해당하는 가게 탐색 조건식
-    private BooleanExpression isGroupAvailableCondition(QStore store, Boolean isGroupAvailable) {
-        return store.isGroupAvailable.eq(isGroupAvailable);
+    // 편의시설 조건 동적 적용
+    private void applyFacilitiesCondition(BooleanBuilder conditionBuilder, QStore store, FacilitiesCondition facilitiesCondition) {
+        if (facilitiesCondition == null) {
+            return;
+        }
+        if (facilitiesCondition.getHasScreen() != null) {
+            conditionBuilder.and(store.facilitiesInfo.hasScreen.eq(facilitiesCondition.getHasScreen()));
+        }
+        if (facilitiesCondition.getHasRoom() != null) {
+            conditionBuilder.and(store.facilitiesInfo.hasRoom.eq(facilitiesCondition.getHasRoom()));
+        }
+        if (facilitiesCondition.getIsGroupAvailable() != null) {
+            conditionBuilder.and(store.facilitiesInfo.isGroupAvailable.eq(facilitiesCondition.getIsGroupAvailable()));
+        }
+        if (facilitiesCondition.getIsParkingAvailable() != null) {
+            conditionBuilder.and(store.facilitiesInfo.isParkingAvailable.eq(facilitiesCondition.getIsParkingAvailable()));
+        }
+        if (facilitiesCondition.getIsCorkageAvailable() != null) {
+            conditionBuilder.and(store.facilitiesInfo.isCorkageAvailable.eq(facilitiesCondition.getIsCorkageAvailable()));
+        }
     }
 
     // 대표 이미지 보유 가게 탐색 조건식
@@ -418,7 +436,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, Boolean isGroupAvailable, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable) {
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
@@ -436,9 +454,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         if (category != null) {
             conditionBuilder.and(categoryCondition(store, category));
         }
-        if (isGroupAvailable != null && isGroupAvailable) {
-            conditionBuilder.and(isGroupAvailableCondition(store, true));
-        }
+        applyFacilitiesCondition(conditionBuilder, store, facilitiesCondition);
         if (conditionTime != null) {
             query.leftJoin(store.operationInfos, operationInfo);
             countQuery.leftJoin(store.operationInfos, operationInfo);

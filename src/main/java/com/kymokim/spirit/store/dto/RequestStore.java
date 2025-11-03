@@ -30,12 +30,10 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        @NotNull(message = "스크린 보유 여부가 비었습니다.")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        @NotNull(message = "단체석 보유 여부가 비었습니다.")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @NotNull(message = "편의시설 정보가 비었습니다.")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         @NotNull(message = "24시간 운영 여부가 비었습니다.")
         private Boolean isAlwaysOpen;
@@ -64,8 +62,7 @@ public class RequestStore {
                     .name(this.name)
                     .contact(this.contact)
                     .description(this.description)
-                    .hasScreen(this.hasScreen)
-                    .isGroupAvailable(this.isGroupAvailable)
+                    .facilitiesInfo(this.facilitiesInfoDto.toEntity())
                     .creatorId(creatorId)
                     .location(this.locationDto.toEntity())
                     .categories(this.categories)
@@ -84,10 +81,10 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @NotNull(message = "편의시설 정보가 비었습니다.")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
@@ -109,8 +106,16 @@ public class RequestStore {
             if (!Objects.equals(this.mainDrinkDtos, null) && !this.mainDrinkDtos.isEmpty()) {
                 this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
             }
-            return Store.fromSuggestion(this.name, this.contact, this.description, this.hasScreen,
-                    this.isGroupAvailable, creatorId, this.locationDto.toEntity(), this.categories, mainDrinks);
+            return Store.fromSuggestion(
+                    this.name,
+                    this.contact,
+                    this.description,
+                    this.facilitiesInfoDto.toEntity(),
+                    creatorId,
+                    this.locationDto.toEntity(),
+                    this.categories,
+                    mainDrinks
+            );
         }
     }
 
@@ -187,10 +192,9 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
@@ -236,12 +240,30 @@ public class RequestStore {
     public static class ConditionSearchDto {
         @Schema(description = "카테고리")
         private String category;
-        @Schema(description = "단체 방문 여부")
+        @Schema(description = "스크린 보유 여부")
+        private Boolean hasScreen;
+        @Schema(description = "룸 보유 여부")
+        private Boolean hasRoom;
+        @Schema(description = "단체석 보유 여부")
         private Boolean isGroupAvailable;
+        @Schema(description = "주차 가능 여부")
+        private Boolean isParkingAvailable;
+        @Schema(description = "콜키지 가능 여부")
+        private Boolean isCorkageAvailable;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
         private LocalDateTime conditionTime;
         @Schema(description = "대표 주종", example = "SOJU")
         private DrinkType drinkType;
+
+        public FacilitiesCondition toFacilitiesCondition() {
+            return FacilitiesCondition.builder()
+                    .hasScreen(this.hasScreen)
+                    .hasRoom(this.hasRoom)
+                    .isGroupAvailable(this.isGroupAvailable)
+                    .isParkingAvailable(this.isParkingAvailable)
+                    .isCorkageAvailable(this.isCorkageAvailable)
+                    .build();
+        }
     }
 
     @Getter

@@ -57,8 +57,7 @@ public class ResponseStore {
         private String name;
         private String contact;
         private String description;
-        private Boolean hasScreen;
-        private Boolean isGroupAvailable;
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         private Boolean isAlwaysOpen;
         private Boolean isDeleted;
         private CommonStore.LocationDto locationDto;
@@ -102,8 +101,7 @@ public class ResponseStore {
                     .name(store.getName())
                     .contact(store.getContact())
                     .description(store.getDescription())
-                    .hasScreen(store.getHasScreen())
-                    .isGroupAvailable(store.getIsGroupAvailable())
+                    .facilitiesInfoDto(CommonStore.FacilitiesInfoDto.toDto(store.getFacilitiesInfo()))
                     .isAlwaysOpen(store.getIsAlwaysOpen())
                     .isDeleted(store.getIsDeleted())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))

@@ -48,6 +48,8 @@ public class RequestStore {
         @NotEmpty(message = "대표 주종이 비었습니다.")
         @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
@@ -67,6 +69,7 @@ public class RequestStore {
                     .location(this.locationDto.toEntity())
                     .categories(this.categories)
                     .mainDrinks(mainDrinks)
+                    .moods(this.moods)
                     .build();
         }
     }
@@ -96,6 +99,8 @@ public class RequestStore {
         @Schema(description = "대표 주종")
         @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
@@ -114,7 +119,8 @@ public class RequestStore {
                     creatorId,
                     this.locationDto.toEntity(),
                     this.categories,
-                    mainDrinks
+                    mainDrinks,
+                    this.moods
             );
         }
     }
@@ -205,6 +211,8 @@ public class RequestStore {
         @Schema(description = "대표 주종")
         @Valid
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
@@ -250,10 +258,14 @@ public class RequestStore {
         private Boolean isParkingAvailable;
         @Schema(description = "콜키지 가능 여부")
         private Boolean isCorkageAvailable;
+        @Schema(description = "야외 좌석 보유 여부")
+        private Boolean hasOutdoor;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
         private LocalDateTime conditionTime;
         @Schema(description = "대표 주종", example = "SOJU")
         private DrinkType drinkType;
+        @Schema(description = "분위기", example = "QUIET, MODERN")
+        private Set<Mood> moods;
 
         public FacilitiesCondition toFacilitiesCondition() {
             return FacilitiesCondition.builder()
@@ -262,6 +274,7 @@ public class RequestStore {
                     .isGroupAvailable(this.isGroupAvailable)
                     .isParkingAvailable(this.isParkingAvailable)
                     .isCorkageAvailable(this.isCorkageAvailable)
+                    .hasOutdoor(this.hasOutdoor)
                     .build();
         }
     }

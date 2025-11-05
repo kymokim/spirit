@@ -29,14 +29,18 @@ public class FacilitiesInfo {
     @Column(name = "is_corkage_available", nullable = false)
     private Boolean isCorkageAvailable;
 
+    @Column(name = "has_outdoor", nullable = false)
+    private Boolean hasOutdoor;
+
     @Builder
     public FacilitiesInfo(Boolean hasScreen, Boolean hasRoom, Boolean isGroupAvailable,
-                          Boolean isParkingAvailable, Boolean isCorkageAvailable) {
+                          Boolean isParkingAvailable, Boolean isCorkageAvailable, Boolean hasOutdoor) {
         this.hasScreen = validateNotNull(hasScreen, StoreErrorCode.HAS_SCREEN_EMPTY);
         this.hasRoom = validateNotNull(hasRoom, StoreErrorCode.HAS_ROOM_EMPTY);
         this.isGroupAvailable = validateNotNull(isGroupAvailable, StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
         this.isParkingAvailable = validateNotNull(isParkingAvailable, StoreErrorCode.IS_PARKING_AVAILABLE_EMPTY);
         this.isCorkageAvailable = validateNotNull(isCorkageAvailable, StoreErrorCode.IS_CORKAGE_AVAILABLE_EMPTY);
+        this.hasOutdoor = validateNotNull(hasOutdoor, StoreErrorCode.HAS_OUTDOOR_EMPTY);
     }
 
     public void updateHasScreen(Boolean hasScreen) {
@@ -57,6 +61,10 @@ public class FacilitiesInfo {
 
     public void updateIsCorkageAvailable(Boolean isCorkageAvailable) {
         this.isCorkageAvailable = validateNotNull(isCorkageAvailable, StoreErrorCode.IS_CORKAGE_AVAILABLE_EMPTY);
+    }
+
+    public void updateHasOutdoor(Boolean hasOutdoor) {
+        this.hasOutdoor = validateNotNull(hasOutdoor, StoreErrorCode.HAS_OUTDOOR_EMPTY);
     }
 
     private Boolean validateNotNull(Boolean value, StoreErrorCode errorCode) {

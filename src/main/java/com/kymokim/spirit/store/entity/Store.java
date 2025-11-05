@@ -62,6 +62,12 @@ public class Store {
     @Column(name = "categories")
     private Set<Category> categories;
 
+    @CollectionTable(name = "moods", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = Mood.class)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mood")
+    private Set<Mood> moods = new HashSet<>();
+
     @CollectionTable(name = "main_drinks", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = MainDrink.class)
     @Column(name = "main_drinks")
@@ -97,7 +103,8 @@ public class Store {
 
     @Builder
     public Store(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
-                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
+                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks,
+                 Set<Mood> moods) {
         setName(name);
         this.contact = contact;
         this.description = description;
@@ -105,11 +112,13 @@ public class Store {
         this.historyInfo = new HistoryInfo(creatorId);
         this.location = location;
         setCategories(categories);
-        this.mainDrinks = mainDrinks;
+        this.mainDrinks = mainDrinks != null ? new HashSet<>(mainDrinks) : new HashSet<>();
+        setMoods(moods);
     }
 
     public static Store fromSuggestion(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
-                                       Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
+                                       Long creatorId, Location location, Set<Category> categories,
+                                       Set<MainDrink> mainDrinks, Set<Mood> moods) {
         Store store = new Store();
         store.setName(name);
         store.contact = contact;
@@ -118,7 +127,8 @@ public class Store {
         store.historyInfo = new HistoryInfo(creatorId);
         store.location = location;
         store.categories = categories;
-        store.mainDrinks = mainDrinks;
+        store.mainDrinks = mainDrinks != null ? new HashSet<>(mainDrinks) : new HashSet<>();
+        store.setMoods(moods);
         store.delete();
         return store;
     }
@@ -186,5 +196,18 @@ public class Store {
             throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
         }
         this.facilitiesInfo = facilitiesInfo;
+    }
+
+    public void setMoods(Set<Mood> moods) {
+        if (moods == null || moods.isEmpty()) {
+            this.moods = new HashSet<>();
+            return;
+        }
+
+        if (moods.size() > 4) {
+            throw new CustomException(StoreErrorCode.STORE_MOODS_LIMIT_EXCEEDED);
+        }
+
+        this.moods = new HashSet<>(moods);
     }
 }

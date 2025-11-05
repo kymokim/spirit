@@ -41,9 +41,10 @@ public class StoreController {
     @PostMapping(value = "/suggestion/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> suggestStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                     @Valid @RequestPart(value = "suggestStoreDto") RequestStore.SuggestStoreDto suggestStoreDto) {
-        storeService.suggestStore(files, suggestStoreDto);
+        ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.suggestStore(files, suggestStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store suggested successfully.")
+                .data(createStoreRsDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

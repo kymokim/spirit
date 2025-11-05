@@ -7,7 +7,7 @@ COPY . .
 RUN ./gradlew build
 
 # Run stage
-FROM openjdk:21
+FROM eclipse-temurin:21-jdk
 ARG JAR_FILE=build/libs/*.jar
 COPY ${JAR_FILE} app.jar
 

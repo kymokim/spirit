@@ -124,10 +124,10 @@ public class StoreService {
         if (facilitiesInfo == null
                 || facilitiesInfo.getHasScreen() == null
                 || facilitiesInfo.getHasRoom() == null
+                || facilitiesInfo.getHasOutdoor() == null
                 || facilitiesInfo.getIsGroupAvailable() == null
                 || facilitiesInfo.getIsParkingAvailable() == null
-                || facilitiesInfo.getIsCorkageAvailable() == null
-                || facilitiesInfo.getHasOutdoor() == null) {
+                || facilitiesInfo.getIsCorkageAvailable() == null) {
             throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
         }
         if (Objects.equals(store.getIsAlwaysOpen(), null)

@@ -252,14 +252,14 @@ public class RequestStore {
         private Boolean hasScreen;
         @Schema(description = "룸 보유 여부")
         private Boolean hasRoom;
+        @Schema(description = "야외 좌석 보유 여부")
+        private Boolean hasOutdoor;
         @Schema(description = "단체석 보유 여부")
         private Boolean isGroupAvailable;
         @Schema(description = "주차 가능 여부")
         private Boolean isParkingAvailable;
         @Schema(description = "콜키지 가능 여부")
         private Boolean isCorkageAvailable;
-        @Schema(description = "야외 좌석 보유 여부")
-        private Boolean hasOutdoor;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
         private LocalDateTime conditionTime;
         @Schema(description = "대표 주종", example = "SOJU")
@@ -271,10 +271,10 @@ public class RequestStore {
             return FacilitiesCondition.builder()
                     .hasScreen(this.hasScreen)
                     .hasRoom(this.hasRoom)
+                    .hasOutdoor(this.hasOutdoor)
                     .isGroupAvailable(this.isGroupAvailable)
                     .isParkingAvailable(this.isParkingAvailable)
                     .isCorkageAvailable(this.isCorkageAvailable)
-                    .hasOutdoor(this.hasOutdoor)
                     .build();
         }
     }

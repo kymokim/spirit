@@ -10,4 +10,5 @@ public class FacilitiesCondition {
     private Boolean isGroupAvailable;
     private Boolean isParkingAvailable;
     private Boolean isCorkageAvailable;
+    private Boolean hasOutdoor;
 }

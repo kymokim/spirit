@@ -89,9 +89,10 @@ public class StoreService {
         return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
-    public void suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
+    public ResponseStore.CreateStoreRsDto suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
         Auth user = AuthResolver.resolveUser();
         Store store = suggestStoreDto.toEntity(user.getId());
+        store.setOwnerId(user.getId());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -109,7 +110,10 @@ public class StoreService {
 
         StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(user.getId()).build();
         storeSuggestionRepository.save(storeSuggestion);
+
         NotificationEvent.raise(new StoreSuggestionCreatedNotificationEvent(store));
+
+        return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
     public void approveStoreSuggestion(Long storeSuggestionId) {
@@ -122,7 +126,8 @@ public class StoreService {
                 || facilitiesInfo.getHasRoom() == null
                 || facilitiesInfo.getIsGroupAvailable() == null
                 || facilitiesInfo.getIsParkingAvailable() == null
-                || facilitiesInfo.getIsCorkageAvailable() == null) {
+                || facilitiesInfo.getIsCorkageAvailable() == null
+                || facilitiesInfo.getHasOutdoor() == null) {
             throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
         }
         if (Objects.equals(store.getIsAlwaysOpen(), null)
@@ -133,6 +138,7 @@ public class StoreService {
             throw new CustomException(StoreErrorCode.STORE_REQUIRED_INFO_EMPTY);
         }
         store.setIsDeleted(false);
+        store.setOwnerId(null);
         storeRepository.save(store);
         storeSuggestionRepository.delete(storeSuggestion);
     }
@@ -142,6 +148,7 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
         Store store = storeSuggestion.getStore();
         storeSuggestionRepository.delete(storeSuggestion);
+        store.setOwnerId(null);
         deleteStore(store.getId());
     }
 
@@ -160,8 +167,11 @@ public class StoreService {
     }
 
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
-        validateStoreAccess(storeId);
         Store store = resolveStore(storeId);
+        Long userId = AuthResolver.resolveUserId();
+        if (!Objects.equals(store.getOwnerId(), userId)) {
+            validateStoreAccess(store.getId());
+        }
 
         updateIfNotNullOrEmpty(updateStoreDto.getMainImgUrl(), store::setMainImgUrl);
         updateIfNotNullOrEmpty(updateStoreDto.getName(), store::setName);
@@ -174,6 +184,7 @@ public class StoreService {
             Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
             store.setMainDrinks(mainDrinks);
         });
+        updateIfNotNullOrEmpty(updateStoreDto.getMoods(), store::setMoods);
         if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)) {
             if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)) {
                 setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), null);
@@ -182,7 +193,7 @@ public class StoreService {
             }
         }
 
-        store.getHistoryInfo().update(AuthResolver.resolveUserId());
+        store.getHistoryInfo().update(userId);
         storeRepository.save(store);
     }
 

@@ -7,8 +7,8 @@ import lombok.*;
 public class FacilitiesCondition {
     private Boolean hasScreen;
     private Boolean hasRoom;
+    private Boolean hasOutdoor;
     private Boolean isGroupAvailable;
     private Boolean isParkingAvailable;
     private Boolean isCorkageAvailable;
-    private Boolean hasOutdoor;
 }

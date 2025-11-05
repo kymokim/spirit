@@ -177,6 +177,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         if (facilitiesCondition.getHasRoom() != null) {
             conditionBuilder.and(store.facilitiesInfo.hasRoom.eq(facilitiesCondition.getHasRoom()));
         }
+        if (facilitiesCondition.getHasOutdoor() != null) {
+            conditionBuilder.and(store.facilitiesInfo.hasOutdoor.eq(facilitiesCondition.getHasOutdoor()));
+        }
         if (facilitiesCondition.getIsGroupAvailable() != null) {
             conditionBuilder.and(store.facilitiesInfo.isGroupAvailable.eq(facilitiesCondition.getIsGroupAvailable()));
         }
@@ -185,9 +188,6 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         }
         if (facilitiesCondition.getIsCorkageAvailable() != null) {
             conditionBuilder.and(store.facilitiesInfo.isCorkageAvailable.eq(facilitiesCondition.getIsCorkageAvailable()));
-        }
-        if (facilitiesCondition.getHasOutdoor() != null) {
-            conditionBuilder.and(store.facilitiesInfo.hasOutdoor.eq(facilitiesCondition.getHasOutdoor()));
         }
     }
 

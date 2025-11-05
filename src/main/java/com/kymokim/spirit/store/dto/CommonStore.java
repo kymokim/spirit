@@ -57,6 +57,9 @@ public class CommonStore {
         @Schema(description = "룸 보유 여부")
         @NotNull(message = "룸 보유 여부가 비었습니다.")
         private Boolean hasRoom;
+        @Schema(description = "야외 좌석 보유 여부")
+        @NotNull(message = "야외 좌석 보유 여부가 비었습니다.")
+        private Boolean hasOutdoor;
         @Schema(description = "단체석 보유 여부")
         @NotNull(message = "단체석 보유 여부가 비었습니다.")
         private Boolean isGroupAvailable;
@@ -66,9 +69,6 @@ public class CommonStore {
         @Schema(description = "콜키지 가능 여부")
         @NotNull(message = "콜키지 가능 여부가 비었습니다.")
         private Boolean isCorkageAvailable;
-        @Schema(description = "야외 좌석 보유 여부")
-        @NotNull(message = "야외 좌석 보유 여부가 비었습니다.")
-        private Boolean hasOutdoor;
 
         public static FacilitiesInfoDto toDto(FacilitiesInfo facilitiesInfo) {
             if (facilitiesInfo == null) {
@@ -77,10 +77,10 @@ public class CommonStore {
             return FacilitiesInfoDto.builder()
                     .hasScreen(facilitiesInfo.getHasScreen())
                     .hasRoom(facilitiesInfo.getHasRoom())
+                    .hasOutdoor(facilitiesInfo.getHasOutdoor())
                     .isGroupAvailable(facilitiesInfo.getIsGroupAvailable())
                     .isParkingAvailable(facilitiesInfo.getIsParkingAvailable())
                     .isCorkageAvailable(facilitiesInfo.getIsCorkageAvailable())
-                    .hasOutdoor(facilitiesInfo.getHasOutdoor())
                     .build();
         }
 
@@ -88,10 +88,10 @@ public class CommonStore {
             return FacilitiesInfo.builder()
                     .hasScreen(this.hasScreen)
                     .hasRoom(this.hasRoom)
+                    .hasOutdoor(this.hasOutdoor)
                     .isGroupAvailable(this.isGroupAvailable)
                     .isParkingAvailable(this.isParkingAvailable)
                     .isCorkageAvailable(this.isCorkageAvailable)
-                    .hasOutdoor(this.hasOutdoor)
                     .build();
         }
     }

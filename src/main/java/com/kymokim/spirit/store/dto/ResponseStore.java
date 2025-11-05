@@ -64,6 +64,7 @@ public class ResponseStore {
         private Set<Category> categories;
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Set<Mood> moods;
         private Double storeRate;
         private Long reviewCount;
         private Long likeCount;
@@ -81,6 +82,11 @@ public class ResponseStore {
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
                 store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+            }
+
+            Set<Mood> moods = new HashSet<>();
+            if (!store.getMoods().isEmpty()) {
+                moods.addAll(store.getMoods());
             }
 
             List<String> imgUrlList = new ArrayList<>();
@@ -108,6 +114,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
+                    .moods(moods)
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
                     .likeCount(store.getLikeCount())

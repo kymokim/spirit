@@ -28,6 +28,7 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     @PersistenceContext(unitName = "main")
@@ -184,6 +185,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         }
         if (facilitiesCondition.getIsCorkageAvailable() != null) {
             conditionBuilder.and(store.facilitiesInfo.isCorkageAvailable.eq(facilitiesCondition.getIsCorkageAvailable()));
+        }
+        if (facilitiesCondition.getHasOutdoor() != null) {
+            conditionBuilder.and(store.facilitiesInfo.hasOutdoor.eq(facilitiesCondition.getHasOutdoor()));
         }
     }
 
@@ -436,7 +440,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Pageable pageable) {
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
@@ -464,6 +468,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             query.leftJoin(store.mainDrinks, mainDrink);
             countQuery.leftJoin(store.mainDrinks, mainDrink);
             conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
+        }
+        if (moods != null && !moods.isEmpty()) {
+            conditionBuilder.and(store.moods.any().in(moods));
         }
 
         List<Store> content = query

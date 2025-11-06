@@ -8,6 +8,7 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.link.dto.LinkData;
 import com.kymokim.spirit.link.dto.PathType;
 import com.kymokim.spirit.link.service.LinkBuilder;
@@ -49,6 +50,12 @@ public class StoreService {
     private final LinkBuilder linkBuilder;
     private final ManagerInvitationRepository managerInvitationRepository;
 
+    private final MainDrinkSynchronizer mainDrinkSynchronizer;
+    public void init() {
+        List<Store> storeList = storeRepository.findAll();
+        storeList.forEach(store -> mainDrinkSynchronizer.synchronize(store.getId()));
+    }
+
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
@@ -70,6 +77,7 @@ public class StoreService {
 
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
         Store store = createStoreRqDto.toEntity(AuthResolver.resolveUserId());
+        updateMainDrinkVisibility(store, createStoreRqDto.getMainDrinkTypes());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -93,6 +101,7 @@ public class StoreService {
         Auth user = AuthResolver.resolveUser();
         Store store = suggestStoreDto.toEntity(user.getId());
         store.setOwnerId(user.getId());
+        updateMainDrinkVisibility(store, suggestStoreDto.getMainDrinkTypes());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -180,10 +189,7 @@ public class StoreService {
         updateIfNotNullOrEmpty(updateStoreDto.getFacilitiesInfoDto(), facilitiesInfoDto -> store.setFacilitiesInfo(facilitiesInfoDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
-        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkDtos(), mainDrinkDtos -> {
-            Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
-            store.setMainDrinks(mainDrinks);
-        });
+        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkTypes(), mainDrinkTypes -> updateMainDrinkVisibility(store, mainDrinkTypes));
         updateIfNotNullOrEmpty(updateStoreDto.getMoods(), store::setMoods);
         if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)) {
             if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)) {
@@ -247,6 +253,42 @@ public class StoreService {
             if (value instanceof String && ((String) value).isEmpty()) return;
             updater.accept(value);
         }
+    }
+
+    private void updateMainDrinkVisibility(Store store, Set<DrinkType> mainDrinkTypes) {
+        if (mainDrinkTypes == null) {
+            return;
+        }
+        if (store.getMainDrinks() == null) {
+            store.setMainDrinks(new HashSet<>());
+        }
+        Map<DrinkType, MainDrink> mainDrinkMap = store.getMainDrinks()
+                .stream()
+                .collect(Collectors.toMap(MainDrink::getType, mainDrink -> mainDrink, (left, right) -> left));
+
+        Set<DrinkType> visibleTypes = new HashSet<>(mainDrinkTypes);
+
+        for (DrinkType visibleType : visibleTypes) {
+            if (visibleType == null) {
+                continue;
+            }
+            MainDrink existing = mainDrinkMap.get(visibleType);
+            if (existing == null) {
+                store.getMainDrinks().add(MainDrink.builder()
+                        .type(visibleType)
+                        .price(null)
+                        .isVisible(Boolean.TRUE)
+                        .build());
+            } else {
+                existing.updateVisibility(Boolean.TRUE);
+            }
+        }
+
+        store.getMainDrinks().forEach(mainDrink -> {
+            if (!visibleTypes.contains(mainDrink.getType())) {
+                mainDrink.updateVisibility(Boolean.FALSE);
+            }
+        });
     }
 
     private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos) {

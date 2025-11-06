@@ -74,10 +74,7 @@ public class ResponseStore {
 
         public static GetStoreDto toDto(Store store, Boolean isOwner, Boolean isUpdatable, Double storeRate, Boolean isStoreLiked) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -159,10 +156,7 @@ public class ResponseStore {
 
         public static SearchStoreDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -251,10 +245,7 @@ public class ResponseStore {
 
         public static GetByDistanceDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -302,10 +293,7 @@ public class ResponseStore {
 
         public static GetByCategoryDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -378,10 +366,7 @@ public class ResponseStore {
 
         public static GetByBusinessHoursDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -452,10 +437,7 @@ public class ResponseStore {
 
         public static GetPopularStoreDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -513,10 +495,7 @@ public class ResponseStore {
 
         public static GetByRadiusDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -563,10 +542,7 @@ public class ResponseStore {
 
         public static GetLikedStoreDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -674,10 +650,7 @@ public class ResponseStore {
 
         public static MainBannerStoreDto toDto(Store store) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             return MainBannerStoreDto.builder()
                     .id(store.getId())
@@ -892,5 +865,16 @@ public class ResponseStore {
                     .storeImage(invitation.getStoreImage())
                     .build();
         }
+    }
+
+    private static Set<CommonStore.MainDrinkDto> extractVisibleMainDrinks(Store store) {
+        Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+        if (store.getMainDrinks() == null || store.getMainDrinks().isEmpty()) {
+            return mainDrinkDtos;
+        }
+        store.getMainDrinks().stream()
+                .filter(MainDrink::isVisible)
+                .forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+        return mainDrinkDtos;
     }
 }

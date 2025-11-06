@@ -374,7 +374,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             countQuery.leftJoin(store.mainDrinks, mainDrink);
             conditionBuilder.and(mainDrink.type.eq(drinkType));
             if (priceOrder != null) {
-                query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
+                query.orderBy(priceOrder.isAscending()
+                        ? mainDrink.price.asc().nullsLast()
+                        : mainDrink.price.desc().nullsLast());
             }
         }
 
@@ -570,7 +572,9 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             countQuery.leftJoin(store.mainDrinks, mainDrink);
             where.and(mainDrink.type.eq(drinkType));
             if (priceOrder != null) {
-                query.orderBy(priceOrder.isAscending() ? mainDrink.price.asc() : mainDrink.price.desc());
+                query.orderBy(priceOrder.isAscending()
+                        ? mainDrink.price.asc().nullsLast()
+                        : mainDrink.price.desc().nullsLast());
             }
         }
 

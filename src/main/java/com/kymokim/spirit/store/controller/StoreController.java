@@ -27,6 +27,11 @@ public class StoreController {
 
     private final StoreService storeService;
 
+    @GetMapping(value = "/init")
+    public void init() {
+        storeService.init();
+    }
+
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                    @Valid @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) {

@@ -1,10 +1,10 @@
 package com.kymokim.spirit.store.dto;
 
 import com.kymokim.spirit.drink.entity.DrinkType;
+import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.store.entity.FacilitiesInfo;
 import com.kymokim.spirit.store.entity.Location;
-import com.kymokim.spirit.store.entity.MainDrink;
 import com.kymokim.spirit.store.entity.OperationInfo;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
@@ -141,20 +141,13 @@ public class CommonStore {
     public static class MainDrinkDto{
         @Schema(description = "주종")
         private DrinkType type;
-        @Schema(description = "가격")
+        @Schema(description = "최저가", accessMode = Schema.AccessMode.READ_ONLY)
         private Long price;
 
         public static MainDrinkDto toDto(MainDrink mainDrink){
             return MainDrinkDto.builder()
                     .type(mainDrink.getType())
                     .price(mainDrink.getPrice())
-                    .build();
-        }
-
-        public MainDrink toEntity(){
-            return MainDrink.builder()
-                    .type(this.type)
-                    .price(this.price)
                     .build();
         }
     }

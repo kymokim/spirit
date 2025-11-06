@@ -13,6 +13,7 @@ import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
+import com.kymokim.spirit.store.service.MainDrinkSynchronizer;
 import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class DrinkService {
     private final StoreRepository storeRepository;
     private final S3Service s3Service;
     private final StoreService storeService;
+    private final MainDrinkSynchronizer mainDrinkSynchronizer;
 
     private Store resolveStore(Long storeId){
         return storeRepository.findById(storeId)
@@ -54,6 +56,7 @@ public class DrinkService {
         drinkRepository.save(drink);
         store.addDrinkList(drink);
         storeRepository.save(store);
+        mainDrinkSynchronizer.synchronize(store.getId());
     }
 
     public void updateImage(MultipartFile file, Long drinkId){
@@ -114,6 +117,7 @@ public class DrinkService {
         Drink updatedDrink = updateDrinkDto.toEntity(originalDrink);
         updatedDrink.getHistoryInfo().update(AuthResolver.resolveUserId());
         drinkRepository.save(updatedDrink);
+        mainDrinkSynchronizer.synchronize(updatedDrink.getStore().getId());
     }
 
     public void updateDrinkSortOrder(RequestDrink.UpdateDrinkSortOrderDto updateDrinkSortOrderDto) {
@@ -145,5 +149,6 @@ public class DrinkService {
         store.removeDrinkList(drink);
         drinkRepository.delete(drink);
         storeRepository.save(store);
+        mainDrinkSynchronizer.synchronize(store.getId());
     }
 }

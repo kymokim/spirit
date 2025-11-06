@@ -15,7 +15,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -46,8 +45,7 @@ public class RequestStore {
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         @NotEmpty(message = "대표 주종이 비었습니다.")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")
@@ -56,10 +54,6 @@ public class RequestStore {
 
         public Store toEntity(Long creatorId) {
 
-            Set<MainDrink> mainDrinks = new HashSet<>();
-            if (!this.mainDrinkDtos.isEmpty()) {
-                this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
-            }
             return Store.builder()
                     .name(this.name)
                     .contact(this.contact)
@@ -68,7 +62,7 @@ public class RequestStore {
                     .creatorId(creatorId)
                     .location(this.locationDto.toEntity())
                     .categories(this.categories)
-                    .mainDrinks(mainDrinks)
+                    .mainDrinks(new HashSet<>())
                     .moods(this.moods)
                     .build();
         }
@@ -97,8 +91,7 @@ public class RequestStore {
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")
@@ -107,10 +100,6 @@ public class RequestStore {
 
         public Store toEntity(Long creatorId) {
 
-            Set<MainDrink> mainDrinks = new HashSet<>();
-            if (!Objects.equals(this.mainDrinkDtos, null) && !this.mainDrinkDtos.isEmpty()) {
-                this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
-            }
             return Store.fromSuggestion(
                     this.name,
                     this.contact,
@@ -119,7 +108,7 @@ public class RequestStore {
                     creatorId,
                     this.locationDto.toEntity(),
                     this.categories,
-                    mainDrinks,
+                    new HashSet<>(),
                     this.moods
             );
         }
@@ -209,8 +198,7 @@ public class RequestStore {
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")

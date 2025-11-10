@@ -40,12 +40,10 @@ public class MainDrinkSynchronizer {
         }
         Set<MainDrink> mainDrinks = store.getMainDrinks();
 
-        Iterator<MainDrink> iterator = mainDrinks.iterator();
-        while (iterator.hasNext()) {
-            MainDrink mainDrink = iterator.next();
+        for (MainDrink mainDrink : mainDrinks) {
             DrinkType drinkType = mainDrink.getType();
             if (!minPriceByType.containsKey(drinkType)) {
-                iterator.remove();
+                mainDrink.updatePrice(null);
                 continue;
             }
             Long newPrice = minPriceByType.get(drinkType);

@@ -137,7 +137,7 @@ public class StoreQueryService {
     public Page<ResponseStore.GetByCategoryDto> getByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByCategory(criteria, category, drinkType, priceOrder, pageable);
-            return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store)));
+            return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store), drinkType));
         }, 3);
     }
 
@@ -206,7 +206,7 @@ public class StoreQueryService {
                     conditionSearchDto.getMoods(),
                     pageable
             );
-            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store), conditionSearchDto.getDrinkType()));
         }, 3);
     }
 
@@ -351,7 +351,7 @@ public class StoreQueryService {
 
     public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         Page<Store> storePage = storeRepository.findPopularStore(criteria, drinkType, priceOrder, pageable);
-        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
+        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store), drinkType));
     }
 
     public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {

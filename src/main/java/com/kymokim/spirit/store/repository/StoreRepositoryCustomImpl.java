@@ -71,6 +71,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return Expressions.numberTemplate(Double.class, "LOG(1 + {0})", store.likeCount);
     }
 
+    // 매장 평균 평점 계산식
+    private NumberExpression<Double> averageRateExpression(QStore store) {
+        return Expressions.numberTemplate(Double.class,
+                "COALESCE({0} / NULLIF({1}, 0), 0.0)", store.totalRate, store.reviewCount);
+    }
+
     // 매장 전체 평균 평점 계산식, 평점 없을 시 기본 값 3.5로 계산
     private NumberExpression<Double> globalAverageRateExpression(QStore store) {
         return Expressions.numberTemplate(
@@ -81,10 +87,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 베이지안 평균 평점 계산식
     private NumberExpression<Double> bayesianAverageRateExpression(QStore store, double globalAverageRate) {
-        // 매장 평균 평점 = totalRate / reviewCount (0 나눗셈 방지)
-        NumberExpression<Double> averageRate =
-                Expressions.numberTemplate(Double.class,
-                        "COALESCE({0} / NULLIF({1}, 0), 0.0)", store.totalRate, store.reviewCount);
+        NumberExpression<Double> averageRate = averageRateExpression(store);
 
         // 베이지안 평균 평점 계산(샘플 가중치 = 5)
         int priorSampleWeight = 5;
@@ -246,9 +249,24 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return isCertifiedPriority.desc();
     }
 
+    // 거리, 평점을 동시 고려한 가중치 정렬식
+    private OrderSpecifier<Double> orderByWeightedDistanceAndRate(QStore store, LocationCriteria criteria, double globalAverageRate) {
+        double distanceWeight = 0.1, rateWeight = 0.9;
+        NumberExpression<Double> rateScore = bayesianAverageRateExpression(store, globalAverageRate).multiply(rateWeight);
+        if (criteria == null) {
+            return rateScore.desc();
+        }
+
+        NumberExpression<Double> distanceScore = Expressions.numberTemplate(Double.class,
+                "1 / (1 + {0})", distanceExpression(store, criteria)).multiply(distanceWeight);
+
+        NumberExpression<Double> weightedScore = distanceScore.add(rateScore);
+        return weightedScore.desc();
+    }
+
     // 인기 점수 기반 정렬식
     private OrderSpecifier<Double> orderByPopularScore(QStore store, QStoreViewLog storeViewLog, Double globalAverageRate) {
-        double weightView = 1.0, weightLike = 0.7, weightRate = 1.2;  // 가중치 값
+        double weightView = 0.2, weightLike = 0.3, weightRate = 0.5;  // 가중치 값
         NumberExpression<Double> score =
                 Expressions.numberTemplate(Double.class,
                         "({0}*LOG(1+{1}) + {2}*{3} + {4}*{5})",
@@ -482,10 +500,18 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
             conditionBuilder.and(store.moods.any().in(moods));
         }
 
+        Double globalAverageRate = queryFactory.select(globalAverageRateExpression(store))
+                .from(store)
+                .where(store.reviewCount.gt(0))
+                .fetchOne();
+        if (globalAverageRate == null) {
+            globalAverageRate = 3.5;
+        }
+
         List<Store> content = query
                 .where(conditionBuilder)
                 .orderBy(orderByIsCertified(store))
-                .orderBy(orderByLikeCount(store))
+                .orderBy(orderByWeightedDistanceAndRate(store, criteria, globalAverageRate))
                 .distinct()
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

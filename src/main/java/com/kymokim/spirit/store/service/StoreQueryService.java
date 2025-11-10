@@ -200,6 +200,7 @@ public class StoreQueryService {
             Page<Store> storePage = storeRepository.findByMultipleCondition(
                     criteria,
                     conditionSearchDto.getCategory(),
+                    conditionSearchDto.getSearchKeyword(),
                     conditionSearchDto.toFacilitiesCondition(),
                     conditionSearchDto.getConditionTime(),
                     conditionSearchDto.getDrinkType(),

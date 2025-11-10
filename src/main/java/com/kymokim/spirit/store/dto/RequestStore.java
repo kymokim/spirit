@@ -236,6 +236,8 @@ public class RequestStore {
     public static class ConditionSearchDto {
         @Schema(description = "카테고리")
         private String category;
+        @Schema(description = "검색 키워드(가게명/메뉴명)")
+        private String searchKeyword;
         @Schema(description = "스크린 보유 여부")
         private Boolean hasScreen;
         @Schema(description = "룸 보유 여부")

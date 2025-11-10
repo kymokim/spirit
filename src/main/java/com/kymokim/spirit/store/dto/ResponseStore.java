@@ -4,6 +4,7 @@ import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.service.AESUtil;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
@@ -155,8 +156,12 @@ public class ResponseStore {
         private Long reviewCount;
 
         public static SearchStoreDto toDto(Store store, Double storeRate) {
+            return toDto(store, storeRate, null);
+        }
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
+        public static SearchStoreDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -291,9 +296,9 @@ public class ResponseStore {
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
 
-        public static GetByCategoryDto toDto(Store store, Double storeRate) {
+        public static GetByCategoryDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -435,9 +440,9 @@ public class ResponseStore {
         private List<MenuListDto> menuList;
         private Set<Category> categories;
 
-        public static GetPopularStoreDto toDto(Store store, Double storeRate) {
+        public static GetPopularStoreDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -868,6 +873,10 @@ public class ResponseStore {
     }
 
     private static Set<CommonStore.MainDrinkDto> extractVisibleMainDrinks(Store store) {
+        return extractVisibleMainDrinks(store, null);
+    }
+
+    private static Set<CommonStore.MainDrinkDto> extractVisibleMainDrinks(Store store, DrinkType forcedDrinkType) {
         Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
         if (store.getMainDrinks() == null || store.getMainDrinks().isEmpty()) {
             return mainDrinkDtos;
@@ -875,6 +884,16 @@ public class ResponseStore {
         store.getMainDrinks().stream()
                 .filter(MainDrink::isVisible)
                 .forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+        if (forcedDrinkType != null) {
+            boolean alreadyIncluded = mainDrinkDtos.stream()
+                    .anyMatch(mainDrinkDto -> forcedDrinkType.equals(mainDrinkDto.getType()));
+            if (!alreadyIncluded) {
+                store.getMainDrinks().stream()
+                        .filter(mainDrink -> forcedDrinkType.equals(mainDrink.getType()))
+                        .findFirst()
+                        .ifPresent(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+        }
         return mainDrinkDtos;
     }
 }

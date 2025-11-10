@@ -256,7 +256,7 @@ public class StoreService {
     }
 
     private void updateMainDrinkVisibility(Store store, Set<DrinkType> mainDrinkTypes) {
-        if (mainDrinkTypes == null) {
+        if (mainDrinkTypes == null || mainDrinkTypes.size() > 3) {
             return;
         }
         if (store.getMainDrinks() == null) {

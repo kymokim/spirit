@@ -168,9 +168,6 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
     // 편의시설 조건 동적 적용
     private void applyFacilitiesCondition(BooleanBuilder conditionBuilder, QStore store, FacilitiesCondition facilitiesCondition) {
-        if (facilitiesCondition == null) {
-            return;
-        }
         if (facilitiesCondition.getHasScreen() != null) {
             conditionBuilder.and(store.facilitiesInfo.hasScreen.eq(facilitiesCondition.getHasScreen()));
         }
@@ -442,10 +439,11 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Pageable pageable) {
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
+        QMenu menu = QMenu.menu;
         QMainDrink mainDrink = QMainDrink.mainDrink;
 
         BooleanBuilder conditionBuilder = new BooleanBuilder();
@@ -460,7 +458,16 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         if (category != null) {
             conditionBuilder.and(categoryCondition(store, category));
         }
-        applyFacilitiesCondition(conditionBuilder, store, facilitiesCondition);
+        if (searchKeyword != null && !searchKeyword.isBlank()) {
+            query.leftJoin(store.menuList, menu);
+            countQuery.leftJoin(store.menuList, menu);
+            BooleanExpression keywordCondition = storeNameCondition(store, searchKeyword)
+                    .or(menuNameCondition(menu, searchKeyword));
+            conditionBuilder.and(keywordCondition);
+        }
+        if (facilitiesCondition != null) {
+            applyFacilitiesCondition(conditionBuilder, store, facilitiesCondition);
+        }
         if (conditionTime != null) {
             query.leftJoin(store.operationInfos, operationInfo);
             countQuery.leftJoin(store.operationInfos, operationInfo);

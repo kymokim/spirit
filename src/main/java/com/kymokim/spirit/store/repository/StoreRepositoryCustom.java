@@ -29,7 +29,7 @@ public interface StoreRepositoryCustom {
 
     List<Store> findByRadius(LocationCriteria criteria);
 
-    Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Pageable pageable);
+    Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable);
 
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 

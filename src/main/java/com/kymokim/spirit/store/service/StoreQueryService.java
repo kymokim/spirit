@@ -205,6 +205,7 @@ public class StoreQueryService {
                     conditionSearchDto.getConditionTime(),
                     conditionSearchDto.getDrinkType(),
                     conditionSearchDto.getMoods(),
+                    conditionSearchDto.getPriceOrder(),
                     pageable
             );
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store), conditionSearchDto.getDrinkType()));

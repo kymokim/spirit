@@ -375,9 +375,6 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         conditionBuilder.and(isDeletedCondition(store));
         conditionBuilder.and(radiusCondition(store, criteria));
         conditionBuilder.and(categoryCondition(store, category));
-        if (drinkType != null) {
-            conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
-        }
 
         JPQLQuery<Store> query = queryFactory.selectFrom(store);
         JPQLQuery<Long> countQuery = queryFactory
@@ -457,7 +454,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Pageable pageable) {
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
+                                               LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QStore store = QStore.store;
         QOperationInfo operationInfo = QOperationInfo.operationInfo;
@@ -494,7 +492,12 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         if (drinkType != null) {
             query.leftJoin(store.mainDrinks, mainDrink);
             countQuery.leftJoin(store.mainDrinks, mainDrink);
-            conditionBuilder.and(store.mainDrinks.any().type.eq(drinkType));
+            conditionBuilder.and(mainDrink.type.eq(drinkType));
+            if (priceOrder != null) {
+                query.orderBy(priceOrder.isAscending()
+                        ? mainDrink.price.asc().nullsLast()
+                        : mainDrink.price.desc().nullsLast());
+            }
         }
         if (moods != null && !moods.isEmpty()) {
             conditionBuilder.and(store.moods.any().in(moods));

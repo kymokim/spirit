@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import org.springframework.data.domain.Sort;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -256,6 +257,8 @@ public class RequestStore {
         private DrinkType drinkType;
         @Schema(description = "분위기", example = "QUIET, MODERN")
         private Set<Mood> moods;
+        @Schema(description = "가격 정렬", example = "ASC")
+        private Sort.Direction priceOrder;
 
         public FacilitiesCondition toFacilitiesCondition() {
             return FacilitiesCondition.builder()

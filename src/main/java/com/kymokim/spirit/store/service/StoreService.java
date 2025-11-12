@@ -185,7 +185,7 @@ public class StoreService {
         updateIfNotNullOrEmpty(updateStoreDto.getMainImgUrl(), store::setMainImgUrl);
         updateIfNotNullOrEmpty(updateStoreDto.getName(), store::setName);
         updateIfNotNullOrEmpty(updateStoreDto.getContact(), store::setContact);
-        updateIfNotNullOrEmpty(updateStoreDto.getDescription(), store::setDescription);
+        updateIfNotNull(updateStoreDto.getDescription(), store::setDescription);
         updateIfNotNullOrEmpty(updateStoreDto.getFacilitiesInfoDto(), facilitiesInfoDto -> store.setFacilitiesInfo(facilitiesInfoDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
@@ -251,6 +251,12 @@ public class StoreService {
     private <T> void updateIfNotNullOrEmpty(T value, Consumer<T> updater) {
         if (value != null) {
             if (value instanceof String && ((String) value).isEmpty()) return;
+            updater.accept(value);
+        }
+    }
+
+    private <T> void updateIfNotNull(T value, Consumer<T> updater) {
+        if (value != null) {
             updater.accept(value);
         }
     }

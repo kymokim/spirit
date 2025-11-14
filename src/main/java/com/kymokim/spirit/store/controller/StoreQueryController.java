@@ -200,6 +200,21 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "다중 조건 검색 마커 리스트 조회")
+    @GetMapping("/condition-search/markers")
+    public ResponseEntity<ResponseDto> conditionSearchStoreMarkers(@RequestParam("latitude") double latitude,
+                                                                   @RequestParam("longitude") double longitude,
+                                                                   @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                                   RequestStore.ConditionSearchDto conditionSearchDto) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store condition search markers retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "메인 배너 리스트 조회")
     @GetMapping("/main-banner")
     public ResponseEntity<ResponseDto> getMainBanner(@RequestParam("latitude") double latitude,

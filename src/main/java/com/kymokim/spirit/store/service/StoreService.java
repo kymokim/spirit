@@ -528,7 +528,7 @@ public class StoreService {
 
     public void createOwnershipPhotoOnly(MultipartFile file, Long storeId) {
         if (file == null || file.isEmpty()) {
-            throw new CustomException(StoreErrorCode.OWNERSHIP_CERTIFICATE_IMAGE_EMPTY);
+            throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_CERTIFICATE_IMAGE_EMPTY);
         }
         Store store = resolveStore(storeId);
         Auth requester = AuthResolver.resolveUser();

@@ -182,7 +182,13 @@ public class StoreService {
         StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(AuthResolver.resolveUserId()).build();
         storeSuggestionRepository.save(storeSuggestion);
 
-        createOwnershipPhotoOnly(businessRegistrationCertificateImage, storeId);
+        RequestStore.CreateOwnershipPhotoOnlyDto createOwnershipPhotoOnlyDto = RequestStore.CreateOwnershipPhotoOnlyDto.builder()
+                .storeId(storeId)
+                .receivedStoreName(createStoreRqDto.getName())
+                .receivedStoreContact(createStoreRqDto.getContact())
+                .businessLocation(createStoreRqDto.getLocationDto())
+                .build();
+        createOwnershipPhotoOnly(businessRegistrationCertificateImage, createOwnershipPhotoOnlyDto);
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
@@ -526,11 +532,11 @@ public class StoreService {
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
-    public void createOwnershipPhotoOnly(MultipartFile file, Long storeId) {
+    public void createOwnershipPhotoOnly(MultipartFile file, RequestStore.CreateOwnershipPhotoOnlyDto requestDto) {
         if (file == null || file.isEmpty()) {
             throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_CERTIFICATE_IMAGE_EMPTY);
         }
-        Store store = resolveStore(storeId);
+        Store store = resolveStore(requestDto.getStoreId());
         Auth requester = AuthResolver.resolveUser();
 
         if (store.getOwnerId() != null) {
@@ -542,7 +548,14 @@ public class StoreService {
         }
 
         String imageUrl = s3Service.upload(file, "store/ownership/" + store.getId());
-        OwnershipRequest ownershipRequest = OwnershipRequest.createPhotoOnly(store, requester.getId(), imageUrl, store.getLocation());
+        OwnershipRequest ownershipRequest = OwnershipRequest.createPhotoOnly(
+                store,
+                requester.getId(),
+                imageUrl,
+                requestDto.getReceivedStoreName(),
+                requestDto.getReceivedStoreContact(),
+                requestDto.getBusinessLocation().toEntity()
+        );
         ownershipRequestRepository.save(ownershipRequest);
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }

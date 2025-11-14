@@ -24,6 +24,7 @@ import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -209,6 +210,23 @@ public class StoreQueryService {
                     pageable
             );
             return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store), conditionSearchDto.getDrinkType()));
+        }, 3);
+    }
+
+    public List<ResponseStore.MapMarkerDto> conditionSearchStoreMarkers(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<StoreMarkerProjection> markerProjections = storeRepository.findMarkersByMultipleCondition(
+                    criteria,
+                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.getSearchKeyword(),
+                    conditionSearchDto.toFacilitiesCondition(),
+                    conditionSearchDto.getConditionTime(),
+                    conditionSearchDto.getDrinkType(),
+                    conditionSearchDto.getMoods()
+            );
+            return markerProjections.stream()
+                    .map(ResponseStore.MapMarkerDto::toDto)
+                    .collect(Collectors.toList());
         }, 3);
     }
 

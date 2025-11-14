@@ -6,6 +6,7 @@ import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.Mood;
 import com.kymokim.spirit.store.entity.Store;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,6 +31,8 @@ public interface StoreRepositoryCustom {
     List<Store> findByRadius(LocationCriteria criteria);
 
     Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable);
+
+    List<StoreMarkerProjection> findMarkersByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods);
 
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 

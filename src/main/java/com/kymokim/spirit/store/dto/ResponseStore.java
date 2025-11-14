@@ -39,6 +39,18 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class BusinessValidationDto {
+        private Boolean isValid;
+
+        public static BusinessValidationDto of(Boolean isValid) {
+            return BusinessValidationDto.builder()
+                    .isValid(isValid)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class ImageListDto {
         private List<String> imgUrlList;
 

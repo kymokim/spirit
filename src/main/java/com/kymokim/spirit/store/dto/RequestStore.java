@@ -179,6 +179,24 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class CreateOwnershipPhotoOnlyDto {
+        @Schema(description = "매장 id")
+        @NotNull(message = "매장 id가 비었습니다.")
+        private Long storeId;
+        @Schema(description = "매장 이름")
+        @NotEmpty(message = "매장 이름이 비었습니다.")
+        private String receivedStoreName;
+        @Schema(description = "매장 연락처")
+        @NotEmpty(message = "매장 연락처가 비었습니다.")
+        private String receivedStoreContact;
+        @Schema(description = "주소")
+        @NotNull(message = "주소가 비었습니다.")
+        @Valid
+        private CommonStore.LocationDto businessLocation;
+    }
+
+    @Data
+    @Builder
     public static class ValidateBusinessDto {
         @Schema(description = "사업자등록번호")
         @NotEmpty(message = "사업자등록번호가 비었습니다.")

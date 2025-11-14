@@ -8,6 +8,7 @@ import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -526,6 +527,24 @@ public class ResponseStore {
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
                     .reviewCount(store.getReviewCount())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class MapMarkerDto {
+        private Long storeId;
+        private String storeName;
+        private Double latitude;
+        private Double longitude;
+
+        public static MapMarkerDto toDto(StoreMarkerProjection projection) {
+            return MapMarkerDto.builder()
+                    .storeId(projection.getStoreId())
+                    .storeName(projection.getStoreName())
+                    .latitude(projection.getLatitude())
+                    .longitude(projection.getLongitude())
                     .build();
         }
     }

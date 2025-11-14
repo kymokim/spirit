@@ -209,8 +209,8 @@ public class StoreController {
 
     @PostMapping(value = "/ownership/create/photo-only", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createOwnershipPhotoOnly(@RequestPart(value = "file") MultipartFile file,
-                                                                @RequestPart(value = "storeId") Long storeId) {
-        storeService.createOwnershipPhotoOnly(file, storeId);
+                                                                @Valid @RequestPart(value = "createOwnershipPhotoOnlyDto") RequestStore.CreateOwnershipPhotoOnlyDto createOwnershipPhotoOnlyDto) {
+        storeService.createOwnershipPhotoOnly(file, createOwnershipPhotoOnlyDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store ownership photo-only created successfully.")
                 .build();

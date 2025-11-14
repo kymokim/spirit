@@ -3,11 +3,13 @@ package com.kymokim.spirit.store.repository;
 import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.log.entity.QStoreViewLog;
 import com.kymokim.spirit.menu.entity.QMenu;
-import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.FacilitiesCondition;
+import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.entity.*;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -294,6 +296,60 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 .fetch();
         long total = fetchTotal(countQuery, conditions);
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public List<StoreMarkerProjection> findMarkersByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
+                                                                      LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods) {
+        // query
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        QOperationInfo operationInfo = QOperationInfo.operationInfo;
+        QMenu menu = QMenu.menu;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
+
+        // selectFrom
+        JPQLQuery<StoreMarkerProjection> query = queryFactory
+                .select(Projections.constructor(
+                        StoreMarkerProjection.class,
+                        store.id,
+                        store.location.latitude,
+                        store.location.longitude,
+                        store.name
+                ))
+                .from(store);
+
+        // where
+        BooleanBuilder conditions = baseActiveRadiusCondition(store, criteria);
+        if (category != null) {
+            conditions.and(categoryEquals(store, category));
+        }
+        if (searchKeyword != null && !searchKeyword.isBlank()) {
+            query.leftJoin(store.menuList, menu);
+            conditions.and(storeNameContains(store, searchKeyword)
+                    .or(menuNameContains(menu, searchKeyword)));
+        }
+        if (facilitiesCondition != null) {
+            applyFacilities(conditions, store, facilitiesCondition);
+        }
+        if (conditionTime != null) {
+            query.leftJoin(store.operationInfos, operationInfo);
+            conditions.and(openAt(store, operationInfo, conditionTime));
+        }
+        if (drinkType != null) {
+            query.leftJoin(store.mainDrinks, mainDrink);
+            conditions.and(drinkTypeEquals(mainDrink, drinkType));
+        }
+        if (moods != null && !moods.isEmpty()) {
+            conditions.and(moodsIn(store, moods));
+        }
+
+        // fetch
+        List<StoreMarkerProjection> markerProjectionList = query
+                .where(conditions)
+                .distinct()
+                .fetch();
+        return markerProjectionList;
     }
 
     // 랜덤 카테고리 선정 후 10개 반환, 반경 내 없으면 전체에서 반환

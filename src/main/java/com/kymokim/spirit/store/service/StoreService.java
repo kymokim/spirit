@@ -175,6 +175,17 @@ public class StoreService {
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
+    public void createStoreWithOwnershipPhotoOnly(MultipartFile[] storeImages, MultipartFile businessRegistrationCertificateImage, RequestStore.CreateStoreRqDto createStoreRqDto) {
+        Long storeId = createStore(storeImages, createStoreRqDto).getId();
+        Store store = resolveStore(storeId);
+        store.delete();
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(AuthResolver.resolveUserId()).build();
+        storeSuggestionRepository.save(storeSuggestion);
+
+        createOwnershipPhotoOnly(businessRegistrationCertificateImage, storeId);
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
     public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
         Store store = resolveStore(storeId);
         Long userId = AuthResolver.resolveUserId();
@@ -513,6 +524,36 @@ public class StoreService {
             ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
         }
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
+    public void createOwnershipPhotoOnly(MultipartFile file, Long storeId) {
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_CERTIFICATE_IMAGE_EMPTY);
+        }
+        Store store = resolveStore(storeId);
+        Auth requester = AuthResolver.resolveUser();
+
+        if (store.getOwnerId() != null) {
+            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
+        }
+
+        if (ownershipRequestRepository.existsByRequesterIdAndStore(requester.getId(), store)) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
+        }
+
+        String imageUrl = s3Service.upload(file, "store/ownership/" + store.getId());
+        OwnershipRequest ownershipRequest = OwnershipRequest.createPhotoOnly(store, requester.getId(), imageUrl, store.getLocation());
+        ownershipRequestRepository.save(ownershipRequest);
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
+    public ResponseStore.BusinessValidationDto validateBusiness(RequestStore.ValidateBusinessDto validateBusinessDto) {
+        Boolean isValid = businessRegistrationValidator.validateBusiness(
+                validateBusinessDto.getBusinessRegistrationNumber(),
+                validateBusinessDto.getRepresentativeName(),
+                validateBusinessDto.getOpeningDate()
+        );
+        return ResponseStore.BusinessValidationDto.of(isValid);
     }
 
     public void approveOwnership(Long ownershipId) {

@@ -83,6 +83,17 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping(value = "/create/with-ownership/photo-only", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createStoreWithOwnershipPhotoOnly(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
+                                                                         @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
+                                                                         @Valid @RequestPart(value = "createStoreRqDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
+        storeService.createStoreWithOwnershipPhotoOnly(storeImages, businessRegistrationCertificateImage, createStoreRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion and Ownership photo-only request created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @PatchMapping("/update/{storeId}")
     public ResponseEntity<ResponseDto> updateStore(@PathVariable Long storeId, @Valid @RequestBody RequestStore.UpdateStoreDto updateStoreDto) {
         storeService.updateStore(storeId, updateStoreDto);
@@ -192,6 +203,26 @@ public class StoreController {
         storeService.createOwnership(file, createOwnershipRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store ownership created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/ownership/create/photo-only", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createOwnershipPhotoOnly(@RequestPart(value = "file") MultipartFile file,
+                                                                @RequestPart(value = "storeId") Long storeId) {
+        storeService.createOwnershipPhotoOnly(file, storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store ownership photo-only created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/ownership/business/validate")
+    public ResponseEntity<ResponseDto> validateBusiness(@Valid @RequestBody RequestStore.ValidateBusinessDto validateBusinessDto) {
+        ResponseStore.BusinessValidationDto dto = storeService.validateBusiness(validateBusinessDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Business validation processed successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

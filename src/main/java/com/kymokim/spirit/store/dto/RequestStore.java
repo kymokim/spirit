@@ -179,6 +179,20 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class ValidateBusinessDto {
+        @Schema(description = "사업자등록번호")
+        @NotEmpty(message = "사업자등록번호가 비었습니다.")
+        private String businessRegistrationNumber;
+        @Schema(description = "대표자명")
+        @NotEmpty(message = "대표자명이 비었습니다.")
+        private String representativeName;
+        @Schema(description = "개업연월일")
+        @NotEmpty(message = "개업연월일이 비었습니다.")
+        private String openingDate;
+    }
+
+    @Data
+    @Builder
     public static class UpdateStoreDto {
         @Schema(description = "대표 이미지 URL")
         private String mainImgUrl;

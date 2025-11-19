@@ -72,6 +72,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PostMapping(value = "/create/with-ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStoreWithOwnership(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
                                                                 @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
@@ -197,6 +198,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PostMapping(value = "/ownership/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file") MultipartFile file,
                                                        @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) {

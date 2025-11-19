@@ -26,7 +26,8 @@ import javax.sql.DataSource;
                 "com.kymokim.spirit.notification",
                 "com.kymokim.spirit.report",
                 "com.kymokim.spirit.review",
-                "com.kymokim.spirit.store"
+                "com.kymokim.spirit.store",
+                "com.kymokim.spirit.event"
         },
         entityManagerFactoryRef = "mainEntityManagerFactory",
         transactionManagerRef = "mainTransactionManager"
@@ -61,7 +62,8 @@ public class MainDataSourceConfig {
                         "com.kymokim.spirit.notification",
                         "com.kymokim.spirit.report",
                         "com.kymokim.spirit.review",
-                        "com.kymokim.spirit.store")
+                        "com.kymokim.spirit.store",
+                        "com.kymokim.spirit.event")
                 .persistenceUnit("main")
                 .build();
     }

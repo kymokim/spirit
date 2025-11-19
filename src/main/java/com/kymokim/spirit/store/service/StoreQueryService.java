@@ -114,6 +114,19 @@ public class StoreQueryService {
         }, 3);
     }
 
+    public ResponseStore.GetStorePreviewDto getStorePreview(Long storeId) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Store store = resolveStore(storeId);
+            Auth user = AuthResolver.resolveUser();
+            boolean isStoreLiked = false;
+            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(user.getId(), storeId);
+            if (likedStore != null) {
+                isStoreLiked = true;
+            }
+            return ResponseStore.GetStorePreviewDto.toDto(store, calculateRate(store), isStoreLiked);
+        }, 3);
+    }
+
     public Page<ResponseStore.SearchStoreDto> searchStore(LocationCriteria criteria, String searchKeyword, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByNameAndMenu(criteria, searchKeyword, pageable);
@@ -146,15 +159,6 @@ public class StoreQueryService {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
             return storePage.map(store -> ResponseStore.GetByBusinessHoursDto.toDto(store, calculateRate(store)));
-        }, 3);
-    }
-
-    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria) {
-        return TransactionRetryUtil.executeWithRetry(() -> {
-            List<Store> storeList = storeRepository.findByRadius(criteria);
-            List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
-            storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
-            return dtoList;
         }, 3);
     }
 

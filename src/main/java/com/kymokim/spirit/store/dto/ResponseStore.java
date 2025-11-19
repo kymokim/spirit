@@ -138,6 +138,59 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class GetStorePreviewDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private String contact;
+        private Boolean isAlwaysOpen;
+        private Boolean isDeleted;
+        private CommonStore.LocationDto locationDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long likeCount;
+        private Boolean isStoreLiked;
+        private List<String> imgUrlList;
+
+        public static GetStorePreviewDto toDto(Store store, Double storeRate, Boolean isStoreLiked) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+            }
+
+            List<String> imgUrlList = new ArrayList<>();
+            if (!store.getImgUrlList().isEmpty()) {
+                store.getImgUrlList().forEach(storeImage -> imgUrlList.add(storeImage.getUrl()));
+            }
+
+            return GetStorePreviewDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .contact(store.getContact())
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .isDeleted(store.getIsDeleted())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .categories(store.getCategories())
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .operationInfoDtos(operationInfoDtos)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .likeCount(store.getLikeCount())
+                    .isStoreLiked(isStoreLiked)
+                    .imgUrlList(imgUrlList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class BoardImageListDto {
         private Long id;
         private String url;
@@ -492,53 +545,6 @@ public class ResponseStore {
                     .storeLikeCount(store.getLikeCount())
                     .menuList(menuList)
                     .categories(store.getCategories())
-                    .build();
-        }
-    }
-
-    @Getter
-    @Builder
-    public static class GetByRadiusDto {
-        private Long id;
-        private Boolean isCertified;
-        private String mainImgUrl;
-        private String name;
-        private Boolean isAlwaysOpen;
-        private CommonStore.LocationDto locationDto;
-        private Set<Category> categories;
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
-        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
-        private Double storeRate;
-        private Long reviewCount;
-
-        public static GetByRadiusDto toDto(Store store, Double storeRate) {
-
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
-
-            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()) {
-                LocalDate today = LocalDate.now();
-                store.getOperationInfos().forEach(operationInfo -> {
-                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
-                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
-                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
-                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
-                    }
-                });
-            }
-
-            return GetByRadiusDto.builder()
-                    .id(store.getId())
-                    .isCertified(store.getOwnerId() != null)
-                    .mainImgUrl(store.getMainImgUrl())
-                    .name(store.getName())
-                    .isAlwaysOpen(store.getIsAlwaysOpen())
-                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
-                    .mainDrinkDtos(mainDrinkDtos)
-                    .categories(store.getCategories())
-                    .operationInfoDtos(operationInfoDtos)
-                    .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
                     .build();
         }
     }

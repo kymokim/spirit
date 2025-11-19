@@ -217,26 +217,6 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return new PageImpl<>(content, pageable, total);
     }
 
-    // 근처 가게 리스트 반환(지도용)
-    @Override
-    public List<Store> findByRadius(LocationCriteria criteria) {
-        // query
-        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
-        QStore store = QStore.store;
-
-        // selectFrom
-        JPQLQuery<Store> query = queryFactory.selectFrom(store);
-
-        // where
-        BooleanBuilder conditions = baseActiveRadiusCondition(store, criteria);
-
-        // fetch
-        List<Store> storeList = query
-                .where(conditions)
-                .fetch();
-        return storeList;
-    }
-
     @Override
     public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
                                                LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable) {

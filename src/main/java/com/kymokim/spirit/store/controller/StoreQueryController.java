@@ -50,6 +50,17 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Operation(summary = "가게 프리뷰 조회")
+    @GetMapping("/preview/{storeId}")
+    public ResponseEntity<ResponseDto> getStorePreview(@PathVariable("storeId") Long storeId) {
+        ResponseStore.GetStorePreviewDto getStorePreviewDto = storeQueryService.getStorePreview(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store preview retrieved successfully.")
+                .data(getStorePreviewDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "가게 검색(가게명, 메뉴명) 리스트 조회")
     @GetMapping("/keyword/{keyword}")
     public ResponseEntity<ResponseDto> searchStore(@PathVariable("keyword") String keyword,
@@ -144,20 +155,6 @@ public class StoreQueryController {
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store search list retrieved successfully.")
                 .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @Operation(summary = "반경 내 가게 리스트 조회")
-    @GetMapping("/radius")
-    public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
-                                                   @RequestParam("longitude") double longitude,
-                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
-        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
-        List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store search list retrieved successfully.")
-                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

@@ -32,11 +32,11 @@ public class StoreQueryController {
     private final StoreQueryService storeQueryService;
 
     private LocationCriteria setCriteria(double latitude, double longitude, double radius) {
-        LocationCriteria criteria = new LocationCriteria();
-        criteria.setLatitude(latitude);
-        criteria.setLongitude(longitude);
-        criteria.setRadius(radius);
-        return criteria;
+        return LocationCriteria.builder()
+                .latitude(latitude)
+                .longitude(longitude)
+                .radius(radius)
+                .build();
     }
 
     @Operation(summary = "가게 상세 조회")

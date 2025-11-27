@@ -189,6 +189,7 @@ public class StoreQueryController {
                                                             @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
                                                             RequestStore.ConditionSearchDto conditionSearchDto) {
+        System.out.println("query rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -204,6 +205,7 @@ public class StoreQueryController {
                                                                    @RequestParam("longitude") double longitude,
                                                                    @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                                    RequestStore.ConditionSearchDto conditionSearchDto) {
+        System.out.println("marker rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
         ResponseDto responseDto = ResponseDto.builder()
@@ -327,12 +329,6 @@ public class StoreQueryController {
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                        @PageableDefault(size = 10) Pageable pageable) {
-        if (!Objects.equals(drinkType,null)){
-            System.out.println("drinkType: " + drinkType);
-        }
-        if (!Objects.equals(priceOrder,null)){
-            System.out.println("priceOrder: " + priceOrder);
-        }
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()

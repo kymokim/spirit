@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Tag(name = "Store Query API")
 @Controller
@@ -326,7 +327,12 @@ public class StoreQueryController {
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                        @PageableDefault(size = 10) Pageable pageable) {
-        System.out.println("drinkType: " + drinkType.toString() + ", priceOrder: " + priceOrder.toString());
+        if (!Objects.equals(drinkType,null)){
+            System.out.println("drinkType: " + drinkType);
+        }
+        if (!Objects.equals(priceOrder,null)){
+            System.out.println("priceOrder: " + priceOrder);
+        }
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()

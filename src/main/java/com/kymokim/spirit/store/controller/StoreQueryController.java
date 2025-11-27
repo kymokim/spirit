@@ -32,11 +32,11 @@ public class StoreQueryController {
     private final StoreQueryService storeQueryService;
 
     private LocationCriteria setCriteria(double latitude, double longitude, double radius) {
-        LocationCriteria criteria = new LocationCriteria();
-        criteria.setLatitude(latitude);
-        criteria.setLongitude(longitude);
-        criteria.setRadius(radius);
-        return criteria;
+        return LocationCriteria.builder()
+                .latitude(latitude)
+                .longitude(longitude)
+                .radius(radius)
+                .build();
     }
 
     @Operation(summary = "가게 상세 조회")
@@ -326,6 +326,7 @@ public class StoreQueryController {
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                        @PageableDefault(size = 10) Pageable pageable) {
+        System.out.println("drinkType: " + drinkType.toString() + ", priceOrder: " + priceOrder.toString());
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()

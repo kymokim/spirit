@@ -189,6 +189,7 @@ public class StoreQueryController {
                                                             @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
                                                             RequestStore.ConditionSearchDto conditionSearchDto) {
+        System.out.println("query location: " + latitude + ", " + longitude);
         System.out.println("query rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
@@ -205,6 +206,7 @@ public class StoreQueryController {
                                                                    @RequestParam("longitude") double longitude,
                                                                    @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                                    RequestStore.ConditionSearchDto conditionSearchDto) {
+        System.out.println("marker location: " + latitude + ", " + longitude);
         System.out.println("marker rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);

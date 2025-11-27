@@ -326,6 +326,7 @@ public class StoreQueryController {
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                        @PageableDefault(size = 10) Pageable pageable) {
+        System.out.println("drinkType: " + drinkType.toString() + ", priceOrder: " + priceOrder.toString());
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()

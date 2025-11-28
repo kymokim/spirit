@@ -24,6 +24,7 @@ import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.*;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -113,6 +114,19 @@ public class StoreQueryService {
         }, 3);
     }
 
+    public ResponseStore.GetStorePreviewDto getStorePreview(Long storeId) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Store store = resolveStore(storeId);
+            Auth user = AuthResolver.resolveUser();
+            boolean isStoreLiked = false;
+            LikedStore likedStore = likedStoreRepository.findByUserIdAndStoreId(user.getId(), storeId);
+            if (likedStore != null) {
+                isStoreLiked = true;
+            }
+            return ResponseStore.GetStorePreviewDto.toDto(store, calculateRate(store), isStoreLiked);
+        }, 3);
+    }
+
     public Page<ResponseStore.SearchStoreDto> searchStore(LocationCriteria criteria, String searchKeyword, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByNameAndMenu(criteria, searchKeyword, pageable);
@@ -137,7 +151,7 @@ public class StoreQueryService {
     public Page<ResponseStore.GetByCategoryDto> getByCategory(LocationCriteria criteria, String category, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByCategory(criteria, category, drinkType, priceOrder, pageable);
-            return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store)));
+            return storePage.map(store -> ResponseStore.GetByCategoryDto.toDto(store, calculateRate(store), drinkType));
         }, 3);
     }
 
@@ -145,15 +159,6 @@ public class StoreQueryService {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByBusinessHours(criteria, pageable);
             return storePage.map(store -> ResponseStore.GetByBusinessHoursDto.toDto(store, calculateRate(store)));
-        }, 3);
-    }
-
-    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria) {
-        return TransactionRetryUtil.executeWithRetry(() -> {
-            List<Store> storeList = storeRepository.findByRadius(criteria);
-            List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
-            storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
-            return dtoList;
         }, 3);
     }
 
@@ -195,16 +200,47 @@ public class StoreQueryService {
         }, 3);
     }
 
+    @Deprecated
+    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Store> storeList = storeRepository.findByRadius(criteria);
+            List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
+            storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
+            return dtoList;
+        }, 3);
+    }
+
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByMultipleCondition(
-                    criteria, conditionSearchDto.getCategory(),
-                    conditionSearchDto.getIsGroupAvailable(),
+                    criteria,
+                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.getSearchKeyword(),
+                    conditionSearchDto.toFacilitiesCondition(),
                     conditionSearchDto.getConditionTime(),
                     conditionSearchDto.getDrinkType(),
+                    conditionSearchDto.getMoods(),
+                    conditionSearchDto.getPriceOrder(),
                     pageable
             );
-            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store)));
+            return storePage.map(store -> ResponseStore.SearchStoreDto.toDto(store, calculateRate(store), conditionSearchDto.getDrinkType()));
+        }, 3);
+    }
+
+    public List<ResponseStore.MapMarkerDto> conditionSearchStoreMarkers(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<StoreMarkerProjection> markerProjections = storeRepository.findMarkersByMultipleCondition(
+                    criteria,
+                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.getSearchKeyword(),
+                    conditionSearchDto.toFacilitiesCondition(),
+                    conditionSearchDto.getConditionTime(),
+                    conditionSearchDto.getDrinkType(),
+                    conditionSearchDto.getMoods()
+            );
+            return markerProjections.stream()
+                    .map(ResponseStore.MapMarkerDto::toDto)
+                    .collect(Collectors.toList());
         }, 3);
     }
 
@@ -349,7 +385,7 @@ public class StoreQueryService {
 
     public Page<ResponseStore.GetPopularStoreDto> getPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable) {
         Page<Store> storePage = storeRepository.findPopularStore(criteria, drinkType, priceOrder, pageable);
-        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store)));
+        return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store), drinkType));
     }
 
     public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {

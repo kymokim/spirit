@@ -1,9 +1,10 @@
 package com.kymokim.spirit.store.dto;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 public class LocationCriteria {
     private double latitude;
     private double longitude;

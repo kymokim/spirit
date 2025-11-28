@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Tag(name = "Store Query API")
 @Controller
@@ -32,11 +33,11 @@ public class StoreQueryController {
     private final StoreQueryService storeQueryService;
 
     private LocationCriteria setCriteria(double latitude, double longitude, double radius) {
-        LocationCriteria criteria = new LocationCriteria();
-        criteria.setLatitude(latitude);
-        criteria.setLongitude(longitude);
-        criteria.setRadius(radius);
-        return criteria;
+        return LocationCriteria.builder()
+                .latitude(latitude)
+                .longitude(longitude)
+                .radius(radius)
+                .build();
     }
 
     @Operation(summary = "가게 상세 조회")
@@ -46,6 +47,17 @@ public class StoreQueryController {
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store retrieved successfully.")
                 .data(getStoreDto)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "가게 프리뷰 조회")
+    @GetMapping("/preview/{storeId}")
+    public ResponseEntity<ResponseDto> getStorePreview(@PathVariable("storeId") Long storeId) {
+        ResponseStore.GetStorePreviewDto getStorePreviewDto = storeQueryService.getStorePreview(storeId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store preview retrieved successfully.")
+                .data(getStorePreviewDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -148,20 +160,6 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "반경 내 가게 리스트 조회")
-    @GetMapping("/radius")
-    public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
-                                                   @RequestParam("longitude") double longitude,
-                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
-        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
-        List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store search list retrieved successfully.")
-                .data(dtoList)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
     @Operation(summary = "좋아요한 가게 리스트 조회")
     @GetMapping("/liked")
     public ResponseEntity<ResponseDto> getLikedStore(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
@@ -184,6 +182,21 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
+    @Operation(summary = "반경 내 가게 리스트 조회")
+    @GetMapping("/radius")
+    public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
+                                                   @RequestParam("longitude") double longitude,
+                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store search list retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "다중 조건 검색 리스트 조회")
     @GetMapping("/condition-search")
     public ResponseEntity<ResponseDto> conditionSearchStore(@RequestParam("latitude") double latitude,
@@ -196,6 +209,21 @@ public class StoreQueryController {
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store condition search list retrieved successfully.")
                 .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "다중 조건 검색 마커 리스트 조회")
+    @GetMapping("/condition-search/markers")
+    public ResponseEntity<ResponseDto> conditionSearchStoreMarkers(@RequestParam("latitude") double latitude,
+                                                                   @RequestParam("longitude") double longitude,
+                                                                   @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                                   RequestStore.ConditionSearchDto conditionSearchDto) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store condition search markers retrieved successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

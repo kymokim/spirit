@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import org.springframework.data.domain.Sort;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -15,7 +16,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -30,12 +30,10 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        @NotNull(message = "스크린 보유 여부가 비었습니다.")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        @NotNull(message = "단체석 보유 여부가 비었습니다.")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @NotNull(message = "편의시설 정보가 비었습니다.")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         @NotNull(message = "24시간 운영 여부가 비었습니다.")
         private Boolean isAlwaysOpen;
@@ -48,28 +46,25 @@ public class RequestStore {
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         @NotEmpty(message = "대표 주종이 비었습니다.")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
         public Store toEntity(Long creatorId) {
 
-            Set<MainDrink> mainDrinks = new HashSet<>();
-            if (!this.mainDrinkDtos.isEmpty()) {
-                this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
-            }
             return Store.builder()
                     .name(this.name)
                     .contact(this.contact)
                     .description(this.description)
-                    .hasScreen(this.hasScreen)
-                    .isGroupAvailable(this.isGroupAvailable)
+                    .facilitiesInfo(this.facilitiesInfoDto.toEntity())
                     .creatorId(creatorId)
                     .location(this.locationDto.toEntity())
                     .categories(this.categories)
-                    .mainDrinks(mainDrinks)
+                    .mainDrinks(new HashSet<>())
+                    .moods(this.moods)
                     .build();
         }
     }
@@ -84,10 +79,10 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @NotNull(message = "편의시설 정보가 비었습니다.")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
@@ -97,20 +92,26 @@ public class RequestStore {
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
 
         public Store toEntity(Long creatorId) {
 
-            Set<MainDrink> mainDrinks = new HashSet<>();
-            if (!Objects.equals(this.mainDrinkDtos, null) && !this.mainDrinkDtos.isEmpty()) {
-                this.mainDrinkDtos.forEach(mainDrinkDto -> mainDrinks.add(mainDrinkDto.toEntity()));
-            }
-            return Store.fromSuggestion(this.name, this.contact, this.description, this.hasScreen,
-                    this.isGroupAvailable, creatorId, this.locationDto.toEntity(), this.categories, mainDrinks);
+            return Store.fromSuggestion(
+                    this.name,
+                    this.contact,
+                    this.description,
+                    this.facilitiesInfoDto.toEntity(),
+                    creatorId,
+                    this.locationDto.toEntity(),
+                    this.categories,
+                    new HashSet<>(),
+                    this.moods
+            );
         }
     }
 
@@ -178,6 +179,38 @@ public class RequestStore {
 
     @Data
     @Builder
+    public static class CreateOwnershipPhotoOnlyDto {
+        @Schema(description = "매장 id")
+        @NotNull(message = "매장 id가 비었습니다.")
+        private Long storeId;
+        @Schema(description = "매장 이름")
+        @NotEmpty(message = "매장 이름이 비었습니다.")
+        private String receivedStoreName;
+        @Schema(description = "매장 연락처")
+        @NotEmpty(message = "매장 연락처가 비었습니다.")
+        private String receivedStoreContact;
+        @Schema(description = "주소")
+        @NotNull(message = "주소가 비었습니다.")
+        @Valid
+        private CommonStore.LocationDto businessLocation;
+    }
+
+    @Data
+    @Builder
+    public static class ValidateBusinessDto {
+        @Schema(description = "사업자등록번호")
+        @NotEmpty(message = "사업자등록번호가 비었습니다.")
+        private String businessRegistrationNumber;
+        @Schema(description = "대표자명")
+        @NotEmpty(message = "대표자명이 비었습니다.")
+        private String representativeName;
+        @Schema(description = "개업연월일")
+        @NotEmpty(message = "개업연월일이 비었습니다.")
+        private String openingDate;
+    }
+
+    @Data
+    @Builder
     public static class UpdateStoreDto {
         @Schema(description = "대표 이미지 URL")
         private String mainImgUrl;
@@ -187,10 +220,9 @@ public class RequestStore {
         private String contact;
         @Schema(description = "설명")
         private String description;
-        @Schema(description = "스크린 보유 여부")
-        private Boolean hasScreen;
-        @Schema(description = "단체석 보유 여부")
-        private Boolean isGroupAvailable;
+        @Schema(description = "편의시설 정보")
+        @Valid
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         @Schema(description = "24시간 운영 여부")
         private Boolean isAlwaysOpen;
         @Schema(description = "위치 정보")
@@ -199,8 +231,9 @@ public class RequestStore {
         @Schema(description = "카테고리")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
-        @Valid
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<DrinkType> mainDrinkTypes;
+        @Schema(description = "분위기")
+        private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
@@ -236,12 +269,39 @@ public class RequestStore {
     public static class ConditionSearchDto {
         @Schema(description = "카테고리")
         private String category;
-        @Schema(description = "단체 방문 여부")
+        @Schema(description = "검색 키워드(가게명/메뉴명)")
+        private String searchKeyword;
+        @Schema(description = "스크린 보유 여부")
+        private Boolean hasScreen;
+        @Schema(description = "룸 보유 여부")
+        private Boolean hasRoom;
+        @Schema(description = "야외 좌석 보유 여부")
+        private Boolean hasOutdoor;
+        @Schema(description = "단체석 보유 여부")
         private Boolean isGroupAvailable;
+        @Schema(description = "주차 가능 여부")
+        private Boolean isParkingAvailable;
+        @Schema(description = "콜키지 가능 여부")
+        private Boolean isCorkageAvailable;
         @Schema(description = "방문 예정 시간", example = "2025-02-03T13:58:27.816")
         private LocalDateTime conditionTime;
         @Schema(description = "대표 주종", example = "SOJU")
         private DrinkType drinkType;
+        @Schema(description = "분위기", example = "QUIET, MODERN")
+        private Set<Mood> moods;
+        @Schema(description = "가격 정렬", example = "ASC")
+        private Sort.Direction priceOrder;
+
+        public FacilitiesCondition toFacilitiesCondition() {
+            return FacilitiesCondition.builder()
+                    .hasScreen(this.hasScreen)
+                    .hasRoom(this.hasRoom)
+                    .hasOutdoor(this.hasOutdoor)
+                    .isGroupAvailable(this.isGroupAvailable)
+                    .isParkingAvailable(this.isParkingAvailable)
+                    .isCorkageAvailable(this.isCorkageAvailable)
+                    .build();
+        }
     }
 
     @Getter

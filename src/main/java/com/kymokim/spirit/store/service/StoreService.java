@@ -8,6 +8,7 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.S3Service;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.link.dto.LinkData;
 import com.kymokim.spirit.link.dto.PathType;
 import com.kymokim.spirit.link.service.LinkBuilder;
@@ -49,6 +50,12 @@ public class StoreService {
     private final LinkBuilder linkBuilder;
     private final ManagerInvitationRepository managerInvitationRepository;
 
+    private final MainDrinkSynchronizer mainDrinkSynchronizer;
+    public void init() {
+        List<Store> storeList = storeRepository.findAll();
+        storeList.forEach(store -> mainDrinkSynchronizer.synchronize(store.getId()));
+    }
+
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
@@ -70,6 +77,7 @@ public class StoreService {
 
     public ResponseStore.CreateStoreRsDto createStore(MultipartFile[] files, RequestStore.CreateStoreRqDto createStoreRqDto) {
         Store store = createStoreRqDto.toEntity(AuthResolver.resolveUserId());
+        updateMainDrinkVisibility(store, createStoreRqDto.getMainDrinkTypes());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -89,9 +97,11 @@ public class StoreService {
         return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
-    public void suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
+    public ResponseStore.CreateStoreRsDto suggestStore(MultipartFile[] files, RequestStore.SuggestStoreDto suggestStoreDto) {
         Auth user = AuthResolver.resolveUser();
         Store store = suggestStoreDto.toEntity(user.getId());
+        store.setOwnerId(user.getId());
+        updateMainDrinkVisibility(store, suggestStoreDto.getMainDrinkTypes());
         storeRepository.save(store);
         if (files != null) {
             List<MultipartFile> fileList = Arrays.asList(files);
@@ -109,16 +119,27 @@ public class StoreService {
 
         StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(user.getId()).build();
         storeSuggestionRepository.save(storeSuggestion);
+
         NotificationEvent.raise(new StoreSuggestionCreatedNotificationEvent(store));
+
+        return ResponseStore.CreateStoreRsDto.toDto(store);
     }
 
     public void approveStoreSuggestion(Long storeSuggestionId) {
         StoreSuggestion storeSuggestion = storeSuggestionRepository.findById(storeSuggestionId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
         Store store = storeSuggestion.getStore();
-        if (Objects.equals(store.getHasScreen(), null)
-                || Objects.equals(store.getIsGroupAvailable(), null)
-                || Objects.equals(store.getIsAlwaysOpen(), null)
+        FacilitiesInfo facilitiesInfo = store.getFacilitiesInfo();
+        if (facilitiesInfo == null
+                || facilitiesInfo.getHasScreen() == null
+                || facilitiesInfo.getHasRoom() == null
+                || facilitiesInfo.getHasOutdoor() == null
+                || facilitiesInfo.getIsGroupAvailable() == null
+                || facilitiesInfo.getIsParkingAvailable() == null
+                || facilitiesInfo.getIsCorkageAvailable() == null) {
+            throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
+        }
+        if (Objects.equals(store.getIsAlwaysOpen(), null)
                 || Objects.equals(store.getCategories(), null)
                 || store.getCategories().isEmpty()
                 || Objects.equals(store.getMainDrinks(), null)
@@ -126,6 +147,7 @@ public class StoreService {
             throw new CustomException(StoreErrorCode.STORE_REQUIRED_INFO_EMPTY);
         }
         store.setIsDeleted(false);
+        store.setOwnerId(null);
         storeRepository.save(store);
         storeSuggestionRepository.delete(storeSuggestion);
     }
@@ -135,6 +157,7 @@ public class StoreService {
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_SUGGESTION_NOT_FOUND));
         Store store = storeSuggestion.getStore();
         storeSuggestionRepository.delete(storeSuggestion);
+        store.setOwnerId(null);
         deleteStore(store.getId());
     }
 
@@ -152,22 +175,39 @@ public class StoreService {
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
     }
 
-    public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
-        validateStoreAccess(storeId);
+    public void createStoreWithOwnershipPhotoOnly(MultipartFile[] storeImages, MultipartFile businessRegistrationCertificateImage, RequestStore.CreateStoreRqDto createStoreRqDto) {
+        Long storeId = createStore(storeImages, createStoreRqDto).getId();
         Store store = resolveStore(storeId);
+        store.delete();
+        StoreSuggestion storeSuggestion = StoreSuggestion.builder().store(store).suggesterId(AuthResolver.resolveUserId()).build();
+        storeSuggestionRepository.save(storeSuggestion);
+
+        RequestStore.CreateOwnershipPhotoOnlyDto createOwnershipPhotoOnlyDto = RequestStore.CreateOwnershipPhotoOnlyDto.builder()
+                .storeId(storeId)
+                .receivedStoreName(createStoreRqDto.getName())
+                .receivedStoreContact(createStoreRqDto.getContact())
+                .businessLocation(createStoreRqDto.getLocationDto())
+                .build();
+        createOwnershipPhotoOnly(businessRegistrationCertificateImage, createOwnershipPhotoOnlyDto);
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
+    public void updateStore(Long storeId, RequestStore.UpdateStoreDto updateStoreDto) {
+        Store store = resolveStore(storeId);
+        Long userId = AuthResolver.resolveUserId();
+        if (!Objects.equals(store.getOwnerId(), userId)) {
+            validateStoreAccess(store.getId());
+        }
 
         updateIfNotNullOrEmpty(updateStoreDto.getMainImgUrl(), store::setMainImgUrl);
         updateIfNotNullOrEmpty(updateStoreDto.getName(), store::setName);
         updateIfNotNullOrEmpty(updateStoreDto.getContact(), store::setContact);
-        updateIfNotNullOrEmpty(updateStoreDto.getDescription(), store::setDescription);
-        updateIfNotNullOrEmpty(updateStoreDto.getHasScreen(), store::setHasScreen);
-        updateIfNotNullOrEmpty(updateStoreDto.getIsGroupAvailable(), store::setIsGroupAvailable);
+        updateIfNotNull(updateStoreDto.getDescription(), store::setDescription);
+        updateIfNotNullOrEmpty(updateStoreDto.getFacilitiesInfoDto(), facilitiesInfoDto -> store.setFacilitiesInfo(facilitiesInfoDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
-        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkDtos(), mainDrinkDtos -> {
-            Set<MainDrink> mainDrinks = mainDrinkDtos.stream().map(CommonStore.MainDrinkDto::toEntity).collect(Collectors.toSet());
-            store.setMainDrinks(mainDrinks);
-        });
+        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkTypes(), mainDrinkTypes -> updateMainDrinkVisibility(store, mainDrinkTypes));
+        updateIfNotNullOrEmpty(updateStoreDto.getMoods(), store::setMoods);
         if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)) {
             if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)) {
                 setIsAlwaysOpenAndOperationInfos(store, updateStoreDto.getIsAlwaysOpen(), null);
@@ -176,7 +216,7 @@ public class StoreService {
             }
         }
 
-        store.getHistoryInfo().update(AuthResolver.resolveUserId());
+        store.getHistoryInfo().update(userId);
         storeRepository.save(store);
     }
 
@@ -230,6 +270,48 @@ public class StoreService {
             if (value instanceof String && ((String) value).isEmpty()) return;
             updater.accept(value);
         }
+    }
+
+    private <T> void updateIfNotNull(T value, Consumer<T> updater) {
+        if (value != null) {
+            updater.accept(value);
+        }
+    }
+
+    private void updateMainDrinkVisibility(Store store, Set<DrinkType> mainDrinkTypes) {
+        if (mainDrinkTypes == null || mainDrinkTypes.size() > 3) {
+            return;
+        }
+        if (store.getMainDrinks() == null) {
+            store.setMainDrinks(new HashSet<>());
+        }
+        Map<DrinkType, MainDrink> mainDrinkMap = store.getMainDrinks()
+                .stream()
+                .collect(Collectors.toMap(MainDrink::getType, mainDrink -> mainDrink, (left, right) -> left));
+
+        Set<DrinkType> visibleTypes = new HashSet<>(mainDrinkTypes);
+
+        for (DrinkType visibleType : visibleTypes) {
+            if (visibleType == null) {
+                continue;
+            }
+            MainDrink existing = mainDrinkMap.get(visibleType);
+            if (existing == null) {
+                store.getMainDrinks().add(MainDrink.builder()
+                        .type(visibleType)
+                        .price(null)
+                        .isVisible(Boolean.TRUE)
+                        .build());
+            } else {
+                existing.updateVisibility(Boolean.TRUE);
+            }
+        }
+
+        store.getMainDrinks().forEach(mainDrink -> {
+            if (!visibleTypes.contains(mainDrink.getType())) {
+                mainDrink.updateVisibility(Boolean.FALSE);
+            }
+        });
     }
 
     private void setIsAlwaysOpenAndOperationInfos(Store store, Boolean isAlwaysOpen, Set<CommonStore.OperationInfoDto> operationInfoDtos) {
@@ -448,6 +530,43 @@ public class StoreService {
             ownershipRequest.setBusinessRegistrationCertificateImgUrl(imageUrl);
         }
         NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
+    public void createOwnershipPhotoOnly(MultipartFile file, RequestStore.CreateOwnershipPhotoOnlyDto requestDto) {
+        if (file == null || file.isEmpty()) {
+            throw new CustomException(StoreErrorCode.BUSINESS_REGISTRATION_CERTIFICATE_IMAGE_EMPTY);
+        }
+        Store store = resolveStore(requestDto.getStoreId());
+        Auth requester = AuthResolver.resolveUser();
+
+        if (store.getOwnerId() != null) {
+            throw new CustomException(StoreErrorCode.STORE_OWNER_ALREADY_EXIST);
+        }
+
+        if (ownershipRequestRepository.existsByRequesterIdAndStore(requester.getId(), store)) {
+            throw new CustomException(StoreErrorCode.OWNERSHIP_ALREADY_REQUESTED);
+        }
+
+        String imageUrl = s3Service.upload(file, "store/ownership/" + store.getId());
+        OwnershipRequest ownershipRequest = OwnershipRequest.createPhotoOnly(
+                store,
+                requester.getId(),
+                imageUrl,
+                requestDto.getReceivedStoreName(),
+                requestDto.getReceivedStoreContact(),
+                requestDto.getBusinessLocation().toEntity()
+        );
+        ownershipRequestRepository.save(ownershipRequest);
+        NotificationEvent.raise(new StoreOwnershipRequestCreatedNotificationEvent(store));
+    }
+
+    public ResponseStore.BusinessValidationDto validateBusiness(RequestStore.ValidateBusinessDto validateBusinessDto) {
+        Boolean isValid = businessRegistrationValidator.validateBusiness(
+                validateBusinessDto.getBusinessRegistrationNumber(),
+                validateBusinessDto.getRepresentativeName(),
+                validateBusinessDto.getOpeningDate()
+        );
+        return ResponseStore.BusinessValidationDto.of(isValid);
     }
 
     public void approveOwnership(Long ownershipId) {

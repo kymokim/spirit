@@ -27,6 +27,11 @@ public class StoreController {
 
     private final StoreService storeService;
 
+    @GetMapping(value = "/init")
+    public void init() {
+        storeService.init();
+    }
+
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                    @Valid @RequestPart(value = "createStoreDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
@@ -41,9 +46,10 @@ public class StoreController {
     @PostMapping(value = "/suggestion/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> suggestStore(@RequestPart(value = "files", required = false) MultipartFile[] files,
                                                     @Valid @RequestPart(value = "suggestStoreDto") RequestStore.SuggestStoreDto suggestStoreDto) {
-        storeService.suggestStore(files, suggestStoreDto);
+        ResponseStore.CreateStoreRsDto createStoreRsDto = storeService.suggestStore(files, suggestStoreDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store suggested successfully.")
+                .data(createStoreRsDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -66,6 +72,7 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PostMapping(value = "/create/with-ownership", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createStoreWithOwnership(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
                                                                 @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
@@ -73,6 +80,17 @@ public class StoreController {
         storeService.createStoreWithOwnership(storeImages, businessRegistrationCertificateImage, createStoreWithOwnershipRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store suggestion and Ownership request created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/create/with-ownership/photo-only", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createStoreWithOwnershipPhotoOnly(@RequestPart(value = "storeImages") MultipartFile[] storeImages,
+                                                                         @RequestPart(value = "businessRegistrationCertificateImage") MultipartFile businessRegistrationCertificateImage,
+                                                                         @Valid @RequestPart(value = "createStoreRqDto") RequestStore.CreateStoreRqDto createStoreRqDto) {
+        storeService.createStoreWithOwnershipPhotoOnly(storeImages, businessRegistrationCertificateImage, createStoreRqDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store suggestion and Ownership photo-only request created successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -180,12 +198,33 @@ public class StoreController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
     @PostMapping(value = "/ownership/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ResponseDto> createOwnership(@RequestPart(value = "file") MultipartFile file,
                                                        @Valid @RequestPart(value = "createOwnershipRqDto") RequestStore.CreateOwnershipRqDto createOwnershipRqDto) {
         storeService.createOwnership(file, createOwnershipRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store ownership created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/ownership/create/photo-only", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ResponseDto> createOwnershipPhotoOnly(@RequestPart(value = "file") MultipartFile file,
+                                                                @Valid @RequestPart(value = "createOwnershipPhotoOnlyDto") RequestStore.CreateOwnershipPhotoOnlyDto createOwnershipPhotoOnlyDto) {
+        storeService.createOwnershipPhotoOnly(file, createOwnershipPhotoOnlyDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store ownership photo-only created successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/ownership/business/validate")
+    public ResponseEntity<ResponseDto> validateBusiness(@Valid @RequestBody RequestStore.ValidateBusinessDto validateBusinessDto) {
+        ResponseStore.BusinessValidationDto dto = storeService.validateBusiness(validateBusinessDto);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Business validation processed successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

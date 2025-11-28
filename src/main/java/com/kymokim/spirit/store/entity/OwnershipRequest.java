@@ -123,6 +123,18 @@ public class OwnershipRequest {
         this.liquorReportNumber = liquorReportNumber;
     }
 
+    public static OwnershipRequest createPhotoOnly(Store store, Long requesterId, String certificateImageUrl,
+                                                   String receivedStoreName, String receivedStoreContact, Location businessLocation) {
+        OwnershipRequest ownershipRequest = new OwnershipRequest();
+        ownershipRequest.store = store;
+        ownershipRequest.requesterId = requesterId;
+        ownershipRequest.setReceivedStoreName(receivedStoreName);
+        ownershipRequest.setReceivedStoreContact(receivedStoreContact);
+        ownershipRequest.businessRegistrationCertificateImgUrl = certificateImageUrl;
+        ownershipRequest.businessLocation = businessLocation;
+        return ownershipRequest;
+    }
+
 
 
 }

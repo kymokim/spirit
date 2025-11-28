@@ -3,6 +3,7 @@ package com.kymokim.spirit.store.entity;
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.drink.entity.Drink;
+import com.kymokim.spirit.event.entity.Event;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import lombok.Builder;
@@ -40,12 +41,6 @@ public class Store {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "has_screen")
-    private Boolean hasScreen;
-
-    @Column(name = "is_group_available")
-    private Boolean isGroupAvailable;
-
     @Column(name = "is_always_open")
     private Boolean isAlwaysOpen;
 
@@ -59,11 +54,20 @@ public class Store {
     @Embedded
     private Location location;
 
+    @Embedded
+    private FacilitiesInfo facilitiesInfo;
+
     @CollectionTable(name = "categories", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = Category.class)
     @Enumerated(EnumType.STRING)
     @Column(name = "categories")
     private Set<Category> categories;
+
+    @CollectionTable(name = "moods", joinColumns = @JoinColumn(name = "store_id"))
+    @ElementCollection(targetClass = Mood.class)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "mood")
+    private Set<Mood> moods = new HashSet<>();
 
     @CollectionTable(name = "main_drinks", joinColumns = @JoinColumn(name = "store_id"))
     @ElementCollection(targetClass = MainDrink.class)
@@ -98,32 +102,38 @@ public class Store {
     @OrderBy("sortOrder ASC")
     private List<BoardImage> boardImgUrlList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "store", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("id DESC")
+    private List<Event> eventList = new ArrayList<>();
+
     @Builder
-    public Store(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
-                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
+    public Store(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
+                 Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks,
+                 Set<Mood> moods) {
         setName(name);
         this.contact = contact;
         this.description = description;
-        setHasScreen(hasScreen);
-        setIsGroupAvailable(isGroupAvailable);
+        setFacilitiesInfo(facilitiesInfo);
         this.historyInfo = new HistoryInfo(creatorId);
         this.location = location;
         setCategories(categories);
-        this.mainDrinks = mainDrinks;
+        this.mainDrinks = mainDrinks != null ? new HashSet<>(mainDrinks) : new HashSet<>();
+        setMoods(moods);
     }
 
-    public static Store fromSuggestion(String name, String contact, String description, Boolean hasScreen, Boolean isGroupAvailable,
-                                       Long creatorId, Location location, Set<Category> categories, Set<MainDrink> mainDrinks) {
+    public static Store fromSuggestion(String name, String contact, String description, FacilitiesInfo facilitiesInfo,
+                                       Long creatorId, Location location, Set<Category> categories,
+                                       Set<MainDrink> mainDrinks, Set<Mood> moods) {
         Store store = new Store();
         store.setName(name);
         store.contact = contact;
         store.description = description;
-        store.hasScreen = hasScreen;
-        store.isGroupAvailable = isGroupAvailable;
+        store.setFacilitiesInfo(facilitiesInfo);
         store.historyInfo = new HistoryInfo(creatorId);
         store.location = location;
         store.categories = categories;
-        store.mainDrinks = mainDrinks;
+        store.mainDrinks = mainDrinks != null ? new HashSet<>(mainDrinks) : new HashSet<>();
+        store.setMoods(moods);
         store.delete();
         return store;
     }
@@ -133,18 +143,6 @@ public class Store {
             throw new CustomException(StoreErrorCode.STORE_NAME_EMPTY);
         }
         this.name = name;
-    }
-    public void setHasScreen(Boolean hasScreen){
-        if (hasScreen == null ){
-            throw new CustomException(StoreErrorCode.HAS_SCREEN_EMPTY);
-        }
-        this.hasScreen = hasScreen;
-    }
-    public void setIsGroupAvailable(Boolean isGroupAvailable){
-        if (isGroupAvailable == null ){
-            throw new CustomException(StoreErrorCode.IS_GROUP_AVAILABLE_EMPTY);
-        }
-        this.isGroupAvailable = isGroupAvailable;
     }
     public void setCategories(Set<Category> categories){
         if (categories == null || categories.isEmpty()){
@@ -182,6 +180,12 @@ public class Store {
     public void removeBoardImgUrlList(BoardImage boardImage){
         this.boardImgUrlList.remove(boardImage);
     }
+    public void addEventList(Event event) {
+        this.eventList.add(event);
+    }
+    public void removeEventList(Event event) {
+        this.eventList.remove(event);
+    }
     public void increaseReviewCount() {
         this.reviewCount++;
     }
@@ -196,5 +200,25 @@ public class Store {
     }
     public void delete(){
         this.isDeleted = true;
+    }
+
+    public void setFacilitiesInfo(FacilitiesInfo facilitiesInfo) {
+        if (facilitiesInfo == null) {
+            throw new CustomException(StoreErrorCode.FACILITIES_INFO_EMPTY);
+        }
+        this.facilitiesInfo = facilitiesInfo;
+    }
+
+    public void setMoods(Set<Mood> moods) {
+        if (moods == null || moods.isEmpty()) {
+            this.moods = new HashSet<>();
+            return;
+        }
+
+        if (moods.size() > 4) {
+            throw new CustomException(StoreErrorCode.STORE_MOODS_LIMIT_EXCEEDED);
+        }
+
+        this.moods = new HashSet<>(moods);
     }
 }

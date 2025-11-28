@@ -4,9 +4,11 @@ import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.entity.Gender;
 import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.service.AESUtil;
+import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.menu.entity.Menu;
 import com.kymokim.spirit.menu.entity.MenuType;
 import com.kymokim.spirit.store.entity.*;
+import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +39,18 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class BusinessValidationDto {
+        private Boolean isValid;
+
+        public static BusinessValidationDto of(Boolean isValid) {
+            return BusinessValidationDto.builder()
+                    .isValid(isValid)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class ImageListDto {
         private List<String> imgUrlList;
 
@@ -57,14 +71,14 @@ public class ResponseStore {
         private String name;
         private String contact;
         private String description;
-        private Boolean hasScreen;
-        private Boolean isGroupAvailable;
+        private CommonStore.FacilitiesInfoDto facilitiesInfoDto;
         private Boolean isAlwaysOpen;
         private Boolean isDeleted;
         private CommonStore.LocationDto locationDto;
         private Set<Category> categories;
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Set<Mood> moods;
         private Double storeRate;
         private Long reviewCount;
         private Long likeCount;
@@ -74,14 +88,16 @@ public class ResponseStore {
 
         public static GetStoreDto toDto(Store store, Boolean isOwner, Boolean isUpdatable, Double storeRate, Boolean isStoreLiked) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
                 store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+            }
+
+            Set<Mood> moods = new HashSet<>();
+            if (!store.getMoods().isEmpty()) {
+                moods.addAll(store.getMoods());
             }
 
             List<String> imgUrlList = new ArrayList<>();
@@ -102,8 +118,62 @@ public class ResponseStore {
                     .name(store.getName())
                     .contact(store.getContact())
                     .description(store.getDescription())
-                    .hasScreen(store.getHasScreen())
-                    .isGroupAvailable(store.getIsGroupAvailable())
+                    .facilitiesInfoDto(CommonStore.FacilitiesInfoDto.toDto(store.getFacilitiesInfo()))
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .isDeleted(store.getIsDeleted())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .categories(store.getCategories())
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .operationInfoDtos(operationInfoDtos)
+                    .moods(moods)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .likeCount(store.getLikeCount())
+                    .isStoreLiked(isStoreLiked)
+                    .imgUrlList(imgUrlList)
+                    .boardImageDtoList(boardImageDtoList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class GetStorePreviewDto {
+        private Long id;
+        private String mainImgUrl;
+        private String name;
+        private String contact;
+        private Boolean isAlwaysOpen;
+        private Boolean isDeleted;
+        private CommonStore.LocationDto locationDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long likeCount;
+        private Boolean isStoreLiked;
+        private List<String> imgUrlList;
+
+        public static GetStorePreviewDto toDto(Store store, Double storeRate, Boolean isStoreLiked) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+            }
+
+            List<String> imgUrlList = new ArrayList<>();
+            if (!store.getImgUrlList().isEmpty()) {
+                store.getImgUrlList().forEach(storeImage -> imgUrlList.add(storeImage.getUrl()));
+            }
+
+            return GetStorePreviewDto.builder()
+                    .id(store.getId())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .contact(store.getContact())
                     .isAlwaysOpen(store.getIsAlwaysOpen())
                     .isDeleted(store.getIsDeleted())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
@@ -115,7 +185,6 @@ public class ResponseStore {
                     .likeCount(store.getLikeCount())
                     .isStoreLiked(isStoreLiked)
                     .imgUrlList(imgUrlList)
-                    .boardImageDtoList(boardImageDtoList)
                     .build();
         }
     }
@@ -153,11 +222,12 @@ public class ResponseStore {
         private Long reviewCount;
 
         public static SearchStoreDto toDto(Store store, Double storeRate) {
+            return toDto(store, storeRate, null);
+        }
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+        public static SearchStoreDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -246,10 +316,7 @@ public class ResponseStore {
 
         public static GetByDistanceDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -295,12 +362,9 @@ public class ResponseStore {
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
 
-        public static GetByCategoryDto toDto(Store store, Double storeRate) {
+        public static GetByCategoryDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -373,10 +437,7 @@ public class ResponseStore {
 
         public static GetByBusinessHoursDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -428,69 +489,7 @@ public class ResponseStore {
         }
     }
 
-    @Getter
-    @Builder
-    public static class GetPopularStoreDto {
-        private Long id;
-        private Boolean isCertified;
-        private String mainImgUrl;
-        private String name;
-        private Boolean isAlwaysOpen;
-        private CommonStore.LocationDto locationDto;
-        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
-        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
-        private Double storeRate;
-        private Long reviewCount;
-        private Long storeLikeCount;
-        private List<MenuListDto> menuList;
-        private Set<Category> categories;
-
-        public static GetPopularStoreDto toDto(Store store, Double storeRate) {
-
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
-
-            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
-            if (!store.getOperationInfos().isEmpty()) {
-                LocalDate today = LocalDate.now();
-                store.getOperationInfos().forEach(operationInfo -> {
-                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
-                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
-                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
-                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
-                    }
-                });
-            }
-
-            List<MenuListDto> menuList = new ArrayList<>();
-            if (!store.getMenuList().isEmpty()) {
-                store.getMenuList().forEach(menu -> {
-                    if (menu.getMenuType().equals(MenuType.MAIN)) {
-                        menuList.add(MenuListDto.toDto(menu));
-                    }
-                });
-            }
-
-            return GetPopularStoreDto.builder()
-                    .id(store.getId())
-                    .isCertified(store.getOwnerId() != null)
-                    .mainImgUrl(store.getMainImgUrl())
-                    .name(store.getName())
-                    .isAlwaysOpen(store.getIsAlwaysOpen())
-                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
-                    .mainDrinkDtos(mainDrinkDtos)
-                    .operationInfoDtos(operationInfoDtos)
-                    .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
-                    .storeLikeCount(store.getLikeCount())
-                    .menuList(menuList)
-                    .categories(store.getCategories())
-                    .build();
-        }
-    }
-
+    @Deprecated
     @Getter
     @Builder
     public static class GetByRadiusDto {
@@ -541,6 +540,85 @@ public class ResponseStore {
         }
     }
 
+
+    @Getter
+    @Builder
+    public static class GetPopularStoreDto {
+        private Long id;
+        private Boolean isCertified;
+        private String mainImgUrl;
+        private String name;
+        private Boolean isAlwaysOpen;
+        private CommonStore.LocationDto locationDto;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
+        private Long storeLikeCount;
+        private List<MenuListDto> menuList;
+        private Set<Category> categories;
+
+        public static GetPopularStoreDto toDto(Store store, Double storeRate, DrinkType requestedDrinkType) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store, requestedDrinkType);
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
+            }
+
+            List<MenuListDto> menuList = new ArrayList<>();
+            if (!store.getMenuList().isEmpty()) {
+                store.getMenuList().forEach(menu -> {
+                    if (menu.getMenuType().equals(MenuType.MAIN)) {
+                        menuList.add(MenuListDto.toDto(menu));
+                    }
+                });
+            }
+
+            return GetPopularStoreDto.builder()
+                    .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .operationInfoDtos(operationInfoDtos)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .storeLikeCount(store.getLikeCount())
+                    .menuList(menuList)
+                    .categories(store.getCategories())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class MapMarkerDto {
+        private Long storeId;
+        private String storeName;
+        private Double latitude;
+        private Double longitude;
+
+        public static MapMarkerDto toDto(StoreMarkerProjection projection) {
+            return MapMarkerDto.builder()
+                    .storeId(projection.getStoreId())
+                    .storeName(projection.getStoreName())
+                    .latitude(projection.getLatitude())
+                    .longitude(projection.getLongitude())
+                    .build();
+        }
+    }
+
     @Getter
     @Builder
     public static class GetLikedStoreDto {
@@ -558,10 +636,7 @@ public class ResponseStore {
 
         public static GetLikedStoreDto toDto(Store store, Double storeRate) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
             if (!store.getOperationInfos().isEmpty()) {
@@ -669,10 +744,7 @@ public class ResponseStore {
 
         public static MainBannerStoreDto toDto(Store store) {
 
-            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
-            if (!store.getMainDrinks().isEmpty()) {
-                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
-            }
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = extractVisibleMainDrinks(store);
 
             return MainBannerStoreDto.builder()
                     .id(store.getId())
@@ -887,5 +959,30 @@ public class ResponseStore {
                     .storeImage(invitation.getStoreImage())
                     .build();
         }
+    }
+
+    private static Set<CommonStore.MainDrinkDto> extractVisibleMainDrinks(Store store) {
+        return extractVisibleMainDrinks(store, null);
+    }
+
+    private static Set<CommonStore.MainDrinkDto> extractVisibleMainDrinks(Store store, DrinkType forcedDrinkType) {
+        Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+        if (store.getMainDrinks() == null || store.getMainDrinks().isEmpty()) {
+            return mainDrinkDtos;
+        }
+        store.getMainDrinks().stream()
+                .filter(MainDrink::isVisible)
+                .forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+        if (forcedDrinkType != null) {
+            boolean alreadyIncluded = mainDrinkDtos.stream()
+                    .anyMatch(mainDrinkDto -> forcedDrinkType.equals(mainDrinkDto.getType()));
+            if (!alreadyIncluded) {
+                store.getMainDrinks().stream()
+                        .filter(mainDrink -> forcedDrinkType.equals(mainDrink.getType()))
+                        .findFirst()
+                        .ifPresent(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+        }
+        return mainDrinkDtos;
     }
 }

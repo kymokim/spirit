@@ -182,6 +182,21 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @Deprecated
+    @Operation(summary = "반경 내 가게 리스트 조회")
+    @GetMapping("/radius")
+    public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
+                                                   @RequestParam("longitude") double longitude,
+                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store search list retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @Operation(summary = "다중 조건 검색 리스트 조회")
     @GetMapping("/condition-search")
     public ResponseEntity<ResponseDto> conditionSearchStore(@RequestParam("latitude") double latitude,
@@ -189,8 +204,6 @@ public class StoreQueryController {
                                                             @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
                                                             RequestStore.ConditionSearchDto conditionSearchDto) {
-        System.out.println("query location: " + latitude + ", " + longitude);
-        System.out.println("query rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -206,8 +219,6 @@ public class StoreQueryController {
                                                                    @RequestParam("longitude") double longitude,
                                                                    @RequestParam(value = "radius", defaultValue = "2") double radius,
                                                                    RequestStore.ConditionSearchDto conditionSearchDto) {
-        System.out.println("marker location: " + latitude + ", " + longitude);
-        System.out.println("marker rq dto: " + conditionSearchDto);
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
         ResponseDto responseDto = ResponseDto.builder()

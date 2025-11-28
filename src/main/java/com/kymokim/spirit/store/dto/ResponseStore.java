@@ -489,6 +489,58 @@ public class ResponseStore {
         }
     }
 
+    @Deprecated
+    @Getter
+    @Builder
+    public static class GetByRadiusDto {
+        private Long id;
+        private Boolean isCertified;
+        private String mainImgUrl;
+        private String name;
+        private Boolean isAlwaysOpen;
+        private CommonStore.LocationDto locationDto;
+        private Set<Category> categories;
+        private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private Double storeRate;
+        private Long reviewCount;
+
+        public static GetByRadiusDto toDto(Store store, Double storeRate) {
+
+            Set<CommonStore.MainDrinkDto> mainDrinkDtos = new HashSet<>();
+            if (!store.getMainDrinks().isEmpty()) {
+                store.getMainDrinks().forEach(mainDrink -> mainDrinkDtos.add(CommonStore.MainDrinkDto.toDto(mainDrink)));
+            }
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                LocalDate today = LocalDate.now();
+                store.getOperationInfos().forEach(operationInfo -> {
+                    if (operationInfo.getDayOfWeek().equals(today.minusDays(1).getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.getDayOfWeek())
+                            || operationInfo.getDayOfWeek().equals(today.plusDays(1).getDayOfWeek())) {
+                        operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo));
+                    }
+                });
+            }
+
+            return GetByRadiusDto.builder()
+                    .id(store.getId())
+                    .isCertified(store.getOwnerId() != null)
+                    .mainImgUrl(store.getMainImgUrl())
+                    .name(store.getName())
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
+                    .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
+                    .mainDrinkDtos(mainDrinkDtos)
+                    .categories(store.getCategories())
+                    .operationInfoDtos(operationInfoDtos)
+                    .storeRate(storeRate)
+                    .reviewCount(store.getReviewCount())
+                    .build();
+        }
+    }
+
+
     @Getter
     @Builder
     public static class GetPopularStoreDto {

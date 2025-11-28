@@ -200,6 +200,16 @@ public class StoreQueryService {
         }, 3);
     }
 
+    @Deprecated
+    public List<ResponseStore.GetByRadiusDto> getByRadius(LocationCriteria criteria) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Store> storeList = storeRepository.findByRadius(criteria);
+            List<ResponseStore.GetByRadiusDto> dtoList = new ArrayList<>();
+            storeList.forEach(store -> dtoList.add(ResponseStore.GetByRadiusDto.toDto(store, calculateRate(store))));
+            return dtoList;
+        }, 3);
+    }
+
     public Page<ResponseStore.SearchStoreDto> conditionSearchStore(LocationCriteria criteria, RequestStore.ConditionSearchDto conditionSearchDto, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByMultipleCondition(

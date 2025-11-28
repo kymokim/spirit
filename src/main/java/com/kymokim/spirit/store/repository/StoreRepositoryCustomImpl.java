@@ -218,6 +218,16 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
+    public List<Store> findByRadius(LocationCriteria criteria) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+
+        return queryFactory.selectFrom(store)
+                .where(baseActiveRadiusCondition(store, criteria))
+                .fetch();
+    }
+
+    @Override
     public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
                                                LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable) {
         // query

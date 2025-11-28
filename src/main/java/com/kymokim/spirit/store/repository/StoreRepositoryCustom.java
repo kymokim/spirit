@@ -28,6 +28,8 @@ public interface StoreRepositoryCustom {
 
     Page<Store> findByBusinessHours(LocationCriteria criteria, Pageable pageable);
 
+    List<Store> findByRadius(LocationCriteria criteria);
+
     Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable);
 
     List<StoreMarkerProjection> findMarkersByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition, LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods);

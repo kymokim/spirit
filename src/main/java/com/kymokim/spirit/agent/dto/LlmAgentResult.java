@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class LlmAgentResult {
 
+    private String responseId;
     private String agentMessage;
     private AgentMode agentMode;
     private SearchConditions searchConditions;

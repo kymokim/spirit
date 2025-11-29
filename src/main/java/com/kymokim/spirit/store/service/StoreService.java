@@ -50,12 +50,6 @@ public class StoreService {
     private final LinkBuilder linkBuilder;
     private final ManagerInvitationRepository managerInvitationRepository;
 
-    private final MainDrinkSynchronizer mainDrinkSynchronizer;
-    public void init() {
-        List<Store> storeList = storeRepository.findAll();
-        storeList.forEach(store -> mainDrinkSynchronizer.synchronize(store.getId()));
-    }
-
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));

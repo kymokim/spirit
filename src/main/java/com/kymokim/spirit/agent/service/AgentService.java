@@ -9,6 +9,7 @@ import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -20,14 +21,16 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AgentService {
 
-    private final LlmAgent llmAgent;
+    private final OpenAiAgent openAiAgent;
+    private final DefaultAgent defaultAgent;
     private final StoreRepository storeRepository;
 
     public ResponseAgent chatSearch(RequestAgent requestAgent) {
         Pageable pageable = PageRequest.of(0, 10);
-        LlmAgentResult result = llmAgent.request(requestAgent);
+        LlmAgentResult result = requestWithFallback(requestAgent);
 
         if (result.getAgentMode() == AgentMode.SHOW_RESULT) {
             SearchConditions searchConditions = result.getSearchConditions() != null ? result.getSearchConditions() : SearchConditions.builder().build();
@@ -66,6 +69,15 @@ public class AgentService {
                 .llmAgentResult(result)
                 .stores(new PageImpl<>(Collections.emptyList(), pageable, 0))
                 .build();
+    }
+
+    private LlmAgentResult requestWithFallback(RequestAgent requestAgent) {
+        try {
+            return openAiAgent.request(requestAgent);
+        } catch (Exception exception) {
+            log.warn("OpenAI 에이전트 실패, 기본 에이전트로 대체합니다.", exception);
+            return defaultAgent.request(requestAgent);
+        }
     }
 
     private double calculateRate(Store store) {

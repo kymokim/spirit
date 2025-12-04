@@ -38,7 +38,7 @@ public class OpenAiAgent implements LlmAgent {
             throw new IllegalStateException("OpenAI API 키가 설정되지 않았습니다.");
         }
 
-        log.info("OpenAI 요청 시작: model={}, timeout={}s", openAiConfig.getModel(), openAiConfig.getTimeout().toSeconds());
+        log.info("OpenAI 요청 시작: timeout={}s", openAiConfig.getTimeout().toSeconds());
         WebClient webClient = webClientBuilder
                 .baseUrl(openAiConfig.getBaseUrl())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
@@ -84,7 +84,6 @@ public class OpenAiAgent implements LlmAgent {
 
     private Map<String, Object> buildRequestBody(RequestAgent requestAgent) {
         Map<String, Object> body = new HashMap<>();
-        body.put("model", openAiConfig.getModel());
 
         Map<String, Object> prompt = new HashMap<>();
         prompt.put("id", openAiConfig.getPromptId());
@@ -111,7 +110,7 @@ public class OpenAiAgent implements LlmAgent {
             if (output == null || output.isEmpty()) {
                 return null;
             }
-            OpenAiOutput firstOutput = output.getFirst();
+            OpenAiOutput firstOutput = output.getLast();
             if (firstOutput.getContent() == null || firstOutput.getContent().isEmpty()) {
                 return null;
             }

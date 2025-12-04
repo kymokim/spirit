@@ -19,7 +19,6 @@ public class OpenAiConfig {
     private String apiKey;
     @Value("${openai.prompt.id}")
     private String promptId;
-    private String model = "gpt-4o-mini";
     private String baseUrl = "https://api.openai.com/v1";
-    private Duration timeout = Duration.ofSeconds(15);
+    private Duration timeout = Duration.ofSeconds(20);
 }

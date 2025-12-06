@@ -24,7 +24,7 @@ public class RequestAgent {
     @Schema(description = "사용자 경도", example = "127.107398")
     private Double longitude;
     @NotBlank
-    @Schema(description = "사용자 메시지, 최대 200자", example = "소주 가성비 좋은 포장마차 추천해줘.")
-    @Size(max = 200, message = "사용자 메시지는 200자 이하로 입력해주세요.")
+    @Schema(description = "사용자 메시지, 최대 270자(시스템 70자 + 사용자 200자)", example = "소주 가성비 좋은 포장마차 추천해줘.")
+    @Size(max = 270, message = "사용자 메시지는 270자 이하로 입력해주세요.")
     private String userMessage;
 }

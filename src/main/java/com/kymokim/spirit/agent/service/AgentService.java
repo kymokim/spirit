@@ -5,6 +5,8 @@ import com.kymokim.spirit.agent.dto.ResponseAgent;
 import com.kymokim.spirit.agent.dto.SearchConditions;
 import com.kymokim.spirit.agent.dto.AgentMode;
 import com.kymokim.spirit.agent.dto.LlmAgentResult;
+import com.kymokim.spirit.common.dto.ResponseLocationDto;
+import com.kymokim.spirit.common.service.LocationService;
 import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -27,6 +29,7 @@ public class AgentService {
     private final OpenAiAgent openAiAgent;
     private final DefaultAgent defaultAgent;
     private final StoreRepository storeRepository;
+    private final LocationService locationService;
 
     public ResponseAgent chatSearch(RequestAgent requestAgent) {
         Pageable pageable = PageRequest.of(0, 10);
@@ -34,10 +37,13 @@ public class AgentService {
 
         if (result.getAgentMode() == AgentMode.SHOW_RESULT) {
             SearchConditions searchConditions = result.getSearchConditions() != null ? result.getSearchConditions() : SearchConditions.builder().build();
-
+            ResponseLocationDto.GetAddressDto address = null;
+            
             if (Objects.equals(searchConditions.getLatitude(), null) || Objects.equals(searchConditions.getLongitude(), null)) {
                 searchConditions.setLatitude(requestAgent.getLatitude());
                 searchConditions.setLongitude(requestAgent.getLongitude());
+            } else {
+                address = locationService.getAddress(searchConditions.getLatitude(), searchConditions.getLongitude());
             }
             if (Objects.equals(searchConditions.getRadius(), null)) {
                 searchConditions.setRadius(2.0);
@@ -56,11 +62,24 @@ public class AgentService {
                     pageable
             );
 
+            if (storePage.isEmpty()) {
+                result.setAgentMode(AgentMode.NO_RESULT);
+                result.setAgentMessage("현재 위치에서는 조건에 맞는 가게를 찾지 못했어요.\n" +
+                        "다른 위치나 조건을 알려주시면 다시 찾아볼게요.");
+
+                return ResponseAgent.builder()
+                        .llmAgentResult(result)
+                        .changedAddress(address)
+                        .stores(new PageImpl<>(Collections.emptyList(), pageable, 0))
+                        .build();
+            }
+
             Page<ResponseStore.SearchStoreDto> dtoPage = storePage.map(store ->
                     ResponseStore.SearchStoreDto.toDto(store, calculateRate(store), searchConditions.getDrinkType()));
 
             return ResponseAgent.builder()
                     .llmAgentResult(result)
+                    .changedAddress(address)
                     .stores(dtoPage)
                     .build();
         }

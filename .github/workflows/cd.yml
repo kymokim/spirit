@@ -107,10 +107,14 @@ jobs:
             echo "app:" >> ${APP_CONFIG_FILE}
             echo "  share:" >> ${APP_CONFIG_FILE}
             echo "    domain: https://team-spirit.click" >> ${APP_CONFIG_FILE}
+            echo "jwt:" >> ${APP_CONFIG_FILE}
+            echo "  secret: ${{ secrets.JWT_SECRET_PROD }}" >> ${APP_CONFIG_FILE}
           elif [[ "${{ env.PROFILE }}" == "dev" ]]; then
             echo "app:" >> ${APP_CONFIG_FILE}
             echo "  share:" >> ${APP_CONFIG_FILE}
             echo "    domain: https://dev.team-spirit.click" >> ${APP_CONFIG_FILE}
+            echo "jwt:" >> ${APP_CONFIG_FILE}
+            echo "  secret: ${{ secrets.JWT_SECRET_DEV }}" >> ${APP_CONFIG_FILE}
           fi
           
       # application-S3.properties 생성
@@ -139,14 +143,6 @@ jobs:
           echo "odcloud.decodingKey=${{ secrets.ODCLOUD_DECODING_KEY }}" >> ${APP_CONFIG_FILE}
           echo "openai.api.key=${{ secrets.OPENAI_API_KEY }}" >> ${APP_CONFIG_FILE}
           echo "openai.prompt.id=${{ secrets.OPENAI_PROMPT_ID }}" >> ${APP_CONFIG_FILE}
-
-      # jwt key 생성
-      - name: Create jwt-secret-keys.properties
-        env:
-          APP_CONFIG_FILE: src/main/resources/secret/jwt-secret-key.properties
-        run: |
-          mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
-          echo "jwt.secret=${{ secrets.JWT_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
 
       # aes-key.properties 생성
       - name: Create aes-key.properties

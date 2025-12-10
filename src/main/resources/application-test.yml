@@ -21,3 +21,6 @@ spring:
 app:
   share:
     domain: http://localhost:8080
+
+jwt:
+  secret: 8hg1a17x32a71as75irj310g3z415iopf44u42b743s938

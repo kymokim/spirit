@@ -62,14 +62,6 @@ jobs:
           echo "openai.api.key=${{ secrets.OPENAI_API_KEY }}" >> ${APP_CONFIG_FILE}
           echo "openai.prompt.id=${{ secrets.OPENAI_PROMPT_ID }}" >> ${APP_CONFIG_FILE}
 
-      # jwt key 생성
-      - name: Create jwt-secret-keys.properties
-        env:
-          APP_CONFIG_FILE: src/main/resources/secret/jwt-secret-key.properties
-        run: |
-          mkdir -p $(dirname ${APP_CONFIG_FILE}) # 디렉토리가 없으면 생성
-          echo "jwt.secret=${{ secrets.JWT_SECRET_KEY }}" >> ${APP_CONFIG_FILE}
-
       # aes-key.properties 생성
       - name: Create aes-key.properties
         env: # 환경 변수로 GitHub Secrets 값을 읽어옵니다.

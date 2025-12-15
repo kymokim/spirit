@@ -89,7 +89,11 @@ public class LocationService {
         return ResponseLocationDto.GetRoadAddressAndCoordinateDto.toDto(getAddressDto, getCoordinateDto);
     }
 
-    public ResponseLocationDto.GetRoadAddressAndCoordinateDto getRoadAddressAndCoordinate() {
-        return getRoadAddressAndCoordinate(appInitLatitude, appInitLongitude);
+    public ResponseLocationDto.GetRoadAddressAndCoordinateDto getInitRoadAddressAndCoordinate() {
+
+        ResponseLocationDto.GetAddressDto getAddressDto = ResponseLocationDto.GetAddressDto.builder().address("신논현역").build();
+        ResponseLocationDto.GetCoordinateDto getCoordinateDto = ResponseLocationDto.GetCoordinateDto.builder().latitude(appInitLatitude).longitude(appInitLongitude).build();
+
+        return ResponseLocationDto.GetRoadAddressAndCoordinateDto.toDto(getAddressDto, getCoordinateDto);
     }
 }

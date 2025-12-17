@@ -90,6 +90,7 @@ public class OpenAiAgent implements LlmAgent {
         Map<String, Object> variables = new HashMap<>();
         variables.put("now", LocalDateTime.now().toString());
         prompt.put("variables", variables);
+        prompt.put("version", openAiConfig.getPromptVersion());
         body.put("prompt", prompt);
 
         body.put("input", requestAgent.getUserMessage());

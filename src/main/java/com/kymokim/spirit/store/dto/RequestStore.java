@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -43,11 +44,13 @@ public class RequestStore {
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
         @NotEmpty(message = "카테고리가 비었습니다.")
+        @Size(max = 3, message = "카테고리는 최대 3개까지 설정할 수 있습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         @NotEmpty(message = "대표 주종이 비었습니다.")
         private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
+        @Size(max = 4, message = "분위기는 최대 4개까지 설정할 수 있습니다.")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
@@ -90,10 +93,12 @@ public class RequestStore {
         @Valid
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
+        @Size(max = 3, message = "카테고리는 최대 3개까지 설정할 수 있습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
+        @Size(max = 4, message = "분위기는 최대 4개까지 설정할 수 있습니다.")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
@@ -229,10 +234,12 @@ public class RequestStore {
         @Valid
         private CommonStore.LocationDto locationDto;
         @Schema(description = "카테고리")
+        @Size(max = 3, message = "카테고리는 최대 3개까지 설정할 수 있습니다.")
         private Set<Category> categories;
         @Schema(description = "대표 주종")
         private Set<DrinkType> mainDrinkTypes;
         @Schema(description = "분위기")
+        @Size(max = 4, message = "분위기는 최대 4개까지 설정할 수 있습니다.")
         private Set<Mood> moods;
         @Schema(description = "운영 정보")
         @Valid
@@ -267,8 +274,9 @@ public class RequestStore {
     @Data
     @Builder
     public static class ConditionSearchDto {
-        @Schema(description = "카테고리")
-        private String category;
+        @Schema(description = "카테고리", example = "CAFE,BAR")
+        @Size(max = 3, message = "카테고리는 최대 3개까지 선택할 수 있습니다.")
+        private Set<Category> categories;
         @Schema(description = "검색 키워드(가게명/메뉴명)")
         private String searchKeyword;
         @Schema(description = "스크린 보유 여부")
@@ -288,6 +296,7 @@ public class RequestStore {
         @Schema(description = "대표 주종", example = "SOJU")
         private DrinkType drinkType;
         @Schema(description = "분위기", example = "QUIET, MODERN")
+        @Size(max = 4, message = "분위기는 최대 4개까지 선택할 수 있습니다.")
         private Set<Mood> moods;
         @Schema(description = "가격 정렬", example = "ASC")
         private Sort.Direction priceOrder;

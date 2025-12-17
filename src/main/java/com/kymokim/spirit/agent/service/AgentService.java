@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +53,7 @@ public class AgentService {
 
             Page<Store> storePage = storeRepository.findByMultipleCondition(
                     searchConditions.toLocationCriteria(),
-                    searchConditions.getCategory() != null ? searchConditions.getCategory().name() : null,
+                    searchConditions.getCategory() != null ? Set.of(searchConditions.getCategory()) : null,
                     searchConditions.getSearchKeyword(),
                     searchConditions.toFacilitiesCondition(),
                     searchConditions.getArrivalTime(),

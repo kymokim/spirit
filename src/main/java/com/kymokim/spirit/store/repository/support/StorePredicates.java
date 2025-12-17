@@ -79,6 +79,10 @@ public final class StorePredicates {
         return store.categories.contains(Category.valueOf(category));
     }
 
+    public static BooleanExpression categoriesIn(QStore store, Set<Category> categories) {
+        return store.categories.any().in(categories);
+    }
+
     public static BooleanExpression drinkTypeEquals(QMainDrink mainDrink, DrinkType drinkType) {
         return mainDrink.type.eq(drinkType);
     }

@@ -20,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Objects;
 
@@ -204,7 +205,7 @@ public class StoreQueryController {
                                                             @RequestParam("longitude") double longitude,
                                                             @RequestParam("radius") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
-                                                            RequestStore.ConditionSearchDto conditionSearchDto) {
+                                                            @Valid RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -219,7 +220,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> conditionSearchStoreMarkers(@RequestParam("latitude") double latitude,
                                                                    @RequestParam("longitude") double longitude,
                                                                    @RequestParam("radius") double radius,
-                                                                   RequestStore.ConditionSearchDto conditionSearchDto) {
+                                                                   @Valid RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
         ResponseDto responseDto = ResponseDto.builder()

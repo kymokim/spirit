@@ -19,6 +19,7 @@ public class OpenAiConfig {
     private String apiKey;
     @Value("${openai.prompt.id}")
     private String promptId;
+    private String promptVersion = "112";
     private String baseUrl = "https://api.openai.com/v1";
     private Duration timeout = Duration.ofSeconds(20);
 }

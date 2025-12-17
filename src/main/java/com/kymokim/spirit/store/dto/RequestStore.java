@@ -274,7 +274,7 @@ public class RequestStore {
     @Data
     @Builder
     public static class ConditionSearchDto {
-        @Schema(description = "카테고리", example = "CAFE,BAR")
+        @Schema(description = "카테고리", example = "KOREAN, RAW_SEAFOOD")
         @Size(max = 3, message = "카테고리는 최대 3개까지 선택할 수 있습니다.")
         private Set<Category> categories;
         @Schema(description = "검색 키워드(가게명/메뉴명)")

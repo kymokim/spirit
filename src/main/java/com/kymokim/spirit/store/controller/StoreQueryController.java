@@ -33,6 +33,7 @@ public class StoreQueryController {
     private final StoreQueryService storeQueryService;
 
     private LocationCriteria setCriteria(double latitude, double longitude, double radius) {
+        System.out.println("radius: " + radius + "km");
         return LocationCriteria.builder()
                 .latitude(latitude)
                 .longitude(longitude)
@@ -67,7 +68,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> searchStore(@PathVariable("keyword") String keyword,
                                                    @RequestParam("latitude") double latitude,
                                                    @RequestParam("longitude") double longitude,
-                                                   @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                   @RequestParam("radius") double radius,
                                                    @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.searchStore(criteria, keyword, pageable);
@@ -116,7 +117,7 @@ public class StoreQueryController {
     @GetMapping("/distance")
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
-                                                     @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                     @RequestParam("radius") double radius,
                                                      @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByDistanceDto> dtoPage = storeQueryService.getByDistance(criteria, pageable);
@@ -132,7 +133,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getByCategory(@PathVariable("category") String category,
                                                      @RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
-                                                     @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                     @RequestParam("radius") double radius,
                                                      @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                      @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                      @PageableDefault(size = 10) Pageable pageable) {
@@ -149,7 +150,7 @@ public class StoreQueryController {
     @GetMapping("/business-hours")
     public ResponseEntity<ResponseDto> getByBusinessHours(@RequestParam("latitude") double latitude,
                                                           @RequestParam("longitude") double longitude,
-                                                          @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                          @RequestParam("radius") double radius,
                                                           @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByBusinessHoursDto> dtoPage = storeQueryService.getByBusinessHours(criteria, pageable);
@@ -187,7 +188,7 @@ public class StoreQueryController {
     @GetMapping("/radius")
     public ResponseEntity<ResponseDto> getByRadius(@RequestParam("latitude") double latitude,
                                                    @RequestParam("longitude") double longitude,
-                                                   @RequestParam(value = "radius", defaultValue = "2") double radius) {
+                                                   @RequestParam("radius") double radius) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.GetByRadiusDto> dtoList = storeQueryService.getByRadius(criteria);
         ResponseDto responseDto = ResponseDto.builder()
@@ -201,7 +202,7 @@ public class StoreQueryController {
     @GetMapping("/condition-search")
     public ResponseEntity<ResponseDto> conditionSearchStore(@RequestParam("latitude") double latitude,
                                                             @RequestParam("longitude") double longitude,
-                                                            @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                            @RequestParam("radius") double radius,
                                                             @PageableDefault(size = 10) Pageable pageable,
                                                             RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
@@ -217,7 +218,7 @@ public class StoreQueryController {
     @GetMapping("/condition-search/markers")
     public ResponseEntity<ResponseDto> conditionSearchStoreMarkers(@RequestParam("latitude") double latitude,
                                                                    @RequestParam("longitude") double longitude,
-                                                                   @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                                   @RequestParam("radius") double radius,
                                                                    RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         List<ResponseStore.MapMarkerDto> dtoList = storeQueryService.conditionSearchStoreMarkers(criteria, conditionSearchDto);
@@ -232,7 +233,7 @@ public class StoreQueryController {
     @GetMapping("/main-banner")
     public ResponseEntity<ResponseDto> getMainBanner(@RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
-                                                     @RequestParam(value = "radius", defaultValue = "2") double radius) {
+                                                     @RequestParam("radius") double radius) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         ResponseStore.GetMainBannerDto dto = storeQueryService.getMainBanner(criteria);
         ResponseDto responseDto = ResponseDto.builder()
@@ -338,7 +339,7 @@ public class StoreQueryController {
     @GetMapping("/popular")
     public ResponseEntity<ResponseDto> getPopularStore(@RequestParam("latitude") double latitude,
                                                        @RequestParam("longitude") double longitude,
-                                                       @RequestParam(value = "radius", defaultValue = "2") double radius,
+                                                       @RequestParam("radius") double radius,
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
                                                        @PageableDefault(size = 10) Pageable pageable) {

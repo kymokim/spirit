@@ -214,7 +214,7 @@ public class StoreQueryService {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Store> storePage = storeRepository.findByMultipleCondition(
                     criteria,
-                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.getCategories(),
                     conditionSearchDto.getSearchKeyword(),
                     conditionSearchDto.toFacilitiesCondition(),
                     conditionSearchDto.getConditionTime(),
@@ -231,7 +231,7 @@ public class StoreQueryService {
         return TransactionRetryUtil.executeWithRetry(() -> {
             List<StoreMarkerProjection> markerProjections = storeRepository.findMarkersByMultipleCondition(
                     criteria,
-                    conditionSearchDto.getCategory(),
+                    conditionSearchDto.getCategories(),
                     conditionSearchDto.getSearchKeyword(),
                     conditionSearchDto.toFacilitiesCondition(),
                     conditionSearchDto.getConditionTime(),

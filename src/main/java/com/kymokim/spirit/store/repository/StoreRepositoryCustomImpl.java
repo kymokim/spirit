@@ -228,7 +228,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public Page<Store> findByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
+    public Page<Store> findByMultipleCondition(LocationCriteria criteria, Set<Category> categories, String searchKeyword, FacilitiesCondition facilitiesCondition,
                                                LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods, Sort.Direction priceOrder, Pageable pageable) {
         // query
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
@@ -243,8 +243,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         // where
         BooleanBuilder conditions = baseActiveRadiusCondition(store, criteria);
-        if (category != null) {
-            conditions.and(categoryEquals(store, category));
+        if (categories != null && !categories.isEmpty()) {
+            conditions.and(categoriesIn(store, categories));
         }
         if (searchKeyword != null && !searchKeyword.isBlank()) {
             query.leftJoin(store.menuList, menu);
@@ -289,7 +289,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
     }
 
     @Override
-    public List<StoreMarkerProjection> findMarkersByMultipleCondition(LocationCriteria criteria, String category, String searchKeyword, FacilitiesCondition facilitiesCondition,
+    public List<StoreMarkerProjection> findMarkersByMultipleCondition(LocationCriteria criteria, Set<Category> categories, String searchKeyword, FacilitiesCondition facilitiesCondition,
                                                                       LocalDateTime conditionTime, DrinkType drinkType, Set<Mood> moods) {
         // query
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
@@ -311,8 +311,8 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         // where
         BooleanBuilder conditions = baseActiveRadiusCondition(store, criteria);
-        if (category != null) {
-            conditions.and(categoryEquals(store, category));
+        if (categories != null && !categories.isEmpty()) {
+            conditions.and(categoriesIn(store, categories));
         }
         if (searchKeyword != null && !searchKeyword.isBlank()) {
             query.leftJoin(store.menuList, menu);

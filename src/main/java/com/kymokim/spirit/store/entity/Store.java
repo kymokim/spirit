@@ -148,6 +148,9 @@ public class Store {
         if (categories == null || categories.isEmpty()){
             throw new CustomException(StoreErrorCode.STORE_CATEGORIES_EMPTY);
         }
+        if (categories.size() > 3) {
+            throw new CustomException(StoreErrorCode.STORE_CATEGORIES_LIMIT_EXCEEDED);
+        }
         this.categories = categories;
     }
     public void addOperationInfos(OperationInfo operationInfo){

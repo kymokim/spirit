@@ -18,7 +18,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class SearchConditions {
     // 카테고리
-    private Set<Category> categories;
+    private Category category;
     // 분위기
     private Set<Mood> moods;
     // 방문 예정 시간

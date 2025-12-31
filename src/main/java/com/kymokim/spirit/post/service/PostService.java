@@ -143,8 +143,7 @@ public class PostService {
     public Page<ResponsePost.GetPostByStoreDto> getPostByStore(Long storeId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Post> postPage = postRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
-            Long userId = AuthResolver.resolveUserId();
-            return postPage.map(post -> ResponsePost.GetPostByStoreDto.toDto(post, Objects.equals(post.getHistoryInfo().getCreatorId(), userId)));
+            return postPage.map(post -> ResponsePost.GetPostByStoreDto.toDto(post, Objects.equals(post.getHistoryInfo().getCreatorId(), AuthResolver.resolveUserId())));
         }, 3);
     }
 
@@ -160,7 +159,7 @@ public class PostService {
     public Page<ResponsePost.GetRecentPostDto> getRecentPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Post> postPage = postRepository.findAllByOrderByHistoryInfo_CreatedAtDesc(pageable);
-            return postPage.map(ResponsePost.GetRecentPostDto::toDto);
+            return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(post, Objects.equals(post.getHistoryInfo().getCreatorId(), AuthResolver.resolveUserId())));
         }, 3);
     }
 

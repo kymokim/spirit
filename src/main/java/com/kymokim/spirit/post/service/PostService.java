@@ -74,7 +74,9 @@ public class PostService {
             store.setTotalRate(totalRate);
             store.increaseReviewCount();
             storeRepository.save(store);
-            NotificationEvent.raise(new ReviewCreatedNotificationEvent(store, post.getId()));
+            if (!store.getIsDeleted()) {
+                NotificationEvent.raise(new ReviewCreatedNotificationEvent(store, post.getId()));
+            }
         }
     }
 

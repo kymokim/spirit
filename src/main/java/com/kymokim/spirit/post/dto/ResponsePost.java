@@ -22,6 +22,7 @@ public class ResponsePost {
         private LocalDateTime createdAt;
         private String content;
         private List<String> postImgUrlList;
+
         private Long storeId;
         private String storeName;
         private Double rate;
@@ -92,6 +93,7 @@ public class ResponsePost {
         private Double rate;
         private LocalDateTime createdAt;
         private List<String> postImgUrlList;
+        private String address;
         private Long storeId;
         private String storeName;
 
@@ -107,6 +109,7 @@ public class ResponsePost {
                     .content(post.getContent())
                     .rate(post.getRate())
                     .createdAt(post.getHistoryInfo().getCreatedAt())
+                    .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .postImgUrlList(postImgUrlList)
@@ -123,12 +126,14 @@ public class ResponsePost {
         private Long writerId;
         private String writerNickname;
         private String writerImgUrl;
+        private Boolean isWriter;
         private LocalDateTime createdAt;
         private List<String> postImgUrlList;
+        private String address;
         private Long storeId;
         private String storeName;
 
-        public static GetRecentPostDto toDto(Post post) {
+        public static GetRecentPostDto toDto(Post post, Boolean isWriter) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
@@ -144,7 +149,9 @@ public class ResponsePost {
                     .writerId(writer.getId())
                     .writerNickname(writer.getNickname())
                     .writerImgUrl(writer.getImgUrl())
+                    .isWriter(isWriter)
                     .createdAt(post.getHistoryInfo().getCreatedAt())
+                    .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .postImgUrlList(postImgUrlList)

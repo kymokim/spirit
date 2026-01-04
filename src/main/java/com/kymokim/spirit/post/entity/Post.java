@@ -1,5 +1,6 @@
 package com.kymokim.spirit.post.entity;
 
+import com.kymokim.spirit.comment.entity.Comment;
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
@@ -39,6 +40,11 @@ public class Post {
     @Column(name = "rate")
     private Double rate;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comment> commentList = new ArrayList<>();
+
+    private boolean isDeleted = false;
+
     @Builder
     public Post(String content, Double rate, Long creatorId, Store store) {
         this.content = content;
@@ -58,5 +64,9 @@ public class Post {
 
     public void removeImageList(PostImage postImage) {
         this.imageList.remove(postImage);
+    }
+
+    public void delete() {
+        this.isDeleted = true;
     }
 }

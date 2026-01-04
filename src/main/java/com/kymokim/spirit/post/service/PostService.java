@@ -86,7 +86,7 @@ public class PostService {
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
         long postCountToday = postRepository.countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, startOfDay, endOfDay);
-        if (postCountToday > 5) {
+        if (postCountToday > 20) {
             throw new CustomException(PostErrorCode.POST_DAILY_LIMIT_EXCEEDED);
         }
 

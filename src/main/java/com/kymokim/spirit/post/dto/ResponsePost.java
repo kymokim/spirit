@@ -1,7 +1,6 @@
 package com.kymokim.spirit.post.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
-import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.post.entity.Post;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,6 +8,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ResponsePost {
 
@@ -27,14 +27,12 @@ public class ResponsePost {
         private String storeName;
         private Double rate;
 
-        public static GetPostDto toDto(Post post) {
+        public static GetPostDto toDto(Post post, Auth writer) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
                 post.getImageList().forEach(postImage -> postImgUrlList.add(postImage.getUrl()));
             }
-
-            Auth writer = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
 
             return GetPostDto.builder()
                     .id(post.getId())
@@ -63,14 +61,12 @@ public class ResponsePost {
         private Boolean isWriter;
         private List<String> postImgUrlList;
 
-        public static GetPostByStoreDto toDto(Post post, Boolean isWriter) {
+        public static GetPostByStoreDto toDto(Post post, Auth writer, Long userId) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
                 post.getImageList().forEach(postImage -> postImgUrlList.add(postImage.getUrl()));
             }
-
-            Auth writer = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
 
             return GetPostByStoreDto.builder()
                     .id(post.getId())
@@ -79,7 +75,7 @@ public class ResponsePost {
                     .content(post.getContent())
                     .rate(post.getRate())
                     .createdAt(post.getHistoryInfo().getCreatedAt())
-                    .isWriter(isWriter)
+                    .isWriter(Objects.equals(writer.getId(), userId))
                     .postImgUrlList(postImgUrlList)
                     .build();
         }
@@ -133,14 +129,12 @@ public class ResponsePost {
         private Long storeId;
         private String storeName;
 
-        public static GetRecentPostDto toDto(Post post, Boolean isWriter) {
+        public static GetRecentPostDto toDto(Post post, Auth writer, Long userId) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
                 post.getImageList().forEach(postImage -> postImgUrlList.add(postImage.getUrl()));
             }
-
-            Auth writer = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
 
             return GetRecentPostDto.builder()
                     .id(post.getId())
@@ -149,7 +143,7 @@ public class ResponsePost {
                     .writerId(writer.getId())
                     .writerNickname(writer.getNickname())
                     .writerImgUrl(writer.getImgUrl())
-                    .isWriter(isWriter)
+                    .isWriter(Objects.equals(writer.getId(), userId))
                     .createdAt(post.getHistoryInfo().getCreatedAt())
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())

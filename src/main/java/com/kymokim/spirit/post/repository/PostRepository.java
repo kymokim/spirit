@@ -8,9 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Page<Post> findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(Long storeId, Pageable pageable);
-    Page<Post> findAllByHistoryInfo_CreatorIdOrderByHistoryInfo_CreatedAtDesc(Long creatorId, Pageable pageable);
-    Page<Post> findAllByOrderByHistoryInfo_CreatedAtDesc(Pageable pageable);
-    long countByHistoryInfo_CreatorIdAndHistoryInfo_CreatedAtBetween(Long creatorId, LocalDateTime startInclusive, LocalDateTime endInclusive);
-    boolean existsByHistoryInfo_CreatorIdAndStoreIdAndHistoryInfo_CreatedAtBetween(Long creatorId, Long storeId, LocalDateTime startInclusive, LocalDateTime endInclusive);
+    Page<Post> findAllByStoreIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Long storeId, Pageable pageable);
+    Page<Post> findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Long creatorId, Pageable pageable);
+    Page<Post> findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Pageable pageable);
+    long countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(Long creatorId, LocalDateTime startInclusive, LocalDateTime endInclusive);
+    boolean existsByHistoryInfo_CreatorIdAndStoreIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(Long creatorId, Long storeId, LocalDateTime startInclusive, LocalDateTime endInclusive);
 }

@@ -85,13 +85,13 @@ public class PostService {
         LocalDateTime startOfDay = today.atStartOfDay();
         LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
 
-        long postCountToday = postRepository.countByHistoryInfo_CreatorIdAndHistoryInfo_CreatedAtBetween(creatorId, startOfDay, endOfDay);
+        long postCountToday = postRepository.countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, startOfDay, endOfDay);
         if (postCountToday > 20) {
             throw new CustomException(PostErrorCode.POST_DAILY_LIMIT_EXCEEDED);
         }
 
         if (storeId != null) {
-            boolean alreadyPostedStoreToday = postRepository.existsByHistoryInfo_CreatorIdAndStoreIdAndHistoryInfo_CreatedAtBetween(creatorId, storeId, startOfDay, endOfDay);
+            boolean alreadyPostedStoreToday = postRepository.existsByHistoryInfo_CreatorIdAndStoreIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, storeId, startOfDay, endOfDay);
             if (alreadyPostedStoreToday) {
                 throw new CustomException(PostErrorCode.POST_ALREADY_WRITTEN_TODAY);
             }
@@ -135,22 +135,26 @@ public class PostService {
     public ResponsePost.GetPostDto getPost(Long postId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Post post = resolvePost(postId);
-            return ResponsePost.GetPostDto.toDto(post);
+            return ResponsePost.GetPostDto.toDto(post, AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()));
         }, 3);
     }
 
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetPostByStoreDto> getPostByStore(Long storeId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Post> postPage = postRepository.findAllByStoreIdOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
-            return postPage.map(post -> ResponsePost.GetPostByStoreDto.toDto(post, Objects.equals(post.getHistoryInfo().getCreatorId(), AuthResolver.resolveUserId())));
+            Page<Post> postPage = postRepository.findAllByStoreIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
+            return postPage.map(post -> ResponsePost.GetPostByStoreDto.toDto(
+                    post,
+                    AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
+                    AuthResolver.resolveUserId()
+            ));
         }, 3);
     }
 
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetMyPostDto> getMyPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Post> postPage = postRepository.findAllByHistoryInfo_CreatorIdOrderByHistoryInfo_CreatedAtDesc(AuthResolver.resolveUserId(), pageable);
+            Page<Post> postPage = postRepository.findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(AuthResolver.resolveUserId(), pageable);
             return postPage.map(ResponsePost.GetMyPostDto::toDto);
         }, 3);
     }
@@ -158,8 +162,12 @@ public class PostService {
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetRecentPostDto> getRecentPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Post> postPage = postRepository.findAllByOrderByHistoryInfo_CreatedAtDesc(pageable);
-            return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(post, Objects.equals(post.getHistoryInfo().getCreatorId(), AuthResolver.resolveUserId())));
+            Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(pageable);
+            return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(
+                    post,
+                    AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
+                    AuthResolver.resolveUserId()
+            ));
         }, 3);
     }
 
@@ -192,7 +200,7 @@ public class PostService {
                 post.removeImageList(postImage);
             }
         }
-        postRepository.delete(post);
+        post.delete();
         Store store = post.getStore();
         if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
             store.decreaseReviewCount();

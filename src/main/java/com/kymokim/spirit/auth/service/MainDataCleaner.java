@@ -4,6 +4,8 @@ import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.notification.repository.NotificationRepository;
+import com.kymokim.spirit.post.entity.SavedPost;
+import com.kymokim.spirit.post.repository.SavedPostRepository;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.entity.StoreManager;
@@ -27,16 +29,20 @@ public class MainDataCleaner {
     private final NotificationRepository notificationRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final OwnershipRequestRepository ownershipRequestRepository;
+    private final SavedPostRepository savedPostRepository;
 
     public void cleanUp(Auth user) {
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
         if (likedStoreList != null) {
             likedStoreList.forEach(likedStore -> {
-                Store store = storeRepository.findById(likedStore.getStoreId())
-                        .orElseThrow(() -> new CustomException(StoreErrorCode.STORE_NOT_FOUND));
-                store.decreaseLikeCount();
+                storeRepository.findById(likedStore.getStoreId())
+                        .ifPresent(Store::decreaseLikeCount);
                 likedStoreRepository.delete(likedStore);
             });
+        }
+        List<SavedPost> savedPostList = savedPostRepository.findAllByUserId(user.getId());
+        if (savedPostList != null) {
+            savedPostList.forEach(savedPostRepository::delete);
         }
         notificationRepository.deleteAllByUserId(user.getId());
         storeManagerRepository.deleteAllByUserId(user.getId());

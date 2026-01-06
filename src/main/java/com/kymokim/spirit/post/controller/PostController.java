@@ -4,6 +4,7 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.post.dto.RequestPost;
 import com.kymokim.spirit.post.dto.ResponsePost;
 import com.kymokim.spirit.post.service.PostService;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +53,25 @@ public class PostController {
         postService.deletePost(postId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Post deleted successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping("/save/{postId}")
+    public ResponseEntity<ResponseDto> savePost(@PathVariable("postId") Long postId) {
+        postService.savePost(postId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Post saved successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @PostMapping(value = "/share/{postId}")
+    public ResponseEntity<ResponseDto> sharePost(@PathVariable("postId") Long postId) {
+        ResponsePost.SharePostDto sharePostDto = postService.sharePost(postId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Post share link created successfully.")
+                .data(sharePostDto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -112,6 +132,16 @@ public class PostController {
         Page<ResponsePost.GetRecentPostDto> response = postService.getRecentPost(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Recent post list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/get-by/saved")
+    public ResponseEntity<ResponseDto> getSavedPost(@PageableDefault(size = 10) Pageable pageable) {
+        Page<ResponsePost.GetSavedPostDto> response = postService.getSavedPost(pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Saved post list retrieved successfully.")
                 .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);

@@ -2,6 +2,7 @@ package com.kymokim.spirit.post.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.post.entity.Post;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -26,6 +27,7 @@ public class ResponsePost {
         private Long storeId;
         private String storeName;
         private Double rate;
+        private String place;
 
         public static GetPostDto toDto(Post post, Auth writer) {
 
@@ -44,6 +46,7 @@ public class ResponsePost {
                     .createdAt(post.getHistoryInfo().getCreatedAt())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .build();
         }
@@ -92,6 +95,7 @@ public class ResponsePost {
         private String address;
         private Long storeId;
         private String storeName;
+        private String place;
 
         public static GetMyPostDto toDto(Post post) {
 
@@ -108,6 +112,7 @@ public class ResponsePost {
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .build();
         }
@@ -128,6 +133,7 @@ public class ResponsePost {
         private String address;
         private Long storeId;
         private String storeName;
+        private String place;
 
         public static GetRecentPostDto toDto(Post post, Auth writer, Long userId) {
 
@@ -148,7 +154,62 @@ public class ResponsePost {
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
+                    .build();
+        }
+    }
+
+    @Builder
+    @Getter
+    public static class GetSavedPostDto {
+        private Long id;
+        private String content;
+        private Double rate;
+        private Long writerId;
+        private String writerNickname;
+        private String writerImgUrl;
+        private Boolean isWriter;
+        private LocalDateTime createdAt;
+        private List<String> postImgUrlList;
+        private String address;
+        private Long storeId;
+        private String storeName;
+        private String place;
+
+        public static GetSavedPostDto toDto(Post post, Auth writer, Long userId) {
+
+            List<String> postImgUrlList = new ArrayList<>();
+            if (!post.getImageList().isEmpty()) {
+                post.getImageList().forEach(postImage -> postImgUrlList.add(postImage.getUrl()));
+            }
+
+            return GetSavedPostDto.builder()
+                    .id(post.getId())
+                    .content(post.getContent())
+                    .rate(post.getRate())
+                    .writerId(writer.getId())
+                    .writerNickname(writer.getNickname())
+                    .writerImgUrl(writer.getImgUrl())
+                    .isWriter(Objects.equals(writer.getId(), userId))
+                    .createdAt(post.getHistoryInfo().getCreatedAt())
+                    .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
+                    .storeId(post.getStore() == null ? null : post.getStore().getId())
+                    .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .place(post.getPlace() == null ? null : post.getPlace())
+                    .postImgUrlList(postImgUrlList)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class SharePostDto {
+        private String shareLink;
+
+        public static ResponsePost.SharePostDto toDto(String shareLink) {
+            return ResponsePost.SharePostDto.builder()
+                    .shareLink(shareLink)
                     .build();
         }
     }

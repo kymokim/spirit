@@ -64,7 +64,7 @@ public class CommentService {
     @MainTransactional(readOnly = true)
     public Page<ResponseComment.GetRootCommentsDto> getRootComments(Long postId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Comment> commentPage = commentRepository.findByPostIdAndRootCommentIsNullAndIsDeletedFalseOrderByIdAsc(postId, pageable);
+            Page<Comment> commentPage = commentRepository.findByPostIdAndRootCommentIsNullAndIsDeletedFalseOrderByIdDesc(postId, pageable);
             return commentPage.map(comment -> ResponseComment.GetRootCommentsDto.toDto(
                     comment,
                     AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId()),
@@ -76,7 +76,7 @@ public class CommentService {
     @MainTransactional(readOnly = true)
     public Page<ResponseComment.GetReplyCommentsDto> getReplyComments(Long rootCommentId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Comment> commentPage = commentRepository.findByRootCommentIdAndIsDeletedFalseOrderByIdAsc(rootCommentId, pageable);
+            Page<Comment> commentPage = commentRepository.findByRootCommentIdAndIsDeletedFalseOrderByIdDesc(rootCommentId, pageable);
             return commentPage.map(comment -> ResponseComment.GetReplyCommentsDto.toDto(
                     comment,
                     AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId()),

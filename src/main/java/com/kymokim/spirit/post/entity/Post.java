@@ -40,6 +40,9 @@ public class Post {
     @Column(name = "rate")
     private Double rate;
 
+    @Column(name = "place")
+    private String place;
+
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
 

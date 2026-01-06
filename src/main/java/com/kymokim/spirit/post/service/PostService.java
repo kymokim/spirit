@@ -7,15 +7,20 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.S3Service;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.link.dto.LinkData;
+import com.kymokim.spirit.link.dto.PathType;
+import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
 import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
 import com.kymokim.spirit.post.dto.RequestPost;
 import com.kymokim.spirit.post.dto.ResponsePost;
 import com.kymokim.spirit.post.entity.Post;
 import com.kymokim.spirit.post.entity.PostImage;
+import com.kymokim.spirit.post.entity.SavedPost;
 import com.kymokim.spirit.post.exception.PostErrorCode;
 import com.kymokim.spirit.post.repository.PostImageRepository;
 import com.kymokim.spirit.post.repository.PostRepository;
+import com.kymokim.spirit.post.repository.SavedPostRepository;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -38,7 +43,9 @@ public class PostService {
     private final StoreRepository storeRepository;
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
+    private final SavedPostRepository savedPostRepository;
     private final S3Service s3Service;
+    private final LinkBuilder linkBuilder;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -50,6 +57,30 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
+    private void validatePostCreationLimits(Long creatorId, Long storeId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
+
+        long postCountToday = postRepository.countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, startOfDay, endOfDay);
+        if (postCountToday > 20) {
+            throw new CustomException(PostErrorCode.POST_DAILY_LIMIT_EXCEEDED);
+        }
+
+        if (storeId != null) {
+            boolean alreadyPostedStoreToday = postRepository.existsByHistoryInfo_CreatorIdAndStoreIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, storeId, startOfDay, endOfDay);
+            if (alreadyPostedStoreToday) {
+                throw new CustomException(PostErrorCode.POST_ALREADY_WRITTEN_TODAY);
+            }
+        }
+    }
+
+    private void validatePostWriterAccess(Post post, Auth user) {
+        if (!Objects.equals(post.getHistoryInfo().getCreatorId(), user.getId()) && !user.getRoles().contains(Role.ADMIN)) {
+            throw new CustomException(PostErrorCode.NOT_POST_WRITER);
+        }
+    }
+
     public void createPost(MultipartFile[] files, RequestPost.CreatePostDto createPostDto) {
         if (files == null || files.length == 0) {
             throw new CustomException(PostErrorCode.POST_IMG_FILE_EMPTY);
@@ -58,6 +89,9 @@ public class PostService {
         Long creatorId = AuthResolver.resolveUserId();
         validatePostCreationLimits(creatorId, createPostDto.getStoreId());
         Post post = createPostDto.toEntity(store, creatorId);
+        if ((createPostDto.getStoreId() == null && createPostDto.getRate() == null) && !(createPostDto.getPlace() == null || createPostDto.getPlace().isEmpty())) {
+            post.setPlace(createPostDto.getPlace());
+        }
         postRepository.save(post);
 
         List<MultipartFile> fileList = Arrays.asList(files);
@@ -79,25 +113,6 @@ public class PostService {
             }
         }
     }
-
-    private void validatePostCreationLimits(Long creatorId, Long storeId) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime startOfDay = today.atStartOfDay();
-        LocalDateTime endOfDay = today.atTime(LocalTime.MAX);
-
-        long postCountToday = postRepository.countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, startOfDay, endOfDay);
-        if (postCountToday > 20) {
-            throw new CustomException(PostErrorCode.POST_DAILY_LIMIT_EXCEEDED);
-        }
-
-        if (storeId != null) {
-            boolean alreadyPostedStoreToday = postRepository.existsByHistoryInfo_CreatorIdAndStoreIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(creatorId, storeId, startOfDay, endOfDay);
-            if (alreadyPostedStoreToday) {
-                throw new CustomException(PostErrorCode.POST_ALREADY_WRITTEN_TODAY);
-            }
-        }
-    }
-
 
     public void uploadImage(MultipartFile[] files, Long postId) {
         Post post = resolvePost(postId);
@@ -129,6 +144,70 @@ public class PostService {
             post.removeImageList(postImage);
         }
         postRepository.save(post);
+    }
+
+    public void updatePost(Long postId, RequestPost.UpdatePostDto updatePostDto) {
+        Post originalPost = resolvePost(postId);
+        Auth user = AuthResolver.resolveUser();
+        validatePostWriterAccess(originalPost, user);
+        Store store = originalPost.getStore();
+
+        if (store != null && originalPost.getRate() != null && updatePostDto.getRate() != null) {
+            Double totalRate = store.getTotalRate() - originalPost.getRate() + updatePostDto.getRate();
+            store.setTotalRate(totalRate);
+            storeRepository.save(store);
+        }
+
+        Post updatedPost = updatePostDto.toEntity(originalPost);
+        updatedPost.getHistoryInfo().update(user.getId());
+        postRepository.save(updatedPost);
+    }
+
+    public void deletePost(Long postId) {
+        Auth user = AuthResolver.resolveUser();
+        Post post = resolvePost(postId);
+        validatePostWriterAccess(post, user);
+        if (!Objects.equals(post.getImageList(), null) && !post.getImageList().isEmpty()) {
+            List<PostImage> toDelete = new ArrayList<>(post.getImageList());
+            for (PostImage postImage : toDelete) {
+                s3Service.deleteFile(postImage.getUrl());
+                postImageRepository.delete(postImage);
+                post.removeImageList(postImage);
+            }
+        }
+        post.delete();
+        List<SavedPost> savedPostList = savedPostRepository.findAllByPostId(postId);
+        if (savedPostList != null) {
+            savedPostList.forEach(savedPostRepository::delete);
+        }
+        Store store = post.getStore();
+        if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
+            store.decreaseReviewCount();
+            Double totalRate = store.getTotalRate() - post.getRate();
+            store.setTotalRate(totalRate);
+            storeRepository.save(store);
+        }
+    }
+
+    public void savePost(Long postId) {
+        Post post = resolvePost(postId);
+        Auth user = AuthResolver.resolveUser();
+        SavedPost savedPost = savedPostRepository.findByUserIdAndPostId(user.getId(), postId);
+        if (savedPost == null) {
+            savedPost = SavedPost.builder()
+                    .post(post)
+                    .userId(user.getId())
+                    .build();
+            savedPostRepository.save(savedPost);
+        } else {
+            savedPostRepository.delete(savedPost);
+        }
+        postRepository.save(post);
+    }
+
+    public ResponsePost.SharePostDto sharePost(Long postId) {
+        LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.POST).id(postId.toString()).build();
+        return ResponsePost.SharePostDto.builder().shareLink(linkBuilder.serverLink(pathData)).build();
     }
 
     @MainTransactional(readOnly = true)
@@ -171,48 +250,18 @@ public class PostService {
         }, 3);
     }
 
-    public void updatePost(Long postId, RequestPost.UpdatePostDto updatePostDto) {
-        Post originalPost = resolvePost(postId);
-        Auth user = AuthResolver.resolveUser();
-        validatePostWriterAccess(originalPost, user);
-        Store store = originalPost.getStore();
-
-        if (store != null && originalPost.getRate() != null && updatePostDto.getRate() != null) {
-            Double totalRate = store.getTotalRate() - originalPost.getRate() + updatePostDto.getRate();
-            store.setTotalRate(totalRate);
-            storeRepository.save(store);
-        }
-
-        Post updatedPost = updatePostDto.toEntity(originalPost);
-        updatedPost.getHistoryInfo().update(user.getId());
-        postRepository.save(updatedPost);
-    }
-
-    public void deletePost(Long postId) {
-        Auth user = AuthResolver.resolveUser();
-        Post post = resolvePost(postId);
-        validatePostWriterAccess(post, user);
-        if (!Objects.equals(post.getImageList(), null) && !post.getImageList().isEmpty()) {
-            List<PostImage> toDelete = new ArrayList<>(post.getImageList());
-            for (PostImage postImage : toDelete) {
-                s3Service.deleteFile(postImage.getUrl());
-                postImageRepository.delete(postImage);
-                post.removeImageList(postImage);
-            }
-        }
-        post.delete();
-        Store store = post.getStore();
-        if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
-            store.decreaseReviewCount();
-            Double totalRate = store.getTotalRate() - post.getRate();
-            store.setTotalRate(totalRate);
-            storeRepository.save(store);
-        }
-    }
-
-    private void validatePostWriterAccess(Post post, Auth user) {
-        if (!Objects.equals(post.getHistoryInfo().getCreatorId(), user.getId()) && !user.getRoles().contains(Role.ADMIN)) {
-            throw new CustomException(PostErrorCode.NOT_POST_WRITER);
-        }
+    @MainTransactional(readOnly = true)
+    public Page<ResponsePost.GetSavedPostDto> getSavedPost(Pageable pageable) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
+            Page<Post> savedPostPage = savedPostRepository
+                    .findAllByUserIdOrderByIdDesc(userId, pageable)
+                    .map(SavedPost::getPost);
+            return savedPostPage.map(post -> ResponsePost.GetSavedPostDto.toDto(
+                    post,
+                    AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
+                    userId
+                    ));
+        }, 3);
     }
 }

@@ -18,6 +18,7 @@ public class RequestPost {
         private String content;
         private Long storeId;
         private Double rate;
+        private String place;
 
         public Post toEntity(Store store, Long creatorId) {
             return Post.builder()

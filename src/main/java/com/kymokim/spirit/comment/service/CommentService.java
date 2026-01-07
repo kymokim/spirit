@@ -19,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -59,6 +60,7 @@ public class CommentService {
             commentRepository.save(reply);
             rootComment.increaseReplyCount();
         }
+        post.increaseCommentCount();
     }
 
     @MainTransactional(readOnly = true)
@@ -94,12 +96,20 @@ public class CommentService {
     public void deleteComment(Long commentId) {
         Comment comment = resolveComment(commentId);
         validateCommentWriterAccess(comment, AuthResolver.resolveUser());
-        if (!comment.isRoot()) {
-            Comment rootComment = resolveComment(comment.getRootComment().getId());
-            if (rootComment.getReplyCount() > 0) {
-                rootComment.decreaseReplyCount();
+        Post post = comment.getPost();
+        if (comment.isRoot()) {
+            List<Comment> replyCommentList = commentRepository.findAllByRootCommentIdAndIsDeletedFalse(commentId);
+            if (replyCommentList != null) {
+                replyCommentList.forEach(replyComment -> {
+                    replyComment.delete();
+                    post.decreaseCommentCount();
+                });
             }
+        } else {
+            Comment rootComment = resolveComment(comment.getRootComment().getId());
+            rootComment.decreaseReplyCount();
         }
         comment.delete();
+        post.decreaseCommentCount();
     }
 }

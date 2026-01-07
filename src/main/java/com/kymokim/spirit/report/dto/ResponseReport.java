@@ -2,10 +2,12 @@ package com.kymokim.spirit.report.dto;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.service.AuthResolver;
+import com.kymokim.spirit.comment.entity.Comment;
+import com.kymokim.spirit.post.entity.Post;
 import com.kymokim.spirit.report.entity.Report;
 import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
-import com.kymokim.spirit.review.entity.Review;
+import com.kymokim.spirit.report.entity.ReportTarget;
 import com.kymokim.spirit.store.entity.Store;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,33 +19,59 @@ public class ResponseReport {
     @Getter
     @Builder
     public static class StoreReportListDto {
-        private Long id;
-        private LocalDateTime reportedAt;
-        private Long storeId; //targetId
+        private ReportDto report;
         private String storeName;
-        private ReportReason reportReason;
-        private String description;
-        private ReportStatus reportStatus;
-        private Long reporterId;
-        private String reporterNickname;
         private Boolean isCertified;
 
         public static StoreReportListDto toDto(Report report, Store store) {
-            Auth reporter = AuthResolver.resolveUser(report.getReporterId());
             return StoreReportListDto.builder()
-                    .id(report.getId())
-                    .reportedAt(report.getReportedAt())
-                    .storeId(store.getId())
+                    .report(ReportDto.toDto(report))
                     .storeName(store.getName())
-                    .reportReason(report.getReportReason())
-                    .description(report.getDescription())
-                    .reportStatus(report.getReportStatus())
-                    .reporterId(reporter.getId())
-                    .reporterNickname(reporter.getNickname())
                     .isCertified(store.getOwnerId() != null)
                     .build();
         }
+    }
 
+    @Getter
+    @Builder
+    public static class PostReportListDto {
+        private ReportDto report;
+        private String writerNickname;
+        private Long storeId;
+        private String storeName;
+        private String place;
+
+        public static PostReportListDto toDto(Report report, Post post) {
+            Auth writer = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
+            return PostReportListDto.builder()
+                    .report(ReportDto.toDto(report))
+                    .writerNickname(writer.getNickname())
+                    .storeId(post.getStore() == null ? null : post.getStore().getId())
+                    .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .place(post.getPlace() == null ? null : post.getPlace())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class CommentReportListDto {
+        private ReportDto report;
+        private String writerNickname;
+        private String content;
+        private Long postId;
+        private Long rootCommentId;
+
+        public static CommentReportListDto toDto(Report report, Comment comment) {
+            Auth writer = AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId());
+            return CommentReportListDto.builder()
+                    .report(ReportDto.toDto(report))
+                    .writerNickname(writer.getNickname())
+                    .content(comment.getContent())
+                    .postId(comment.getPost().getId())
+                    .rootCommentId(comment.getRootComment() == null ? null : comment.getRootComment().getId())
+                    .build();
+        }
     }
 
     @Getter
@@ -51,6 +79,8 @@ public class ResponseReport {
     public static class ReportDto {
         private Long id;
         private LocalDateTime reportedAt;
+        private ReportTarget reportTarget;
+        private Long targetId;
         private ReportReason reportReason;
         private String description;
         private ReportStatus reportStatus;
@@ -70,43 +100,4 @@ public class ResponseReport {
                     .build();
         }
     }
-
-    @Getter
-    @Builder
-    public static class ReviewReportListDto {
-        private Long id;
-        private LocalDateTime reportedAt;
-        private Long reviewId; //targetId
-        private Long storeId;
-        private String storeName;
-        private ReportReason reportReason;
-        private String description;
-        private ReportStatus reportStatus;
-        private Long reporterId;
-        private String reporterNickname;
-        private Long writerId;
-        private String writerNickname;
-
-        public static ReviewReportListDto toDto(Report report, Review review) {
-            Auth reporter = AuthResolver.resolveUser(report.getReporterId());
-            Auth writer = AuthResolver.resolveUser(review.getWriterId());
-            return ReviewReportListDto.builder()
-                    .id(report.getId())
-                    .reportedAt(report.getReportedAt())
-                    .reviewId(review.getId())
-                    .storeId(review.getStore().getId())
-                    .storeName(review.getStore().getName())
-                    .reportReason(report.getReportReason())
-                    .description(report.getDescription())
-                    .reportStatus(report.getReportStatus())
-                    .reporterId(reporter.getId())
-                    .reporterNickname(reporter.getNickname())
-                    .writerId(writer.getId())
-                    .writerNickname(writer.getNickname())
-                    .build();
-        }
-
-    }
-
-
 }

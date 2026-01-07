@@ -7,8 +7,10 @@ import com.kymokim.spirit.common.dto.ResponseDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +34,22 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping("/like/{commentId}")
+    public ResponseEntity<ResponseDto> likeComment(@PathVariable Long commentId) {
+        commentService.likeComment(commentId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Comment liked successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping(value = "/get-by/post/{postId}")
-    public ResponseEntity<ResponseDto> getRootComments(@PathVariable Long postId, @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getRootComments(@PathVariable Long postId,
+                                                       @ParameterObject @PageableDefault(
+                                                               size = 20,
+                                                               sort = "id",
+                                                               direction = Sort.Direction.DESC
+                                                       ) Pageable pageable) {
         Page<ResponseComment.GetRootCommentsDto> dtoPage = commentService.getRootComments(postId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Root comments retrieved successfully.")
@@ -43,7 +59,12 @@ public class CommentController {
     }
 
     @GetMapping(value = "/get-by/root-comment/{rootCommentId}")
-    public ResponseEntity<ResponseDto> getReplyComments(@PathVariable Long rootCommentId, @PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getReplyComments(@PathVariable Long rootCommentId,
+                                                        @ParameterObject @PageableDefault(
+                                                                size = 10,
+                                                                sort = "id",
+                                                                direction = Sort.Direction.DESC
+                                                        ) Pageable pageable) {
         Page<ResponseComment.GetReplyCommentsDto> dtoPage = commentService.getReplyComments(rootCommentId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reply comments retrieved successfully.")

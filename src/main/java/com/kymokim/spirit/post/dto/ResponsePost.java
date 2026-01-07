@@ -23,13 +23,18 @@ public class ResponsePost {
         private LocalDateTime createdAt;
         private String content;
         private List<String> postImgUrlList;
+        private Long likeCount;
+        private Long commentCount;
+        private Long shareCount;
+        private Boolean isLiked;
+        private Boolean isSaved;
 
         private Long storeId;
         private String storeName;
         private Double rate;
         private String place;
 
-        public static GetPostDto toDto(Post post, Auth writer) {
+        public static GetPostDto toDto(Post post, Auth writer, boolean isLiked, boolean isSaved) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
@@ -48,6 +53,11 @@ public class ResponsePost {
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
+                    .likeCount(post.getLikeCount())
+                    .commentCount(post.getCommentCount())
+                    .shareCount(post.getShareCount())
+                    .isLiked(isLiked)
+                    .isSaved(isSaved)
                     .build();
         }
     }
@@ -96,8 +106,13 @@ public class ResponsePost {
         private Long storeId;
         private String storeName;
         private String place;
+        private Long likeCount;
+        private Long commentCount;
+        private Long shareCount;
+        private Boolean isLiked;
+        private Boolean isSaved;
 
-        public static GetMyPostDto toDto(Post post) {
+        public static GetMyPostDto toDto(Post post, boolean isLiked, boolean isSaved) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
@@ -114,6 +129,11 @@ public class ResponsePost {
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
+                    .likeCount(post.getLikeCount())
+                    .commentCount(post.getCommentCount())
+                    .shareCount(post.getShareCount())
+                    .isLiked(isLiked)
+                    .isSaved(isSaved)
                     .build();
         }
     }
@@ -134,8 +154,13 @@ public class ResponsePost {
         private Long storeId;
         private String storeName;
         private String place;
+        private Long likeCount;
+        private Long commentCount;
+        private Long shareCount;
+        private Boolean isLiked;
+        private Boolean isSaved;
 
-        public static GetRecentPostDto toDto(Post post, Auth writer, Long userId) {
+        public static GetRecentPostDto toDto(Post post, Auth writer, Long userId, boolean isLiked, boolean isSaved) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
@@ -156,6 +181,11 @@ public class ResponsePost {
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
+                    .likeCount(post.getLikeCount())
+                    .commentCount(post.getCommentCount())
+                    .shareCount(post.getShareCount())
+                    .isLiked(isLiked)
+                    .isSaved(isSaved)
                     .build();
         }
     }
@@ -176,8 +206,13 @@ public class ResponsePost {
         private Long storeId;
         private String storeName;
         private String place;
+        private Long likeCount;
+        private Long commentCount;
+        private Long shareCount;
+        private Boolean isLiked;
+        private Boolean isSaved;
 
-        public static GetSavedPostDto toDto(Post post, Auth writer, Long userId) {
+        public static GetSavedPostDto toDto(Post post, Auth writer, Long userId, boolean isLiked, boolean isSaved) {
 
             List<String> postImgUrlList = new ArrayList<>();
             if (!post.getImageList().isEmpty()) {
@@ -198,6 +233,11 @@ public class ResponsePost {
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
+                    .likeCount(post.getLikeCount())
+                    .commentCount(post.getCommentCount())
+                    .shareCount(post.getShareCount())
+                    .isLiked(isLiked)
+                    .isSaved(isSaved)
                     .build();
         }
     }

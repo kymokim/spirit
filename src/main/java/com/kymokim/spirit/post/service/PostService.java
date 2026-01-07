@@ -14,13 +14,9 @@ import com.kymokim.spirit.notification.dto.NotificationEvent;
 import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
 import com.kymokim.spirit.post.dto.RequestPost;
 import com.kymokim.spirit.post.dto.ResponsePost;
-import com.kymokim.spirit.post.entity.Post;
-import com.kymokim.spirit.post.entity.PostImage;
-import com.kymokim.spirit.post.entity.SavedPost;
+import com.kymokim.spirit.post.entity.*;
 import com.kymokim.spirit.post.exception.PostErrorCode;
-import com.kymokim.spirit.post.repository.PostImageRepository;
-import com.kymokim.spirit.post.repository.PostRepository;
-import com.kymokim.spirit.post.repository.SavedPostRepository;
+import com.kymokim.spirit.post.repository.*;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
@@ -44,6 +40,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final SavedPostRepository savedPostRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostShareRepository postShareRepository;
     private final S3Service s3Service;
     private final LinkBuilder linkBuilder;
 
@@ -55,6 +53,14 @@ public class PostService {
     private Post resolvePost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
+    }
+
+    private boolean isPostLiked(Long postId) {
+        return postLikeRepository.existsByPostIdAndUserId(postId, AuthResolver.resolveUserId());
+    }
+
+    private boolean isPostSaved(Long postId) {
+        return savedPostRepository.existsByPostIdAndUserId(postId, AuthResolver.resolveUserId());
     }
 
     private void validatePostCreationLimits(Long creatorId, Long storeId) {
@@ -180,6 +186,14 @@ public class PostService {
         if (savedPostList != null) {
             savedPostList.forEach(savedPostRepository::delete);
         }
+        List<PostLike> postLikeList = postLikeRepository.findAllByPostId(postId);
+        if (postLikeList != null) {
+            postLikeList.forEach(postLikeRepository::delete);
+        }
+        List<PostShare> postShareList = postShareRepository.findAllByPostId(postId);
+        if (postShareList != null) {
+            postShareList.forEach(postShareRepository::delete);
+        }
         Store store = post.getStore();
         if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
             store.decreaseReviewCount();
@@ -205,8 +219,36 @@ public class PostService {
         postRepository.save(post);
     }
 
+    public void likePost(Long postId) {
+        Post post = resolvePost(postId);
+        Auth user = AuthResolver.resolveUser();
+        PostLike postLike = postLikeRepository.findByPostIdAndUserId(postId, user.getId());
+        if (postLike == null) {
+            postLike = PostLike.builder()
+                    .userId(user.getId())
+                    .post(post)
+                    .build();
+            postLikeRepository.save(postLike);
+            post.increaseLikeCount();
+        } else {
+            postLikeRepository.delete(postLike);
+            post.decreaseLikeCount();
+        }
+    }
+
     public ResponsePost.SharePostDto sharePost(Long postId) {
         LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.POST).id(postId.toString()).build();
+        Post post = resolvePost(postId);
+        Long userId = AuthResolver.resolveUserId();
+        boolean isSharedBefore = postShareRepository.existsByPostIdAndUserId(postId, userId);
+        if (!isSharedBefore) {
+            PostShare postShare = PostShare.builder()
+                    .userId(userId)
+                    .post(post)
+                    .build();
+            postShareRepository.save(postShare);
+            post.increaseShareCount();
+        }
         return ResponsePost.SharePostDto.builder().shareLink(linkBuilder.serverLink(pathData)).build();
     }
 
@@ -214,7 +256,7 @@ public class PostService {
     public ResponsePost.GetPostDto getPost(Long postId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Post post = resolvePost(postId);
-            return ResponsePost.GetPostDto.toDto(post, AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()));
+            return ResponsePost.GetPostDto.toDto(post, AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), isPostLiked(postId), isPostSaved(postId));
         }, 3);
     }
 
@@ -234,7 +276,7 @@ public class PostService {
     public Page<ResponsePost.GetMyPostDto> getMyPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Page<Post> postPage = postRepository.findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(AuthResolver.resolveUserId(), pageable);
-            return postPage.map(ResponsePost.GetMyPostDto::toDto);
+            return postPage.map(post -> ResponsePost.GetMyPostDto.toDto(post, isPostLiked(post.getId()), isPostSaved(post.getId())));
         }, 3);
     }
 
@@ -245,7 +287,9 @@ public class PostService {
             return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
-                    AuthResolver.resolveUserId()
+                    AuthResolver.resolveUserId(),
+                    isPostLiked(post.getId()),
+                    isPostSaved(post.getId())
             ));
         }, 3);
     }
@@ -260,7 +304,9 @@ public class PostService {
             return savedPostPage.map(post -> ResponsePost.GetSavedPostDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
-                    userId
+                    userId,
+                    isPostLiked(post.getId()),
+                    isPostSaved(post.getId())
                     ));
         }, 3);
     }

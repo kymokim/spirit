@@ -46,6 +46,12 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> commentList = new ArrayList<>();
 
+    private Long likeCount = 0L;
+
+    private Long commentCount = 0L;
+
+    private Long shareCount = 0L;
+
     private boolean isDeleted = false;
 
     @Builder
@@ -71,5 +77,30 @@ public class Post {
 
     public void delete() {
         this.isDeleted = true;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+    public void decreaseLikeCount() {
+        if(this.likeCount > 0) {
+            this.likeCount--;
+        }
+    }
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+    public void decreaseCommentCount() {
+        if(this.commentCount > 0) {
+            this.commentCount--;
+        }
+    }
+    public void increaseShareCount() {
+        this.shareCount++;
+    }
+    public void decreaseShareCount() {
+        if(this.shareCount > 0) {
+            this.shareCount--;
+        }
     }
 }

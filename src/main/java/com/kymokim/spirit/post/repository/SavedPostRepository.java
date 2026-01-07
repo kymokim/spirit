@@ -13,4 +13,5 @@ public interface SavedPostRepository extends JpaRepository<SavedPost, Long> {
     Page<SavedPost> findAllByUserIdOrderByIdDesc(Long userId, Pageable pageable);
     List<SavedPost> findAllByUserId(Long userId);
     List<SavedPost> findAllByPostId(Long postId);
+    boolean existsByPostIdAndUserId(Long postId, Long userId);
 }

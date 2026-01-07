@@ -229,7 +229,6 @@ public class PostService {
     }
 
     public ResponsePost.SharePostDto sharePost(Long postId) {
-        LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.POST).id(postId.toString()).build();
         Post post = resolvePost(postId);
         Long userId = AuthResolver.resolveUserId();
         boolean isSharedBefore = postShareRepository.existsByPostIdAndUserId(postId, userId);
@@ -241,6 +240,7 @@ public class PostService {
             postShareRepository.save(postShare);
             post.increaseShareCount();
         }
+        LinkData.PathData pathData = LinkData.PathData.builder().type(PathType.POST).id(postId.toString()).build();
         return ResponsePost.SharePostDto.builder().shareLink(linkBuilder.serverLink(pathData)).build();
     }
 

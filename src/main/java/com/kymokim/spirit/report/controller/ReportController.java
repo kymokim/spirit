@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,7 +44,7 @@ public class ReportController {
 
     @Operation(summary = "신고된 가게 리스트 조회")
     @GetMapping("/store")
-    public ResponseEntity<ResponseDto> getStoreReports(@PageableDefault(size = 10) Pageable pageable,
+    public ResponseEntity<ResponseDto> getStoreReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
                                                        @RequestParam(value = "status") ReportStatus reportStatus) {
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
@@ -66,7 +67,7 @@ public class ReportController {
 
     @Operation(summary = "우선 신고 사유가 있는 가게 신고 리스트 조회")
     @GetMapping("/store/priority")
-    public ResponseEntity<ResponseDto> getPriorityStoreReports(@PageableDefault(size = 10) Pageable pageable,
+    public ResponseEntity<ResponseDto> getPriorityStoreReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
                                                                @RequestParam(value = "status") ReportStatus reportStatus) {
         Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getPriorityStoreReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()
@@ -81,7 +82,7 @@ public class ReportController {
 
     @Operation(summary = "신고된 리뷰 리스트 조회")
     @GetMapping("/review")
-    public ResponseEntity<ResponseDto> getReviewReports(@PageableDefault(size = 10) Pageable pageable,
+    public ResponseEntity<ResponseDto> getReviewReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
                                                         @RequestParam(value = "status") ReportStatus reportStatus) {
         Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getReviewReports(pageable, reportStatus);
         ResponseDto responseDto = ResponseDto.builder()

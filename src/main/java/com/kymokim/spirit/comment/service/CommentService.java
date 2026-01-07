@@ -6,12 +6,15 @@ import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.comment.dto.RequestComment;
 import com.kymokim.spirit.comment.dto.ResponseComment;
 import com.kymokim.spirit.comment.entity.Comment;
+import com.kymokim.spirit.comment.entity.CommentLike;
 import com.kymokim.spirit.comment.exception.CommentErrorCode;
+import com.kymokim.spirit.comment.repository.CommentLikeRepository;
 import com.kymokim.spirit.comment.repository.CommentRepository;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.post.entity.Post;
+import com.kymokim.spirit.post.entity.PostLike;
 import com.kymokim.spirit.post.exception.PostErrorCode;
 import com.kymokim.spirit.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +32,15 @@ public class CommentService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     private Comment resolveComment(Long commentId) {
         return commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(CommentErrorCode.COMMENT_NOT_FOUND));
+    }
+
+    private boolean isCommentLiked(Long commentId, Long userId) {
+        return commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
     }
 
     private void validateCommentWriterAccess(Comment comment, Auth user) {
@@ -63,14 +71,33 @@ public class CommentService {
         post.increaseCommentCount();
     }
 
+    public void likeComment(Long commentId) {
+        Comment comment = resolveComment(commentId);
+        Auth user = AuthResolver.resolveUser();
+        CommentLike commentLike = commentLikeRepository.findByCommentIdAndUserId(commentId, user.getId());
+        if (commentLike == null) {
+            commentLike = CommentLike.builder()
+                    .userId(user.getId())
+                    .comment(comment)
+                    .build();
+            commentLikeRepository.save(commentLike);
+            comment.increaseLikeCount();
+        } else {
+            commentLikeRepository.delete(commentLike);
+            comment.decreaseLikeCount();
+        }
+    }
+
     @MainTransactional(readOnly = true)
     public Page<ResponseComment.GetRootCommentsDto> getRootComments(Long postId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Comment> commentPage = commentRepository.findByPostIdAndRootCommentIsNullAndIsDeletedFalseOrderByIdDesc(postId, pageable);
+            Long userId = AuthResolver.resolveUserId();
+            Page<Comment> commentPage = commentRepository.findByPostIdAndRootCommentIsNullAndIsDeletedFalse(postId, pageable);
             return commentPage.map(comment -> ResponseComment.GetRootCommentsDto.toDto(
                     comment,
                     AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId()),
-                    AuthResolver.resolveUserId()
+                    userId,
+                    isCommentLiked(comment.getId(), userId)
             ));
         }, 3);
     }
@@ -78,11 +105,13 @@ public class CommentService {
     @MainTransactional(readOnly = true)
     public Page<ResponseComment.GetReplyCommentsDto> getReplyComments(Long rootCommentId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            Page<Comment> commentPage = commentRepository.findByRootCommentIdAndIsDeletedFalseOrderByIdDesc(rootCommentId, pageable);
+            Long userId = AuthResolver.resolveUserId();
+            Page<Comment> commentPage = commentRepository.findByRootCommentIdAndIsDeletedFalse(rootCommentId, pageable);
             return commentPage.map(comment -> ResponseComment.GetReplyCommentsDto.toDto(
                     comment,
                     AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId()),
-                    AuthResolver.resolveUserId()
+                    userId,
+                    isCommentLiked(comment.getId(), userId)
             ));
         }, 3);
     }
@@ -109,7 +138,8 @@ public class CommentService {
             Comment rootComment = resolveComment(comment.getRootComment().getId());
             rootComment.decreaseReplyCount();
         }
-        comment.delete();
+        commentLikeRepository.deleteByCommentId(commentId);
         post.decreaseCommentCount();
+        comment.delete();
     }
 }

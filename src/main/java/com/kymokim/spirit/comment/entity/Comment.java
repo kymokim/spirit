@@ -30,6 +30,8 @@ public class Comment {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
+    private Long likeCount = 0L;
+
     private Long replyCount = 0L;
 
     private boolean isDeleted = false;
@@ -63,6 +65,16 @@ public class Comment {
 
     public boolean isRoot() {
         return rootComment == null;
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        if(this.likeCount > 0) {
+            this.likeCount--;
+        }
     }
 
     public void increaseReplyCount() {

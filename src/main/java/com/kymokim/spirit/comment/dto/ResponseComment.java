@@ -12,6 +12,16 @@ public class ResponseComment {
 
     @Getter
     @Builder
+    public static class CreateCommentRsDto {
+        private Long commentId;
+
+        public static CreateCommentRsDto toDto(Comment comment) {
+            return CreateCommentRsDto.builder().commentId(comment.getId()).build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class GetRootCommentsDto {
 
         private Long id;

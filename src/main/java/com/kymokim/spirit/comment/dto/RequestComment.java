@@ -11,7 +11,7 @@ public class RequestComment {
 
     @Getter
     @Builder
-    public static class CreateCommentDto {
+    public static class CreateCommentRqDto {
         @NotNull
         private Long postId;
         @NotEmpty

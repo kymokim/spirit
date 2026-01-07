@@ -8,6 +8,7 @@ import com.kymokim.spirit.store.dto.ResponseStore;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -117,7 +118,7 @@ public class PostController {
 
     @GetMapping("/get-by/store/{storeId}")
     public ResponseEntity<ResponseDto> getPostByStore(@PathVariable("storeId") Long storeId,
-                                                      @PageableDefault(size = 10) Pageable pageable) {
+                                                      @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponsePost.GetPostByStoreDto> response = postService.getPostByStore(storeId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store post list retrieved successfully.")
@@ -127,7 +128,7 @@ public class PostController {
     }
 
     @GetMapping("/get-by/my")
-    public ResponseEntity<ResponseDto> getMyPost(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getMyPost(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ResponsePost.GetMyPostDto> response = postService.getMyPost(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("My post list retrieved successfully.")
@@ -137,7 +138,7 @@ public class PostController {
     }
 
     @GetMapping("/get-by/recent")
-    public ResponseEntity<ResponseDto> getRecentPost(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getRecentPost(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponsePost.GetRecentPostDto> response = postService.getRecentPost(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Recent post list retrieved successfully.")
@@ -147,7 +148,7 @@ public class PostController {
     }
 
     @GetMapping("/get-by/saved")
-    public ResponseEntity<ResponseDto> getSavedPost(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getSavedPost(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ResponsePost.GetSavedPostDto> response = postService.getSavedPost(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Saved post list retrieved successfully.")

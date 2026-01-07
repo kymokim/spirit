@@ -1,6 +1,7 @@
 package com.kymokim.spirit.auth.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.comment.repository.CommentLikeRepository;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.notification.repository.NotificationRepository;
@@ -37,6 +38,7 @@ public class MainDataCleaner {
     private final SavedPostRepository savedPostRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostShareRepository postShareRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     public void cleanUp(Auth user) {
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
@@ -47,26 +49,10 @@ public class MainDataCleaner {
                 likedStoreRepository.delete(likedStore);
             });
         }
-        List<SavedPost> savedPostList = savedPostRepository.findAllByUserId(user.getId());
-        if (savedPostList != null) {
-            savedPostList.forEach(savedPostRepository::delete);
-        }
-        List<PostLike> postLikeList = postLikeRepository.findAllByUserId(user.getId());
-        if (postLikeList != null) {
-            postLikeList.forEach(postLike -> {
-                Post post = postLike.getPost();
-                post.decreaseLikeCount();
-                postLikeRepository.delete(postLike);
-            });
-        }
-        List<PostShare> postShareList = postShareRepository.findAllByUserId(user.getId());
-        if (postShareList != null) {
-            postShareList.forEach(postShare -> {
-                Post post = postShare.getPost();
-                post.decreaseShareCount();
-                postShareRepository.delete(postShare);
-            });
-        }
+        savedPostRepository.deleteByUserId(user.getId());
+        postLikeRepository.deleteByUserId(user.getId());
+        postShareRepository.deleteByUserId(user.getId());
+        commentLikeRepository.deleteByUserId(user.getId());
         notificationRepository.deleteAllByUserId(user.getId());
         storeManagerRepository.deleteAllByUserId(user.getId());
         List<Store> ownedStores = storeRepository.findByOwnerId(user.getId());

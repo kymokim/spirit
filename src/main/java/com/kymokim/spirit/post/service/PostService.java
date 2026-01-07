@@ -55,13 +55,14 @@ public class PostService {
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
-    private boolean isPostLiked(Long postId) {
-        return postLikeRepository.existsByPostIdAndUserId(postId, AuthResolver.resolveUserId());
+    private boolean isPostLiked(Long postId, Long userId) {
+        return postLikeRepository.existsByPostIdAndUserId(postId, userId);
     }
 
-    private boolean isPostSaved(Long postId) {
-        return savedPostRepository.existsByPostIdAndUserId(postId, AuthResolver.resolveUserId());
+    private boolean isPostSaved(Long postId, Long userId) {
+        return savedPostRepository.existsByPostIdAndUserId(postId, userId);
     }
+
 
     private void validatePostCreationLimits(Long creatorId, Long storeId) {
         LocalDate today = LocalDate.now();
@@ -181,19 +182,9 @@ public class PostService {
                 post.removeImageList(postImage);
             }
         }
-        post.delete();
-        List<SavedPost> savedPostList = savedPostRepository.findAllByPostId(postId);
-        if (savedPostList != null) {
-            savedPostList.forEach(savedPostRepository::delete);
-        }
-        List<PostLike> postLikeList = postLikeRepository.findAllByPostId(postId);
-        if (postLikeList != null) {
-            postLikeList.forEach(postLikeRepository::delete);
-        }
-        List<PostShare> postShareList = postShareRepository.findAllByPostId(postId);
-        if (postShareList != null) {
-            postShareList.forEach(postShareRepository::delete);
-        }
+        savedPostRepository.deleteByPostId(postId);
+        postLikeRepository.deleteByPostId(postId);
+        postShareRepository.deleteByPostId(postId);
         Store store = post.getStore();
         if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
             store.decreaseReviewCount();
@@ -201,6 +192,7 @@ public class PostService {
             store.setTotalRate(totalRate);
             storeRepository.save(store);
         }
+        post.delete();
     }
 
     public void savePost(Long postId) {
@@ -255,19 +247,21 @@ public class PostService {
     @MainTransactional(readOnly = true)
     public ResponsePost.GetPostDto getPost(Long postId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
             Post post = resolvePost(postId);
-            return ResponsePost.GetPostDto.toDto(post, AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), isPostLiked(postId), isPostSaved(postId));
+            return ResponsePost.GetPostDto.toDto(post, AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), isPostLiked(postId, userId), isPostSaved(postId, userId));
         }, 3);
     }
 
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetPostByStoreDto> getPostByStore(Long storeId, Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
             Page<Post> postPage = postRepository.findAllByStoreIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(storeId, pageable);
             return postPage.map(post -> ResponsePost.GetPostByStoreDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
-                    AuthResolver.resolveUserId()
+                    userId
             ));
         }, 3);
     }
@@ -275,21 +269,23 @@ public class PostService {
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetMyPostDto> getMyPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
             Page<Post> postPage = postRepository.findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(AuthResolver.resolveUserId(), pageable);
-            return postPage.map(post -> ResponsePost.GetMyPostDto.toDto(post, isPostLiked(post.getId()), isPostSaved(post.getId())));
+            return postPage.map(post -> ResponsePost.GetMyPostDto.toDto(post, isPostLiked(post.getId(), userId), isPostSaved(post.getId(), userId)));
         }, 3);
     }
 
     @MainTransactional(readOnly = true)
     public Page<ResponsePost.GetRecentPostDto> getRecentPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
+            Long userId = AuthResolver.resolveUserId();
             Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(pageable);
             return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
-                    AuthResolver.resolveUserId(),
-                    isPostLiked(post.getId()),
-                    isPostSaved(post.getId())
+                    userId,
+                    isPostLiked(post.getId(), userId),
+                    isPostSaved(post.getId(), userId)
             ));
         }, 3);
     }
@@ -305,9 +301,9 @@ public class PostService {
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
                     userId,
-                    isPostLiked(post.getId()),
-                    isPostSaved(post.getId())
-                    ));
+                    isPostLiked(post.getId(), userId),
+                    isPostSaved(post.getId(), userId)
+            ));
         }, 3);
     }
 }

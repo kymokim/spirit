@@ -10,6 +10,7 @@ import com.kymokim.spirit.store.service.StoreQueryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -71,7 +72,7 @@ public class StoreQueryController {
                                                    @RequestParam("latitude") double latitude,
                                                    @RequestParam("longitude") double longitude,
                                                    @RequestParam("radius") double radius,
-                                                   @PageableDefault(size = 10) Pageable pageable) {
+                                                   @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.searchStore(criteria, keyword, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -84,7 +85,7 @@ public class StoreQueryController {
     @Operation(summary = "전체 가게 검색(가게명) 리스트 조회")
     @GetMapping("/keyword/all/{keyword}")
     public ResponseEntity<ResponseDto> searchAllStore(@PathVariable("keyword") String keyword,
-                                                      @PageableDefault(size = 10) Pageable pageable) {
+                                                      @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.SearchAllStoreDto> dtoPage = storeQueryService.searchAllStore(keyword, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store all search list retrieved successfully.")
@@ -120,7 +121,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getByDistance(@RequestParam("latitude") double latitude,
                                                      @RequestParam("longitude") double longitude,
                                                      @RequestParam("radius") double radius,
-                                                     @PageableDefault(size = 10) Pageable pageable) {
+                                                     @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByDistanceDto> dtoPage = storeQueryService.getByDistance(criteria, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -138,7 +139,7 @@ public class StoreQueryController {
                                                      @RequestParam("radius") double radius,
                                                      @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                      @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
-                                                     @PageableDefault(size = 10) Pageable pageable) {
+                                                     @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByCategoryDto> dtoPage = storeQueryService.getByCategory(criteria, category, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -153,7 +154,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> getByBusinessHours(@RequestParam("latitude") double latitude,
                                                           @RequestParam("longitude") double longitude,
                                                           @RequestParam("radius") double radius,
-                                                          @PageableDefault(size = 10) Pageable pageable) {
+                                                          @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetByBusinessHoursDto> dtoPage = storeQueryService.getByBusinessHours(criteria, pageable);
         ResponseDto responseDto = ResponseDto.builder()
@@ -165,7 +166,7 @@ public class StoreQueryController {
 
     @Operation(summary = "좋아요한 가게 리스트 조회")
     @GetMapping("/liked")
-    public ResponseEntity<ResponseDto> getLikedStore(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<ResponseDto> getLikedStore(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         Page<ResponseStore.GetLikedStoreDto> dtoPage = storeQueryService.getLikedStore(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Liked store list retrieved successfully.")
@@ -176,7 +177,7 @@ public class StoreQueryController {
 
     @Operation(summary = "최근 방문(리뷰 작성) 가게 조회")
     @GetMapping("/recent")
-    public ResponseEntity<ResponseDto> getRecentStore(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<ResponseDto> getRecentStore(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         Page<ResponseStore.GetRecentStoreDto> dtoPage = storeQueryService.getRecentStore(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
@@ -205,7 +206,7 @@ public class StoreQueryController {
     public ResponseEntity<ResponseDto> conditionSearchStore(@RequestParam("latitude") double latitude,
                                                             @RequestParam("longitude") double longitude,
                                                             @RequestParam("radius") double radius,
-                                                            @PageableDefault(size = 10) Pageable pageable,
+                                                            @ParameterObject @PageableDefault(size = 10) Pageable pageable,
                                                             @Valid RequestStore.ConditionSearchDto conditionSearchDto) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.SearchStoreDto> dtoPage = storeQueryService.conditionSearchStore(criteria, conditionSearchDto, pageable);
@@ -248,7 +249,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 제보 리스트 조회")
     @GetMapping("/suggestion/list")
-    public ResponseEntity<ResponseDto> getStoreSuggestionList(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getStoreSuggestionList(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.StoreSuggestionListDto> dtoPage = storeQueryService.getStoreSuggestionList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -261,7 +262,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 리스트 조회")
     @GetMapping("/ownership/list")
-    public ResponseEntity<ResponseDto> getOwnershipList(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getOwnershipList(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.OwnershipListDto> dtoPage = storeQueryService.getOwnershipList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -274,7 +275,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 제보 & 권한 등록 동시 진행 리스트 조회")
     @GetMapping("/ownership/with-suggestion")
-    public ResponseEntity<ResponseDto> getOwnershipListWithStoreSuggestion(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getOwnershipListWithStoreSuggestion(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.GetOwnershipListWithStoreSuggestionDto> dtoPage = storeQueryService.getOwnershipListWithStoreSuggestion(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -286,7 +287,7 @@ public class StoreQueryController {
 
     @Operation(summary = "관리 중인 매장 리스트 조회")
     @GetMapping("/managed")
-    public ResponseEntity<ResponseDto> getManagedStoreList(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getManagedStoreList(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.ManagedStoreListDto> dtoPage = storeQueryService.getManagedStoreList(pageable);
 
         ResponseDto responseDto = ResponseDto.builder()
@@ -299,7 +300,7 @@ public class StoreQueryController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "매장 권한 등록 조회")
     @GetMapping("/ownership/{ownershipId}")
-    public ResponseEntity<ResponseDto> getOwnership(@PathVariable("ownershipId") Long ownershipId) {
+    public ResponseEntity<ResponseDto> getOwnership(@ParameterObject @PathVariable("ownershipId") Long ownershipId) {
         ResponseStore.OwnershipDto getOwnershipDto = storeQueryService.getOwnership(ownershipId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store get ownership list retrieved successfully.")
@@ -328,7 +329,7 @@ public class StoreQueryController {
 
     @Operation(summary = "최근 조회한 매장 리스트 조회")
     @GetMapping("/viewed")
-    public ResponseEntity<ResponseDto> getViewedStore(@PageableDefault(size = 10) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getViewedStore(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         Page<ResponseStore.GetViewedStoreDto> dtoPage = storeQueryService.getViewedStore(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Viewed store list retrieved successfully.")
@@ -344,7 +345,7 @@ public class StoreQueryController {
                                                        @RequestParam("radius") double radius,
                                                        @RequestParam(value = "drinkType", required = false) DrinkType drinkType,
                                                        @RequestParam(value = "priceOrder", required = false) Sort.Direction priceOrder,
-                                                       @PageableDefault(size = 10) Pageable pageable) {
+                                                       @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
         LocationCriteria criteria = setCriteria(latitude, longitude, radius);
         Page<ResponseStore.GetPopularStoreDto> dtoPage = storeQueryService.getPopularStore(criteria, drinkType, priceOrder, pageable);
         ResponseDto responseDto = ResponseDto.builder()

@@ -15,9 +15,9 @@ public class RequestReport {
     @Builder
     public static class CreateReportRqDto {
 
+        //STORE, POST, COMMENT
         @NotNull
         private ReportTarget reportTarget;
-        //REVIEW, STORE
         @NotNull
         private Long targetId;
         @NotNull

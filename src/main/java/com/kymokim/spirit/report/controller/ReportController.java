@@ -1,6 +1,5 @@
 package com.kymokim.spirit.report.controller;
 
-
 import com.kymokim.spirit.common.dto.ResponseDto;
 import com.kymokim.spirit.report.dto.RequestReport;
 import com.kymokim.spirit.report.dto.ResponseReport;
@@ -34,64 +33,13 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping(value = "/create")
-    public ResponseEntity<ResponseDto> createReport(@Valid @RequestBody RequestReport.CreateReportRqDto createReportRqDto){
+    public ResponseEntity<ResponseDto> createReport(@Valid @RequestBody RequestReport.CreateReportRqDto createReportRqDto) {
         reportService.createReport(createReportRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report created successfully.")
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
-
-    @Operation(summary = "신고된 가게 리스트 조회")
-    @GetMapping("/store")
-    public ResponseEntity<ResponseDto> getStoreReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
-                                                       @RequestParam(value = "status") ReportStatus reportStatus) {
-        Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported store list retrieved successfully.")
-                .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @Operation(summary = "특정 타겟(store, review) 신고 전체 리스트 조회")
-    @GetMapping("/get-by/target/{targetId}")
-    public ResponseEntity<ResponseDto> getReportsByTargetId(@RequestParam(value = "target")ReportTarget reportTarget, @PathVariable Long targetId) {
-        List<ResponseReport.ReportDto> dtoList = reportService.getReportsByTargetId(reportTarget, targetId);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported by target list retrieved successfully.")
-                .data(dtoList)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-    @Operation(summary = "우선 신고 사유가 있는 가게 신고 리스트 조회")
-    @GetMapping("/store/priority")
-    public ResponseEntity<ResponseDto> getPriorityStoreReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
-                                                               @RequestParam(value = "status") ReportStatus reportStatus) {
-        Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getPriorityStoreReports(pageable, reportStatus);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported priority store list retrieved successfully.")
-                .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
-
-
-
-    @Operation(summary = "신고된 리뷰 리스트 조회")
-    @GetMapping("/review")
-    public ResponseEntity<ResponseDto> getReviewReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
-                                                        @RequestParam(value = "status") ReportStatus reportStatus) {
-        Page<ResponseReport.ReviewReportListDto> dtoPage = reportService.getReviewReports(pageable, reportStatus);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Reported review list retrieved successfully.")
-                .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "신고 처리 완료")
@@ -107,10 +55,61 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "신고 보관")
     @PostMapping("archive/{reportId}")
-    public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId, @Valid @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
+    public ResponseEntity<ResponseDto> archiveReport(@PathVariable Long reportId,
+                                                     @Valid @RequestBody RequestReport.ArchiveReportDto archiveReportDto) {
         reportService.archiveReport(reportId, archiveReportDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Report archived successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "특정 타겟 대기중 신고 전체 조회", description = "전체 상태(대기중, 처리 완료, 보관 완료)에 대해 조회 시 fetchAllStatus = true")
+    @GetMapping("/get-by/target/{targetId}")
+    public ResponseEntity<ResponseDto> getReportsByTargetId(@RequestParam(value = "target") ReportTarget reportTarget,
+                                                            @RequestParam(value = "fetchAllStatus", defaultValue = "false") boolean fetchAllStatus,
+                                                            @PathVariable Long targetId) {
+        List<ResponseReport.ReportDto> dtoList = reportService.getReportsByTargetId(reportTarget, targetId, fetchAllStatus);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported by target list retrieved successfully.")
+                .data(dtoList)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "신고된 매장 리스트 조회", description = "우선순위 사유 신고 조회 시 applyPriority = true")
+    @GetMapping("/get-by/store")
+    public ResponseEntity<ResponseDto> getStoreReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
+                                                       @RequestParam(value = "status") ReportStatus reportStatus,
+                                                       @RequestParam(value = "applyPriority", defaultValue = "false") boolean applyPriority) {
+        Page<ResponseReport.StoreReportListDto> dtoPage = reportService.getStoreReports(pageable, reportStatus, applyPriority);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "신고된 게시글 리스트 조회")
+    @GetMapping("/get-by/post")
+    public ResponseEntity<ResponseDto> getPostReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
+                                                      @RequestParam(value = "status") ReportStatus reportStatus) {
+        Page<ResponseReport.PostReportListDto> dtoPage = reportService.getPostReports(pageable, reportStatus);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported post list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "신고된 댓글 리스트 조회")
+    @GetMapping("/get-by/comment")
+    public ResponseEntity<ResponseDto> getCommentReports(@ParameterObject @PageableDefault(size = 10) Pageable pageable,
+                                                         @RequestParam(value = "status") ReportStatus reportStatus) {
+        Page<ResponseReport.CommentReportListDto> dtoPage = reportService.getCommentReports(pageable, reportStatus);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Reported comment list retrieved successfully.")
+                .data(dtoPage)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

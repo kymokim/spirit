@@ -16,21 +16,25 @@ public class ResponseComment {
 
         private Long id;
         private String content;
+        private Long likeCount;
         private Long replyCount;
         private String writerNickname;
         private String writerImgUrl;
         private LocalDateTime createdAt;
         private Boolean isWriter;
+        private Boolean isLiked;
 
-        public static GetRootCommentsDto toDto(Comment comment, Auth writer, Long userId) {
+        public static GetRootCommentsDto toDto(Comment comment, Auth writer, Long userId, boolean isLiked) {
             return GetRootCommentsDto.builder()
                     .id(comment.getId())
                     .content(comment.getContent())
+                    .likeCount(comment.getLikeCount())
                     .replyCount(comment.getReplyCount())
                     .writerNickname(writer.getNickname())
                     .writerImgUrl(writer.getImgUrl())
                     .createdAt(comment.getHistoryInfo().getCreatedAt())
                     .isWriter(Objects.equals(writer.getId(), userId))
+                    .isLiked(isLiked)
                     .build();
         }
     }
@@ -41,19 +45,23 @@ public class ResponseComment {
 
         private Long id;
         private String content;
+        private Long likeCount;
         private String writerNickname;
         private String writerImgUrl;
         private LocalDateTime createdAt;
         private Boolean isWriter;
+        private Boolean isLiked;
 
-        public static GetReplyCommentsDto toDto(Comment comment, Auth writer, Long userId) {
+        public static GetReplyCommentsDto toDto(Comment comment, Auth writer, Long userId, boolean isLiked) {
             return GetReplyCommentsDto.builder()
                     .id(comment.getId())
                     .content(comment.getContent())
+                    .likeCount(comment.getLikeCount())
                     .writerNickname(writer.getNickname())
                     .writerImgUrl(writer.getImgUrl())
                     .createdAt(comment.getHistoryInfo().getCreatedAt())
                     .isWriter(Objects.equals(writer.getId(), userId))
+                    .isLiked(isLiked)
                     .build();
         }
     }

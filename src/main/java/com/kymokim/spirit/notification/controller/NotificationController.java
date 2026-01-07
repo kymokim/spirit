@@ -5,6 +5,7 @@ import com.kymokim.spirit.notification.dto.ResponseNotification;
 import com.kymokim.spirit.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -39,7 +40,7 @@ public class NotificationController {
     }
 
     @GetMapping("/get-received")
-    public ResponseEntity<ResponseDto> getReceivedNotification(@PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<ResponseDto> getReceivedNotification(@ParameterObject @PageableDefault(size = 20) Pageable pageable) {
         Page<ResponseNotification.NotificationResponseDto> notificationResponseDtoPage = notificationService.getReceivedNotification(pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Received notification fetched successfully.")

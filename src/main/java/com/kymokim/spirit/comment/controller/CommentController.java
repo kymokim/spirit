@@ -25,11 +25,12 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping(value = "/create")
-    public ResponseEntity<ResponseDto> createComment(@Valid @RequestBody RequestComment.CreateCommentDto createCommentDto
+    public ResponseEntity<ResponseDto> createComment(@Valid @RequestBody RequestComment.CreateCommentRqDto createCommentRqDto
     ) {
-        commentService.createComment(createCommentDto);
+        ResponseComment.CreateCommentRsDto response = commentService.createComment(createCommentRqDto);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Comment created successfully.")
+                .data(response)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

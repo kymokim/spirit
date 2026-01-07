@@ -4,7 +4,12 @@ import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.notification.repository.NotificationRepository;
+import com.kymokim.spirit.post.entity.Post;
+import com.kymokim.spirit.post.entity.PostLike;
+import com.kymokim.spirit.post.entity.PostShare;
 import com.kymokim.spirit.post.entity.SavedPost;
+import com.kymokim.spirit.post.repository.PostLikeRepository;
+import com.kymokim.spirit.post.repository.PostShareRepository;
 import com.kymokim.spirit.post.repository.SavedPostRepository;
 import com.kymokim.spirit.store.entity.LikedStore;
 import com.kymokim.spirit.store.entity.Store;
@@ -30,6 +35,8 @@ public class MainDataCleaner {
     private final StoreManagerRepository storeManagerRepository;
     private final OwnershipRequestRepository ownershipRequestRepository;
     private final SavedPostRepository savedPostRepository;
+    private final PostLikeRepository postLikeRepository;
+    private final PostShareRepository postShareRepository;
 
     public void cleanUp(Auth user) {
         List<LikedStore> likedStoreList = likedStoreRepository.findAllByUserId(user.getId());
@@ -43,6 +50,22 @@ public class MainDataCleaner {
         List<SavedPost> savedPostList = savedPostRepository.findAllByUserId(user.getId());
         if (savedPostList != null) {
             savedPostList.forEach(savedPostRepository::delete);
+        }
+        List<PostLike> postLikeList = postLikeRepository.findAllByUserId(user.getId());
+        if (postLikeList != null) {
+            postLikeList.forEach(postLike -> {
+                Post post = postLike.getPost();
+                post.decreaseLikeCount();
+                postLikeRepository.delete(postLike);
+            });
+        }
+        List<PostShare> postShareList = postShareRepository.findAllByUserId(user.getId());
+        if (postShareList != null) {
+            postShareList.forEach(postShare -> {
+                Post post = postShare.getPost();
+                post.decreaseShareCount();
+                postShareRepository.delete(postShare);
+            });
         }
         notificationRepository.deleteAllByUserId(user.getId());
         storeManagerRepository.deleteAllByUserId(user.getId());

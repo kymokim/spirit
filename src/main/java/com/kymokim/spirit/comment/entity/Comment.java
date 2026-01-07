@@ -70,6 +70,8 @@ public class Comment {
     }
 
     public void decreaseReplyCount() {
-        this.replyCount--;
+        if (replyCount > 0) {
+            this.replyCount--;
+        }
     }
 }

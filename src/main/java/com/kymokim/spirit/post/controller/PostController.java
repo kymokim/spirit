@@ -66,6 +66,15 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
+    @PostMapping("/like/{postId}")
+    public ResponseEntity<ResponseDto> likePost(@PathVariable("postId") Long postId) {
+        postService.likePost(postId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Post liked successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @PostMapping(value = "/share/{postId}")
     public ResponseEntity<ResponseDto> sharePost(@PathVariable("postId") Long postId) {
         ResponsePost.SharePostDto sharePostDto = postService.sharePost(postId);

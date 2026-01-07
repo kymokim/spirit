@@ -49,26 +49,28 @@ public class CommentService {
         }
     }
 
-    public void createComment(RequestComment.CreateCommentDto createCommentDto) {
-        Post post = postRepository.findById(createCommentDto.getPostId())
+    public ResponseComment.CreateCommentRsDto createComment(RequestComment.CreateCommentRqDto createCommentRqDto) {
+        Post post = postRepository.findById(createCommentRqDto.getPostId())
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
 
         Long userId = AuthResolver.resolveUserId();
 
-        if (createCommentDto.getRootCommentId() == null) {
-            Comment comment = createCommentDto.toEntity(post, userId);
+        Comment comment;
+        if (createCommentRqDto.getRootCommentId() == null) {
+            comment = createCommentRqDto.toEntity(post, userId);
             commentRepository.save(comment);
         } else {
-            Comment rootComment = resolveComment(createCommentDto.getRootCommentId());
+            Comment rootComment = resolveComment(createCommentRqDto.getRootCommentId());
             if (!rootComment.isRoot()) {
                 throw new CustomException(CommentErrorCode.NESTED_REPLY_NOT_ALLOWED);
             }
 
-            Comment reply = Comment.createReply(post, rootComment, createCommentDto.getContent(), userId);
-            commentRepository.save(reply);
+            comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), userId);
+            commentRepository.save(comment);
             rootComment.increaseReplyCount();
         }
         post.increaseCommentCount();
+        return ResponseComment.CreateCommentRsDto.toDto(comment);
     }
 
     public void likeComment(Long commentId) {

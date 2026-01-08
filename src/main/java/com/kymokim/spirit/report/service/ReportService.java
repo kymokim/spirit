@@ -68,10 +68,14 @@ public class ReportService {
     }
 
     public void createReport(RequestReport.CreateReportRqDto createReportRqDto) {
+        Long reporterId = AuthResolver.resolveUserId();
+        if (reportRepository.existsByReportTargetAndTargetIdAndReporterId(createReportRqDto.getReportTarget(), createReportRqDto.getTargetId(), reporterId)) {
+            throw new CustomException(ReportErrorCode.TARGET_ALREADY_REPORTED);
+        }
         if (createReportRqDto.getReportReason().equals(ReportReason.ETC) && createReportRqDto.getDescription() == null) {
             throw new CustomException(ReportErrorCode.ETC_DESCRIPTION_EMPTY);
         }
-        Report report = createReportRqDto.toEntity(AuthResolver.resolveUserId());
+        Report report = createReportRqDto.toEntity(reporterId);
         reportRepository.save(report);
     }
 

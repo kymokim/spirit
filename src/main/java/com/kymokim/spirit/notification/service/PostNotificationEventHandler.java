@@ -3,7 +3,7 @@ package com.kymokim.spirit.notification.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.annotation.MainTransactional;
-import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.PostCreatedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
 import com.kymokim.spirit.notification.entity.NotificationType;
 import com.kymokim.spirit.notification.entity.RedirectTarget;
@@ -21,17 +21,17 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @MainTransactional
-public class ReviewNotificationEventHandler {
+public class PostNotificationEventHandler {
     private final FCMNotificationService fcmNotificationService;
     private final NotificationRepository notificationRepository;
     private final StoreManagerRepository storeManagerRepository;
 
-    @EventListener(ReviewCreatedNotificationEvent.class)
-    public void handle(ReviewCreatedNotificationEvent event) {
-        NotificationType notificationType = NotificationType.STORE_REVIEW_CREATED;
+    @EventListener(PostCreatedNotificationEvent.class)
+    public void handle(PostCreatedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.STORE_TAG_POST_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
-                .redirectType(RedirectType.REVIEW_DETAIL)
-                .redirectId(event.getReviewId())
+                .redirectType(RedirectType.POST_DETAIL)
+                .redirectId(event.getPostId())
                 .build();
 
         List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());

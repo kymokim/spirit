@@ -69,7 +69,7 @@ public class ReportService {
 
     public void createReport(RequestReport.CreateReportRqDto createReportRqDto) {
         Long reporterId = AuthResolver.resolveUserId();
-        if (reportRepository.existsByReportTargetAndTargetIdAndReporterId(createReportRqDto.getReportTarget(), createReportRqDto.getTargetId(), reporterId)) {
+        if (reportRepository.existsByReportTargetAndTargetIdAndReporterIdAndReportStatus(createReportRqDto.getReportTarget(), createReportRqDto.getTargetId(), reporterId, ReportStatus.PENDING)) {
             throw new CustomException(ReportErrorCode.TARGET_ALREADY_REPORTED);
         }
         if (createReportRqDto.getReportReason().equals(ReportReason.ETC) && createReportRqDto.getDescription() == null) {

@@ -68,6 +68,9 @@ public class ReportService {
     }
 
     public void createReport(RequestReport.CreateReportRqDto createReportRqDto) {
+        if (createReportRqDto.getReportReason().equals(ReportReason.ETC) && createReportRqDto.getDescription() == null) {
+            throw new CustomException(ReportErrorCode.ETC_DESCRIPTION_EMPTY);
+        }
         Report report = createReportRqDto.toEntity(AuthResolver.resolveUserId());
         reportRepository.save(report);
     }
@@ -115,8 +118,7 @@ public class ReportService {
             if (applyPriority) {
                 List<ReportReason> priorityReasons = List.of(
                         ReportReason.INAPPROPRIATE_LANGUAGE,
-                        ReportReason.INAPPROPRIATE_PHOTO,
-                        ReportReason.VIOLATION_OF_GUIDELINES
+                        ReportReason.INAPPROPRIATE_PHOTO
                 );
                 reportPage = reportRepository.findAllByReportTargetAndReportStatusAndReportReasonInOrderByReportedAtAsc(ReportTarget.STORE, reportStatus, priorityReasons, pageable);
             } else {

@@ -22,9 +22,7 @@ public class RequestReport {
         private Long targetId;
         @NotNull
         private ReportReason reportReason;
-        @NotEmpty
         private String description;
-
 
         public Report toEntity(Long reporterId) {
             return Report.builder()

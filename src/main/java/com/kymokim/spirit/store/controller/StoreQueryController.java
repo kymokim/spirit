@@ -175,17 +175,6 @@ public class StoreQueryController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @Operation(summary = "최근 방문(리뷰 작성) 가게 조회")
-    @GetMapping("/recent")
-    public ResponseEntity<ResponseDto> getRecentStore(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        Page<ResponseStore.GetRecentStoreDto> dtoPage = storeQueryService.getRecentStore(pageable);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Store list retrieved successfully.")
-                .data(dtoPage)
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
     @Deprecated
     @Operation(summary = "반경 내 가게 리스트 조회")
     @GetMapping("/radius")

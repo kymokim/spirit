@@ -80,7 +80,7 @@ public class ResponseStore {
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Set<Mood> moods;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
         private Long likeCount;
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
@@ -127,7 +127,7 @@ public class ResponseStore {
                     .operationInfoDtos(operationInfoDtos)
                     .moods(moods)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .likeCount(store.getLikeCount())
                     .isStoreLiked(isStoreLiked)
                     .imgUrlList(imgUrlList)
@@ -150,7 +150,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
         private Long likeCount;
         private Boolean isStoreLiked;
         private List<String> imgUrlList;
@@ -181,7 +181,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .likeCount(store.getLikeCount())
                     .isStoreLiked(isStoreLiked)
                     .imgUrlList(imgUrlList)
@@ -219,7 +219,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static SearchStoreDto toDto(Store store, Double storeRate) {
             return toDto(store, storeRate, null);
@@ -253,7 +253,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .build();
         }
     }
@@ -312,7 +312,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static GetByDistanceDto toDto(Store store, Double storeRate) {
 
@@ -339,7 +339,7 @@ public class ResponseStore {
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .categories(store.getCategories())
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .build();
@@ -358,7 +358,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
 
@@ -397,7 +397,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .storeLikeCount(store.getLikeCount())
                     .menuList(menuList)
                     .build();
@@ -433,7 +433,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static GetByBusinessHoursDto toDto(Store store, Double storeRate) {
 
@@ -462,7 +462,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .build();
         }
     }
@@ -503,7 +503,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static GetByRadiusDto toDto(Store store, Double storeRate) {
 
@@ -535,7 +535,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .build();
         }
     }
@@ -553,7 +553,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
         private Long storeLikeCount;
         private List<MenuListDto> menuList;
         private Set<Category> categories;
@@ -593,7 +593,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .storeLikeCount(store.getLikeCount())
                     .menuList(menuList)
                     .categories(store.getCategories())
@@ -632,7 +632,7 @@ public class ResponseStore {
         private Set<CommonStore.MainDrinkDto> mainDrinkDtos;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static GetLikedStoreDto toDto(Store store, Double storeRate) {
 
@@ -661,7 +661,7 @@ public class ResponseStore {
                     .mainDrinkDtos(mainDrinkDtos)
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .build();
         }
     }
@@ -679,7 +679,7 @@ public class ResponseStore {
         private Set<Category> categories;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
 
         public static GetRecentStoreDto toDto(Store store, Double storeRate) {
 
@@ -706,7 +706,7 @@ public class ResponseStore {
                     .categories(store.getCategories())
                     .operationInfoDtos(operationInfoDtos)
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .build();
         }
     }
@@ -870,7 +870,7 @@ public class ResponseStore {
         private LocalDateTime approvedAt;
         private Set<Category> categories;
         private Double storeRate;
-        private Long reviewCount;
+        private Long postCount;
         private Long likeCount;
         private CommonStore.LocationDto locationDto;
         private Long normalReportCount;
@@ -884,7 +884,7 @@ public class ResponseStore {
                     .approvedAt(storeManager.getApprovedAt())
                     .categories(store.getCategories())
                     .storeRate(storeRate)
-                    .reviewCount(store.getReviewCount())
+                    .postCount(store.getPostCount())
                     .likeCount(store.getLikeCount())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .normalReportCount(normalReportCount)

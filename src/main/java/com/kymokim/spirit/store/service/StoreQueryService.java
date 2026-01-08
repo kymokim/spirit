@@ -7,7 +7,6 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.AESUtil;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
-import com.kymokim.spirit.drink.entity.Drink;
 import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.log.repository.StoreViewLogRepository;
 import com.kymokim.spirit.log.service.LogService;
@@ -15,8 +14,6 @@ import com.kymokim.spirit.report.entity.ReportReason;
 import com.kymokim.spirit.report.entity.ReportStatus;
 import com.kymokim.spirit.report.entity.ReportTarget;
 import com.kymokim.spirit.report.repository.ReportRepository;
-import com.kymokim.spirit.review.entity.Review;
-import com.kymokim.spirit.review.repository.ReviewRepository;
 import com.kymokim.spirit.store.dto.QueryStore;
 import com.kymokim.spirit.store.dto.RequestStore;
 import com.kymokim.spirit.store.dto.ResponseStore;
@@ -31,15 +28,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,7 +42,6 @@ public class StoreQueryService {
 
     private final StoreRepository storeRepository;
     private final LikedStoreRepository likedStoreRepository;
-    private final ReviewRepository reviewRepository;
     private final OwnershipRequestRepository ownershipRequestRepository;
     private final StoreManagerRepository storeManagerRepository;
     private final AESUtil aesUtil;
@@ -79,7 +71,7 @@ public class StoreQueryService {
     }
 
     private double calculateRate(Store store) {
-        double rateAvg = store.getTotalRate() / store.getReviewCount();
+        double rateAvg = store.getTotalRate() / store.getPostCount();
         return Math.round(rateAvg * 100.0) / 100.0;
     }
 
@@ -93,7 +85,7 @@ public class StoreQueryService {
                 isStoreLiked = true;
             }
             Boolean isOwner;
-            Boolean isUpdatable = false;
+            boolean isUpdatable = false;
             Long ownerId = store.getOwnerId();
             StoreManager storeManager = storeManagerRepository.findByUserIdAndStoreId(user.getId(), storeId);
 
@@ -177,25 +169,6 @@ public class StoreQueryService {
             return likedStorePage.map(likedStore -> {
                 Store store = storeMap.get(likedStore.getStoreId());
                 return ResponseStore.GetLikedStoreDto.toDto(store, calculateRate(store));
-            });
-        }, 3);
-    }
-
-    public Page<ResponseStore.GetRecentStoreDto> getRecentStore(Pageable pageable) {
-        return TransactionRetryUtil.executeWithRetry(() -> {
-            Long userId = AuthResolver.resolveUserId();
-            Page<Review> reviewPage = reviewRepository.findAllByWriterIdOrderByHistoryInfo_CreatedAtDesc(userId, pageable);
-
-            List<Long> storeIdList = reviewPage.stream()
-                    .map(review -> review.getStore().getId())
-                    .collect(Collectors.toList());
-
-            Map<Long, Store> storeMap = storeRepository.findByIdIn(storeIdList).stream()
-                    .collect(Collectors.toMap(Store::getId, store -> store));
-
-            return reviewPage.map(review -> {
-                Store store = storeMap.get(review.getStore().getId());
-                return ResponseStore.GetRecentStoreDto.toDto(store, calculateRate(store));
             });
         }, 3);
     }

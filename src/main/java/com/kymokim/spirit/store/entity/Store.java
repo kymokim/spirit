@@ -77,8 +77,8 @@ public class Store {
     @Column(name = "total_rate")
     private Double totalRate = 0D;
 
-    @Column(name = "review_count")
-    private Long reviewCount = 0L;
+    @Column(name = "post_count")
+    private Long postCount = 0L;
 
     @Column(name = "like_count")
     private Long likeCount = 0L;
@@ -189,11 +189,21 @@ public class Store {
     public void removeEventList(Event event) {
         this.eventList.remove(event);
     }
-    public void increaseReviewCount() {
-        this.reviewCount++;
+    public void increaseTotalRate(Double rate) {
+        this.totalRate += rate;
     }
-    public void decreaseReviewCount() {
-        this.reviewCount--;
+    public void decreaseTotalRate(Double rate) {
+        if (this.totalRate >= rate) {
+            this.totalRate -= rate;
+        }
+    }
+    public void increasePostCount() {
+        this.postCount++;
+    }
+    public void decreasePostCount() {
+        if (this.postCount > 0) {
+            this.postCount--;
+        }
     }
     public void increaseLikeCount(){
         this.likeCount++;

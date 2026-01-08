@@ -434,7 +434,7 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
 
         // where
         BooleanBuilder conditions = new BooleanBuilder();
-        conditions.and(store.reviewCount.gt(0));
+        conditions.and(store.postCount.gt(0));
 
         // fetch
         double defaultGlobalRate = 3.5;

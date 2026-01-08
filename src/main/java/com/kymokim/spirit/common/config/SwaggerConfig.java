@@ -92,10 +92,19 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public GroupedOpenApi review(){
-        String[] pathsToMatch = {"/api/review/**"};
+    public GroupedOpenApi post(){
+        String[] pathsToMatch = {"/api/post/**"};
         return GroupedOpenApi.builder()
-                .group("Review")
+                .group("Post")
+                .pathsToMatch(pathsToMatch)
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi comment(){
+        String[] pathsToMatch = {"/api/comment/**"};
+        return GroupedOpenApi.builder()
+                .group("Comment")
                 .pathsToMatch(pathsToMatch)
                 .build();
     }

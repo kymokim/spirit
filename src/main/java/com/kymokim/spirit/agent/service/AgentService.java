@@ -101,10 +101,10 @@ public class AgentService {
     }
 
     private double calculateRate(Store store) {
-        if (store.getReviewCount() == null || store.getReviewCount() == 0) {
+        if (store.getPostCount() == null || store.getPostCount() == 0) {
             return 0;
         }
-        double rateAvg = store.getTotalRate() / store.getReviewCount();
+        double rateAvg = store.getTotalRate() / store.getPostCount();
         return Math.round(rateAvg * 100.0) / 100.0;
     }
 }

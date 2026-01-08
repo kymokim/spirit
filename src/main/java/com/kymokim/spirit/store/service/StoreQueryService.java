@@ -318,8 +318,7 @@ public class StoreQueryService {
             );
             List<ReportReason> priorityReasons = List.of(
                     ReportReason.INAPPROPRIATE_LANGUAGE,
-                    ReportReason.INAPPROPRIATE_PHOTO,
-                    ReportReason.VIOLATION_OF_GUIDELINES
+                    ReportReason.INAPPROPRIATE_PHOTO
             );
             Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(AuthResolver.resolveUserId(), pageable);
 

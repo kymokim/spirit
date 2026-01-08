@@ -11,7 +11,7 @@ import com.kymokim.spirit.link.dto.LinkData;
 import com.kymokim.spirit.link.dto.PathType;
 import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
-import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.PostCreatedNotificationEvent;
 import com.kymokim.spirit.post.dto.RequestPost;
 import com.kymokim.spirit.post.dto.ResponsePost;
 import com.kymokim.spirit.post.entity.*;
@@ -111,12 +111,11 @@ public class PostService {
         postRepository.save(post);
 
         if (store != null && post.getRate() != null) {
-            Double totalRate = store.getTotalRate() + post.getRate();
-            store.setTotalRate(totalRate);
-            store.increaseReviewCount();
+            store.increaseTotalRate(post.getRate());
+            store.increasePostCount();
             storeRepository.save(store);
             if (!store.getIsDeleted()) {
-                NotificationEvent.raise(new ReviewCreatedNotificationEvent(store, post.getId()));
+                NotificationEvent.raise(new PostCreatedNotificationEvent(store, post.getId()));
             }
         }
     }
@@ -186,10 +185,9 @@ public class PostService {
         postLikeRepository.deleteByPostId(postId);
         postShareRepository.deleteByPostId(postId);
         Store store = post.getStore();
-        if (store != null && post.getRate() != null && store.getReviewCount() > 0) {
-            store.decreaseReviewCount();
-            Double totalRate = store.getTotalRate() - post.getRate();
-            store.setTotalRate(totalRate);
+        if (store != null && post.getRate() != null) {
+            store.decreaseTotalRate(post.getRate());
+            store.decreasePostCount();
             storeRepository.save(store);
         }
         post.delete();

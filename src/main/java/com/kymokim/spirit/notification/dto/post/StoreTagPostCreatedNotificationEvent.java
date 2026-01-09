@@ -5,14 +5,13 @@ import com.kymokim.spirit.store.entity.Store;
 import lombok.Getter;
 
 @Getter
-public class PostCreatedNotificationEvent extends NotificationEvent {
+public class StoreTagPostCreatedNotificationEvent extends NotificationEvent {
     private final Store store;
     private final Long postId;
 
-    public PostCreatedNotificationEvent(Store store, Long postId) {
+    public StoreTagPostCreatedNotificationEvent(Store store, Long postId) {
         super();
         this.store = store;
         this.postId = postId;
     }
 }
-

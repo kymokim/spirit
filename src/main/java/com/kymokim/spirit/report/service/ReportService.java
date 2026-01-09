@@ -11,6 +11,8 @@ import com.kymokim.spirit.comment.repository.CommentRepository;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.report.ReportReceivedNotificationEvent;
 import com.kymokim.spirit.post.entity.Post;
 import com.kymokim.spirit.post.exception.PostErrorCode;
 import com.kymokim.spirit.post.repository.PostRepository;
@@ -76,7 +78,8 @@ public class ReportService {
             throw new CustomException(ReportErrorCode.ETC_DESCRIPTION_EMPTY);
         }
         Report report = createReportRqDto.toEntity(reporterId);
-        reportRepository.save(report);
+        report = reportRepository.save(report);
+        NotificationEvent.raise(new ReportReceivedNotificationEvent(report.getId(), report.getReportTarget().getDisplayName()));
     }
 
     public void completeReport(Long reportId) {

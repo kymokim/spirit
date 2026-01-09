@@ -874,9 +874,8 @@ public class ResponseStore {
         private Long likeCount;
         private CommonStore.LocationDto locationDto;
         private Long normalReportCount;
-        private Long priorityReportCount;
 
-        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store, Double storeRate, Long normalReportCount, Long priorityReportCount) {
+        public static ManagedStoreListDto toDto(StoreManager storeManager, Store store, Double storeRate, Long normalReportCount) {
             return ManagedStoreListDto.builder()
                     .storeId(store.getId())
                     .storeName(store.getName())
@@ -888,7 +887,6 @@ public class ResponseStore {
                     .likeCount(store.getLikeCount())
                     .locationDto(CommonStore.LocationDto.toDto(store.getLocation()))
                     .normalReportCount(normalReportCount)
-                    .priorityReportCount(priorityReportCount)
                     .build();
         }
     }

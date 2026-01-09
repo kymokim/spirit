@@ -18,6 +18,24 @@ public class ResponseReport {
 
     @Getter
     @Builder
+    public static class GetReportsByStoreManagerDto {
+        private Long id;
+        private LocalDateTime reportedAt;
+        private ReportReason reportReason;
+        private String description;
+
+        public static GetReportsByStoreManagerDto toDto(Report report) {
+            return GetReportsByStoreManagerDto.builder()
+                    .id(report.getId())
+                    .reportedAt(report.getReportedAt())
+                    .reportReason(report.getReportReason())
+                    .description(report.getDescription())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class StoreReportListDto {
         private ReportDto report;
         private String storeName;

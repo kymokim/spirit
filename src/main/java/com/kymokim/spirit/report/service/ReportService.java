@@ -28,6 +28,7 @@ import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.exception.StoreErrorCode;
 import com.kymokim.spirit.store.repository.StoreRepository;
 
+import com.kymokim.spirit.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +46,7 @@ public class ReportService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final ArchiveService archiveService;
+    private final StoreService storeService;
 
     private Report resolveReport(Long reportId) {
         return reportRepository.findById(reportId)
@@ -104,6 +106,29 @@ public class ReportService {
         report.handleReport(ReportStatus.ARCHIVED);
     }
 
+    public void completeReportByStoreManager(Long reportId) {
+        Report report = resolveReport(reportId);
+        storeService.validateStoreAccess(report.getTargetId());
+        report.handleReport(ReportStatus.COMPLETED);
+    }
+
+    @MainTransactional(readOnly = true)
+    public List<ResponseReport.GetReportsByStoreManagerDto> getReportsByStoreManager(Long storeId) {
+        storeService.validateStoreAccess(storeId);
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            List<Report> reportList;
+            List<ReportReason> reportReasonList = List.of(
+                    ReportReason.INCORRECT_STORE_INFO,
+                    ReportReason.INCORRECT_MENU_INFO,
+                    ReportReason.INCORRECT_DRINK_INFO,
+                    ReportReason.NON_EXISTENT_STORE,
+                    ReportReason.DUPLICATE_STORE
+            );
+            reportList = reportRepository.findAllByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(ReportTarget.STORE, storeId, ReportStatus.PENDING, reportReasonList);
+            return reportList.stream().map(ResponseReport.GetReportsByStoreManagerDto::toDto).toList();
+        }, 3);
+    }
+
     @MainTransactional(readOnly = true)
     public List<ResponseReport.ReportDto> getReportsByTargetId(ReportTarget reportTarget, Long targetId, boolean fetchAllStatus) {
         validateAdminAccess();
@@ -125,7 +150,8 @@ public class ReportService {
             if (applyPriority) {
                 List<ReportReason> priorityReasons = List.of(
                         ReportReason.INAPPROPRIATE_LANGUAGE,
-                        ReportReason.INAPPROPRIATE_PHOTO
+                        ReportReason.INAPPROPRIATE_PHOTO,
+                        ReportReason.ETC
                 );
                 reportPage = reportRepository.findAllByReportTargetAndReportStatusAndReportReasonInOrderByReportedAtAsc(ReportTarget.STORE, reportStatus, priorityReasons, pageable);
             } else {

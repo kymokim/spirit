@@ -74,15 +74,6 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PutMapping("/update/{commentId}")
-    public ResponseEntity<ResponseDto> updateComment(@PathVariable Long commentId, @Valid @RequestBody RequestComment.UpdateCommentDto updateCommentDto) {
-        commentService.updateComment(commentId, updateCommentDto);
-        ResponseDto responseDto = ResponseDto.builder()
-                .message("Comment updated successfully.")
-                .build();
-        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
-    }
-
     @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<ResponseDto> deleteComment(@PathVariable Long commentId) {
         commentService.deleteComment(commentId);

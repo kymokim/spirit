@@ -3,7 +3,8 @@ package com.kymokim.spirit.notification.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.annotation.MainTransactional;
-import com.kymokim.spirit.notification.dto.post.PostCreatedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.PostLikedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.StoreTagPostCreatedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
 import com.kymokim.spirit.notification.entity.NotificationType;
 import com.kymokim.spirit.notification.entity.RedirectTarget;
@@ -26,8 +27,8 @@ public class PostNotificationEventHandler {
     private final NotificationRepository notificationRepository;
     private final StoreManagerRepository storeManagerRepository;
 
-    @EventListener(PostCreatedNotificationEvent.class)
-    public void handle(PostCreatedNotificationEvent event) {
+    @EventListener(StoreTagPostCreatedNotificationEvent.class)
+    public void handle(StoreTagPostCreatedNotificationEvent event) {
         NotificationType notificationType = NotificationType.STORE_TAG_POST_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
                 .redirectType(RedirectType.POST_DETAIL)
@@ -51,6 +52,30 @@ public class PostNotificationEventHandler {
             if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())) {
                 fcmNotificationService.pushAlarmToToken(notification);
             }
+        }
+    }
+
+    @EventListener(PostLikedNotificationEvent.class)
+    public void handle(PostLikedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.POST_LIKED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.POST_DETAIL)
+                .redirectId(event.getPostId())
+                .build();
+
+        Auth writer = event.getWriter();
+        String notificationBody = notificationType.format(Map.of(
+                "nickName", event.getLikedUserNickName()
+        ));
+        Notification notification = Notification.builder()
+                .userId(writer.getId())
+                .notificationType(notificationType)
+                .notificationBody(notificationBody)
+                .redirectTarget(redirectTarget)
+                .build();
+        notification = notificationRepository.save(notification);
+        if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {
+            fcmNotificationService.pushAlarmToToken(notification);
         }
     }
 }

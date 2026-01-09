@@ -55,10 +55,6 @@ public class Comment {
         return comment;
     }
 
-    public void update(String content) {
-        this.content = content;
-    }
-
     public void delete() {
         this.isDeleted = true;
     }

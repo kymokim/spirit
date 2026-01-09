@@ -110,6 +110,8 @@ public class ResponseReport {
             return ReportDto.builder()
                     .id(report.getId())
                     .reportedAt(report.getReportedAt())
+                    .reportTarget(report.getReportTarget())
+                    .targetId(report.getTargetId())
                     .reportReason(report.getReportReason())
                     .description(report.getDescription())
                     .reportStatus(report.getReportStatus())

@@ -11,7 +11,8 @@ import com.kymokim.spirit.link.dto.LinkData;
 import com.kymokim.spirit.link.dto.PathType;
 import com.kymokim.spirit.link.service.LinkBuilder;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
-import com.kymokim.spirit.notification.dto.post.PostCreatedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.PostLikedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.StoreTagPostCreatedNotificationEvent;
 import com.kymokim.spirit.post.dto.RequestPost;
 import com.kymokim.spirit.post.dto.ResponsePost;
 import com.kymokim.spirit.post.entity.*;
@@ -115,7 +116,7 @@ public class PostService {
             store.increasePostCount();
             storeRepository.save(store);
             if (!store.getIsDeleted()) {
-                NotificationEvent.raise(new PostCreatedNotificationEvent(store, post.getId()));
+                NotificationEvent.raise(new StoreTagPostCreatedNotificationEvent(store, post.getId()));
             }
         }
     }
@@ -220,6 +221,7 @@ public class PostService {
                     .build();
             postLikeRepository.save(postLike);
             post.increaseLikeCount();
+            NotificationEvent.raise(new PostLikedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), postId));
         } else {
             postLikeRepository.delete(postLike);
             post.decreaseLikeCount();

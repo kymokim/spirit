@@ -286,12 +286,7 @@ public class StoreQueryService {
                     ReportReason.INCORRECT_MENU_INFO,
                     ReportReason.INCORRECT_DRINK_INFO,
                     ReportReason.NON_EXISTENT_STORE,
-                    ReportReason.DUPLICATE_STORE,
-                    ReportReason.ETC
-            );
-            List<ReportReason> priorityReasons = List.of(
-                    ReportReason.INAPPROPRIATE_LANGUAGE,
-                    ReportReason.INAPPROPRIATE_PHOTO
+                    ReportReason.DUPLICATE_STORE
             );
             Page<StoreManager> storeManagerPage = storeManagerRepository.findByUserIdOrderByApprovedAtDesc(AuthResolver.resolveUserId(), pageable);
 
@@ -300,11 +295,7 @@ public class StoreQueryService {
                 Long normalReportCount = reportRepository.countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
                         ReportTarget.STORE, store.getId(), ReportStatus.PENDING, normalReasons
                 );
-                Long priorityReportCount = reportRepository.countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
-                        ReportTarget.STORE, store.getId(), ReportStatus.PENDING, priorityReasons
-                );
-
-                return ResponseStore.ManagedStoreListDto.toDto(managedStore, store, calculateRate(store), normalReportCount, priorityReportCount);
+                return ResponseStore.ManagedStoreListDto.toDto(managedStore, store, calculateRate(store), normalReportCount);
             });
         }, 3);
     }

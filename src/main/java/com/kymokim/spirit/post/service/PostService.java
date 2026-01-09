@@ -115,7 +115,7 @@ public class PostService {
             store.increaseTotalRate(post.getRate());
             store.increasePostCount();
             storeRepository.save(store);
-            if (!store.getIsDeleted()) {
+            if (!store.getIsDeleted() && !Objects.equals(store.getOwnerId(),creatorId)) {
                 NotificationEvent.raise(new StoreTagPostCreatedNotificationEvent(store, post.getId()));
             }
         }
@@ -221,7 +221,9 @@ public class PostService {
                     .build();
             postLikeRepository.save(postLike);
             post.increaseLikeCount();
-            NotificationEvent.raise(new PostLikedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), postId));
+            if (!post.isDeleted() && !Objects.equals(post.getHistoryInfo().getCreatorId(), user.getId())) {
+                NotificationEvent.raise(new PostLikedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), postId));
+            }
         } else {
             postLikeRepository.delete(postLike);
             post.decreaseLikeCount();

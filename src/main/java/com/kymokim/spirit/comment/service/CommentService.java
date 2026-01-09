@@ -61,7 +61,9 @@ public class CommentService {
         if (createCommentRqDto.getRootCommentId() == null) {
             comment = createCommentRqDto.toEntity(post, user.getId());
             commentRepository.save(comment);
-            NotificationEvent.raise(new RootCommentCreatedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), post.getId()));
+            if (!comment.isDeleted() && !Objects.equals(comment.getHistoryInfo().getCreatorId(), user.getId())) {
+                NotificationEvent.raise(new RootCommentCreatedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), post.getId()));
+            }
         } else {
             Comment rootComment = resolveComment(createCommentRqDto.getRootCommentId());
             if (!rootComment.isRoot()) {

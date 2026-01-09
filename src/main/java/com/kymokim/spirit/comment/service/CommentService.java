@@ -13,8 +13,9 @@ import com.kymokim.spirit.comment.repository.CommentRepository;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
+import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.comment.RootCommentCreatedNotificationEvent;
 import com.kymokim.spirit.post.entity.Post;
-import com.kymokim.spirit.post.entity.PostLike;
 import com.kymokim.spirit.post.exception.PostErrorCode;
 import com.kymokim.spirit.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,23 +50,25 @@ public class CommentService {
         }
     }
 
+    // todo 대댓글 알림 관련 작업 필요
     public ResponseComment.CreateCommentRsDto createComment(RequestComment.CreateCommentRqDto createCommentRqDto) {
         Post post = postRepository.findById(createCommentRqDto.getPostId())
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
 
-        Long userId = AuthResolver.resolveUserId();
+        Auth user = AuthResolver.resolveUser();
 
         Comment comment;
         if (createCommentRqDto.getRootCommentId() == null) {
-            comment = createCommentRqDto.toEntity(post, userId);
+            comment = createCommentRqDto.toEntity(post, user.getId());
             commentRepository.save(comment);
+            NotificationEvent.raise(new RootCommentCreatedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), post.getId()));
         } else {
             Comment rootComment = resolveComment(createCommentRqDto.getRootCommentId());
             if (!rootComment.isRoot()) {
                 throw new CustomException(CommentErrorCode.NESTED_REPLY_NOT_ALLOWED);
             }
 
-            comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), userId);
+            comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), user.getId());
             commentRepository.save(comment);
             rootComment.increaseReplyCount();
         }
@@ -116,12 +119,6 @@ public class CommentService {
                     isCommentLiked(comment.getId(), userId)
             ));
         }, 3);
-    }
-
-    public void updateComment(Long commentId, RequestComment.UpdateCommentDto updateCommentDto) {
-        Comment comment = resolveComment(commentId);
-        validateCommentWriterAccess(comment, AuthResolver.resolveUser());
-        comment.update(updateCommentDto.getContent());
     }
 
     public void deleteComment(Long commentId) {

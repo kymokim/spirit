@@ -71,13 +71,15 @@ public class CommentService {
             if (!rootComment.isRoot()) {
                 throw new CustomException(CommentErrorCode.NESTED_REPLY_NOT_ALLOWED);
             }
-
-            comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), user.getId());
+            if (createCommentRqDto.getTaggedUserId() == null) {
+                throw new CustomException(CommentErrorCode.TAGGED_USER_ID_EMPTY);
+            }
+            Auth taggedUser = AuthResolver.resolveUser(createCommentRqDto.getTaggedUserId());
+            comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), user.getId(), taggedUser.getId());
             commentRepository.save(comment);
             rootComment.increaseReplyCount();
-            Auth rootWriter = AuthResolver.resolveUser(rootComment.getHistoryInfo().getCreatorId());
-            if (!Objects.equals(rootWriter.getId(), user.getId())) {
-                NotificationEvent.raise(new ReplyCommentCreatedNotificationEvent(rootWriter, user, comment));
+            if (!Objects.equals(taggedUser.getId(), user.getId())) {
+                NotificationEvent.raise(new ReplyCommentCreatedNotificationEvent(taggedUser, user, comment));
             }
         }
         post.increaseCommentCount();
@@ -108,7 +110,20 @@ public class CommentService {
     @MainTransactional(readOnly = true)
     public ResponseComment.GetCommentDto getComment(Long commentId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
-            return ResponseComment.GetCommentDto.toDto(resolveComment(commentId));
+            Comment comment = resolveComment(commentId);
+            if (comment.getRootComment() == null) {
+                return ResponseComment.GetCommentDto.toDto(
+                        comment,
+                        commentRepository.countByPostIdAndRootCommentIsNullAndIsDeletedFalseAndIdGreaterThan(comment.getPost().getId(), comment.getId()),
+                        null
+                );
+            } else {
+                return ResponseComment.GetCommentDto.toDto(
+                        comment,
+                        commentRepository.countByPostIdAndRootCommentIsNullAndIsDeletedFalseAndIdGreaterThan(comment.getPost().getId(), comment.getId()),
+                        commentRepository.countByRootCommentIdAndIsDeletedFalseAndIdLessThan(comment.getRootComment().getId(), comment.getId())
+                );
+            }
         }, 3);
     }
 
@@ -135,7 +150,8 @@ public class CommentService {
                     comment,
                     AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId()),
                     userId,
-                    isCommentLiked(comment.getId(), userId)
+                    isCommentLiked(comment.getId(), userId),
+                    AuthResolver.resolveUser(comment.getTaggedUserId())
             ));
         }, 3);
     }

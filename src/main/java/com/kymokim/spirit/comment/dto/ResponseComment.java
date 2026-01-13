@@ -26,11 +26,15 @@ public class ResponseComment {
 
         private Long postId;
         private Long rootCommentId;
+        private Long rootCommentOrderIndex;
+        private Long replyCommentOrderIndex;
 
-        public static GetCommentDto toDto(Comment comment) {
+        public static GetCommentDto toDto(Comment comment, Long rootCommentOrderIndex, Long replyCommentOrderIndex) {
             return GetCommentDto.builder()
                     .postId(comment.getPost().getId())
                     .rootCommentId(comment.getRootComment() == null ? null : comment.getRootComment().getId())
+                    .rootCommentOrderIndex(rootCommentOrderIndex)
+                    .replyCommentOrderIndex(replyCommentOrderIndex)
                     .build();
         }
     }
@@ -76,8 +80,10 @@ public class ResponseComment {
         private LocalDateTime createdAt;
         private Boolean isWriter;
         private Boolean isLiked;
+        private Long taggedUserId;
+        private String taggedUserNickname;
 
-        public static GetReplyCommentsDto toDto(Comment comment, Auth writer, Long userId, boolean isLiked) {
+        public static GetReplyCommentsDto toDto(Comment comment, Auth writer, Long userId, boolean isLiked, Auth taggedUser) {
             return GetReplyCommentsDto.builder()
                     .id(comment.getId())
                     .content(comment.getContent())
@@ -87,6 +93,8 @@ public class ResponseComment {
                     .createdAt(comment.getHistoryInfo().getCreatedAt())
                     .isWriter(Objects.equals(writer.getId(), userId))
                     .isLiked(isLiked)
+                    .taggedUserId(taggedUser.getId())
+                    .taggedUserNickname(taggedUser.getNickname())
                     .build();
         }
     }

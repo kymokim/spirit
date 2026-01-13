@@ -1,5 +1,6 @@
 package com.kymokim.spirit.comment.entity;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.entity.HistoryInfo;
 import com.kymokim.spirit.post.entity.Post;
 import jakarta.persistence.*;
@@ -34,6 +35,9 @@ public class Comment {
 
     private Long replyCount = 0L;
 
+    @Column(name = "tagged_user_id")
+    private Long taggedUserId;
+
     private boolean isDeleted = false;
 
     @Embedded
@@ -46,12 +50,13 @@ public class Comment {
         this.historyInfo = new HistoryInfo(creatorId);
     }
 
-    public static Comment createReply(Post post, Comment rootComment, String content, Long creatorId) {
+    public static Comment createReply(Post post, Comment rootComment, String content, Long creatorId, Long taggedUserId) {
         Comment comment = new Comment();
         comment.post = post;
         comment.rootComment = rootComment;
         comment.content = content;
         comment.historyInfo = new HistoryInfo(creatorId);
+        comment.taggedUserId = taggedUserId;
         return comment;
     }
 

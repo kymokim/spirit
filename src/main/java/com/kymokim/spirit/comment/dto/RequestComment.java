@@ -1,5 +1,6 @@
 package com.kymokim.spirit.comment.dto;
 
+import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.comment.entity.Comment;
 import com.kymokim.spirit.post.entity.Post;
 import jakarta.validation.constraints.NotEmpty;
@@ -17,6 +18,7 @@ public class RequestComment {
         @NotEmpty
         private String content;
         private Long rootCommentId;
+        private Long taggedUserId;
 
         public Comment toEntity(Post post, Long creatorId) {
             return Comment.builder()
@@ -25,12 +27,5 @@ public class RequestComment {
                     .creatorId(creatorId)
                     .build();
         }
-    }
-
-    @Getter
-    @Builder
-    public static class UpdateCommentDto {
-        @NotEmpty
-        private String content;
     }
 }

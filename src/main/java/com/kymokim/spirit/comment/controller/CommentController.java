@@ -74,7 +74,7 @@ public class CommentController {
                                                         @ParameterObject @PageableDefault(
                                                                 size = 10,
                                                                 sort = "id",
-                                                                direction = Sort.Direction.DESC
+                                                                direction = Sort.Direction.ASC
                                                         ) Pageable pageable) {
         Page<ResponseComment.GetReplyCommentsDto> dtoPage = commentService.getReplyComments(rootCommentId, pageable);
         ResponseDto responseDto = ResponseDto.builder()

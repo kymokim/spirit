@@ -14,6 +14,8 @@ import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.exception.CustomException;
 import com.kymokim.spirit.common.service.TransactionRetryUtil;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
+import com.kymokim.spirit.notification.dto.comment.CommentLikedNotificationEvent;
+import com.kymokim.spirit.notification.dto.comment.ReplyCommentCreatedNotificationEvent;
 import com.kymokim.spirit.notification.dto.comment.RootCommentCreatedNotificationEvent;
 import com.kymokim.spirit.post.entity.Post;
 import com.kymokim.spirit.post.exception.PostErrorCode;
@@ -50,7 +52,6 @@ public class CommentService {
         }
     }
 
-    // todo 대댓글 알림 관련 작업 필요
     public ResponseComment.CreateCommentRsDto createComment(RequestComment.CreateCommentRqDto createCommentRqDto) {
         Post post = postRepository.findById(createCommentRqDto.getPostId())
                 .orElseThrow(() -> new CustomException(PostErrorCode.POST_NOT_FOUND));
@@ -61,8 +62,9 @@ public class CommentService {
         if (createCommentRqDto.getRootCommentId() == null) {
             comment = createCommentRqDto.toEntity(post, user.getId());
             commentRepository.save(comment);
-            if (!comment.isDeleted() && !Objects.equals(comment.getHistoryInfo().getCreatorId(), user.getId())) {
-                NotificationEvent.raise(new RootCommentCreatedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), post.getId()));
+            Auth postWriter = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
+            if (!Objects.equals(postWriter.getId(), user.getId())) {
+                NotificationEvent.raise(new RootCommentCreatedNotificationEvent(postWriter, user.getNickname(), post));
             }
         } else {
             Comment rootComment = resolveComment(createCommentRqDto.getRootCommentId());
@@ -73,6 +75,10 @@ public class CommentService {
             comment = Comment.createReply(post, rootComment, createCommentRqDto.getContent(), user.getId());
             commentRepository.save(comment);
             rootComment.increaseReplyCount();
+            Auth rootWriter = AuthResolver.resolveUser(rootComment.getHistoryInfo().getCreatorId());
+            if (!Objects.equals(rootWriter.getId(), user.getId())) {
+                NotificationEvent.raise(new ReplyCommentCreatedNotificationEvent(rootWriter, user, comment));
+            }
         }
         post.increaseCommentCount();
         return ResponseComment.CreateCommentRsDto.toDto(comment);
@@ -89,10 +95,21 @@ public class CommentService {
                     .build();
             commentLikeRepository.save(commentLike);
             comment.increaseLikeCount();
+            Auth commentWriter = AuthResolver.resolveUser(comment.getHistoryInfo().getCreatorId());
+            if (!Objects.equals(commentWriter.getId(), user.getId())) {
+                NotificationEvent.raise(new CommentLikedNotificationEvent(commentWriter, user, comment));
+            }
         } else {
             commentLikeRepository.delete(commentLike);
             comment.decreaseLikeCount();
         }
+    }
+
+    @MainTransactional(readOnly = true)
+    public ResponseComment.GetCommentDto getComment(Long commentId) {
+        return TransactionRetryUtil.executeWithRetry(() -> {
+            return ResponseComment.GetCommentDto.toDto(resolveComment(commentId));
+        }, 3);
     }
 
     @MainTransactional(readOnly = true)

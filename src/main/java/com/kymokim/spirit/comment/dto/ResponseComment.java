@@ -22,6 +22,21 @@ public class ResponseComment {
 
     @Getter
     @Builder
+    public static class GetCommentDto {
+
+        private Long postId;
+        private Long rootCommentId;
+
+        public static GetCommentDto toDto(Comment comment) {
+            return GetCommentDto.builder()
+                    .postId(comment.getPost().getId())
+                    .rootCommentId(comment.getRootComment() == null ? null : comment.getRootComment().getId())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
     public static class GetRootCommentsDto {
 
         private Long id;

@@ -48,6 +48,7 @@ public class ResponseComment {
         private Long likeCount;
         private Long replyCount;
         private String writerNickname;
+        private Long writerId;
         private String writerImgUrl;
         private LocalDateTime createdAt;
         private Boolean isWriter;
@@ -60,6 +61,7 @@ public class ResponseComment {
                     .likeCount(comment.getLikeCount())
                     .replyCount(comment.getReplyCount())
                     .writerNickname(writer.getNickname())
+                    .writerId(writer.getId())
                     .writerImgUrl(writer.getImgUrl())
                     .createdAt(comment.getHistoryInfo().getCreatedAt())
                     .isWriter(Objects.equals(writer.getId(), userId))
@@ -76,6 +78,7 @@ public class ResponseComment {
         private String content;
         private Long likeCount;
         private String writerNickname;
+        private Long writerId;
         private String writerImgUrl;
         private LocalDateTime createdAt;
         private Boolean isWriter;
@@ -89,6 +92,7 @@ public class ResponseComment {
                     .content(comment.getContent())
                     .likeCount(comment.getLikeCount())
                     .writerNickname(writer.getNickname())
+                    .writerId(writer.getId())
                     .writerImgUrl(writer.getImgUrl())
                     .createdAt(comment.getHistoryInfo().getCreatedAt())
                     .isWriter(Objects.equals(writer.getId(), userId))

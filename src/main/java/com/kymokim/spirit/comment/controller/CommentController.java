@@ -35,11 +35,21 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @PostMapping("/like/{commentId}")
+    @PostMapping(value = "/like/{commentId}")
     public ResponseEntity<ResponseDto> likeComment(@PathVariable Long commentId) {
         commentService.likeComment(commentId);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Comment liked successfully.")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping(value = "/get-by/comment/{commentId}")
+    public ResponseEntity<ResponseDto> getComment(@PathVariable Long commentId) {
+        ResponseComment.GetCommentDto dto = commentService.getComment(commentId);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Comment retrieved successfully.")
+                .data(dto)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
@@ -74,7 +84,7 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
-    @DeleteMapping("/delete/{commentId}")
+    @DeleteMapping(value = "/delete/{commentId}")
     public ResponseEntity<ResponseDto> deleteComment(@PathVariable Long commentId) {
         commentService.deleteComment(commentId);
         ResponseDto responseDto = ResponseDto.builder()

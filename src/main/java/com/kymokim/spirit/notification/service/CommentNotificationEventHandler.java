@@ -2,6 +2,8 @@ package com.kymokim.spirit.notification.service;
 
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.common.annotation.MainTransactional;
+import com.kymokim.spirit.notification.dto.comment.CommentLikedNotificationEvent;
+import com.kymokim.spirit.notification.dto.comment.ReplyCommentCreatedNotificationEvent;
 import com.kymokim.spirit.notification.dto.comment.RootCommentCreatedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
 import com.kymokim.spirit.notification.entity.NotificationType;
@@ -26,7 +28,7 @@ public class CommentNotificationEventHandler {
         NotificationType notificationType = NotificationType.ROOT_COMMENT_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
                 .redirectType(RedirectType.POST_COMMENT_RECENT_LIST)
-                .redirectId(event.getPostId())
+                .redirectId(event.getPost().getId())
                 .build();
 
         Auth writer = event.getWriter();
@@ -38,13 +40,65 @@ public class CommentNotificationEventHandler {
                 .notificationType(notificationType)
                 .notificationBody(notificationBody)
                 .redirectTarget(redirectTarget)
+                .imageUrl(event.getPost().getImageList().getFirst().getUrl())
                 .build();
         notification = notificationRepository.save(notification);
 
         if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {
             fcmNotificationService.pushAlarmToToken(notification);
         }
+    }
 
+    @EventListener(ReplyCommentCreatedNotificationEvent.class)
+    public void handle(ReplyCommentCreatedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.REPLY_COMMENT_CREATED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.COMMENT_DETAIL)
+                .redirectId(event.getComment().getId())
+                .build();
+
+        Auth writer = event.getWriter();
+        String notificationBody = notificationType.format(Map.of(
+                "nickName", event.getReplyWriter().getNickname()
+        ));
+        Notification notification = Notification.builder()
+                .userId(writer.getId())
+                .notificationType(notificationType)
+                .notificationBody(notificationBody)
+                .redirectTarget(redirectTarget)
+                .imageUrl(event.getReplyWriter().getImgUrl() == null ? null : event.getReplyWriter().getImgUrl())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {
+            fcmNotificationService.pushAlarmToToken(notification);
+        }
+    }
+
+    @EventListener(CommentLikedNotificationEvent.class)
+    public void handle(CommentLikedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.COMMENT_LIKED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.COMMENT_DETAIL)
+                .redirectId(event.getComment().getId())
+                .build();
+
+        Auth writer = event.getWriter();
+        String notificationBody = notificationType.format(Map.of(
+                "nickName", event.getLikedUser().getNickname()
+        ));
+        Notification notification = Notification.builder()
+                .userId(writer.getId())
+                .notificationType(notificationType)
+                .notificationBody(notificationBody)
+                .redirectTarget(redirectTarget)
+                .imageUrl(event.getLikedUser().getImgUrl() == null ? null : event.getLikedUser().getImgUrl())
+                .build();
+        notification = notificationRepository.save(notification);
+
+        if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {
+            fcmNotificationService.pushAlarmToToken(notification);
+        }
     }
 }
 

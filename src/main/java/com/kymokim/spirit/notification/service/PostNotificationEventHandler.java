@@ -32,7 +32,7 @@ public class PostNotificationEventHandler {
         NotificationType notificationType = NotificationType.STORE_TAG_POST_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
                 .redirectType(RedirectType.POST_DETAIL)
-                .redirectId(event.getPostId())
+                .redirectId(event.getPost().getId())
                 .build();
 
         List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
@@ -45,6 +45,7 @@ public class PostNotificationEventHandler {
                     .notificationType(notificationType)
                     .notificationBody(notificationBody)
                     .redirectTarget(redirectTarget)
+                    .imageUrl(event.getPost().getImageList().getFirst().getUrl())
                     .build();
             notification = notificationRepository.save(notification);
 
@@ -60,7 +61,7 @@ public class PostNotificationEventHandler {
         NotificationType notificationType = NotificationType.POST_LIKED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
                 .redirectType(RedirectType.POST_DETAIL)
-                .redirectId(event.getPostId())
+                .redirectId(event.getPost().getId())
                 .build();
 
         Auth writer = event.getWriter();
@@ -72,6 +73,7 @@ public class PostNotificationEventHandler {
                 .notificationType(notificationType)
                 .notificationBody(notificationBody)
                 .redirectTarget(redirectTarget)
+                .imageUrl(event.getPost().getImageList().getFirst().getUrl())
                 .build();
         notification = notificationRepository.save(notification);
         if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {

@@ -22,6 +22,7 @@ public class ResponseNotification {
         private String body;
         private RedirectType redirectType;
         private Long redirectId;
+        private String imageUrl;
 
         public static NotificationResponseDto toDto(Notification notification) {
             return NotificationResponseDto.builder()
@@ -33,6 +34,7 @@ public class ResponseNotification {
                     .body(notification.getNotificationBody())
                     .redirectType(notification.getRedirectTarget().getRedirectType())
                     .redirectId(notification.getRedirectTarget().getRedirectId())
+                    .imageUrl(notification.getImageUrl() == null ? null : notification.getImageUrl())
                     .build();
         }
     }

@@ -116,7 +116,7 @@ public class PostService {
             store.increasePostCount();
             storeRepository.save(store);
             if (!store.getIsDeleted() && !Objects.equals(store.getOwnerId(),creatorId)) {
-                NotificationEvent.raise(new StoreTagPostCreatedNotificationEvent(store, post.getId()));
+                NotificationEvent.raise(new StoreTagPostCreatedNotificationEvent(store, post));
             }
         }
     }
@@ -222,7 +222,7 @@ public class PostService {
             postLikeRepository.save(postLike);
             post.increaseLikeCount();
             if (!post.isDeleted() && !Objects.equals(post.getHistoryInfo().getCreatorId(), user.getId())) {
-                NotificationEvent.raise(new PostLikedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), postId));
+                NotificationEvent.raise(new PostLikedNotificationEvent(AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()), user.getNickname(), post));
             }
         } else {
             postLikeRepository.delete(postLike);

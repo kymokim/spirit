@@ -31,6 +31,7 @@ public class ResponsePost {
 
         private Long storeId;
         private String storeName;
+        private Boolean isStoreDeleted;
         private Double rate;
         private String place;
 
@@ -51,6 +52,7 @@ public class ResponsePost {
                     .createdAt(post.getHistoryInfo().getCreatedAt())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .isStoreDeleted(post.getStore() == null ? null : post.getStore().getIsDeleted())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .likeCount(post.getLikeCount())
@@ -105,6 +107,7 @@ public class ResponsePost {
         private String address;
         private Long storeId;
         private String storeName;
+        private Boolean isStoreDeleted;
         private String place;
         private Long likeCount;
         private Long commentCount;
@@ -127,6 +130,7 @@ public class ResponsePost {
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .isStoreDeleted(post.getStore() == null ? null : post.getStore().getIsDeleted())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .likeCount(post.getLikeCount())
@@ -153,6 +157,7 @@ public class ResponsePost {
         private String address;
         private Long storeId;
         private String storeName;
+        private Boolean isStoreDeleted;
         private String place;
         private Long likeCount;
         private Long commentCount;
@@ -179,6 +184,7 @@ public class ResponsePost {
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .isStoreDeleted(post.getStore() == null ? null : post.getStore().getIsDeleted())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .likeCount(post.getLikeCount())
@@ -205,6 +211,7 @@ public class ResponsePost {
         private String address;
         private Long storeId;
         private String storeName;
+        private Boolean isStoreDeleted;
         private String place;
         private Long likeCount;
         private Long commentCount;
@@ -231,6 +238,7 @@ public class ResponsePost {
                     .address(post.getStore() == null ? null : post.getStore().getLocation().getAddress())
                     .storeId(post.getStore() == null ? null : post.getStore().getId())
                     .storeName(post.getStore() == null ? null : post.getStore().getName())
+                    .isStoreDeleted(post.getStore() == null ? null : post.getStore().getIsDeleted())
                     .place(post.getPlace() == null ? null : post.getPlace())
                     .postImgUrlList(postImgUrlList)
                     .likeCount(post.getLikeCount())

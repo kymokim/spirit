@@ -64,7 +64,7 @@ public class CommentService {
             commentRepository.save(comment);
             Auth postWriter = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
             if (!Objects.equals(postWriter.getId(), user.getId())) {
-                NotificationEvent.raise(new RootCommentCreatedNotificationEvent(postWriter, user.getNickname(), post));
+                NotificationEvent.raise(new RootCommentCreatedNotificationEvent(postWriter, user, comment));
             }
         } else {
             Comment rootComment = resolveComment(createCommentRqDto.getRootCommentId());

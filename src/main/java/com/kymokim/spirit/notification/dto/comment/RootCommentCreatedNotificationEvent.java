@@ -1,20 +1,20 @@
 package com.kymokim.spirit.notification.dto.comment;
 
 import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.comment.entity.Comment;
 import com.kymokim.spirit.notification.dto.NotificationEvent;
-import com.kymokim.spirit.post.entity.Post;
 import lombok.Getter;
 
 @Getter
 public class RootCommentCreatedNotificationEvent extends NotificationEvent {
     private final Auth writer;
-    private final String commentWriterNickName;
-    private final Post post;
+    private final Auth commentWriter;
+    private final Comment comment;
 
-    public RootCommentCreatedNotificationEvent(Auth writer, String commentWriterNickName, Post post) {
+    public RootCommentCreatedNotificationEvent(Auth writer, Auth commentWriter, Comment comment) {
         super();
         this.writer = writer;
-        this.commentWriterNickName = commentWriterNickName;
-        this.post = post;
+        this.commentWriter = commentWriter;
+        this.comment = comment;
     }
 }

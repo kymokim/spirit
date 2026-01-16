@@ -27,20 +27,20 @@ public class CommentNotificationEventHandler {
     public void handle(RootCommentCreatedNotificationEvent event) {
         NotificationType notificationType = NotificationType.ROOT_COMMENT_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
-                .redirectType(RedirectType.POST_COMMENT_RECENT_LIST)
-                .redirectId(event.getPost().getId())
+                .redirectType(RedirectType.COMMENT_DETAIL)
+                .redirectId(event.getComment().getId())
                 .build();
 
         Auth writer = event.getWriter();
         String notificationBody = notificationType.format(Map.of(
-                "nickName", event.getCommentWriterNickName()
+                "nickName", event.getCommentWriter().getNickname()
         ));
         Notification notification = Notification.builder()
                 .userId(writer.getId())
                 .notificationType(notificationType)
                 .notificationBody(notificationBody)
                 .redirectTarget(redirectTarget)
-                .imageUrl(event.getPost().getImageList().getFirst().getUrl())
+                .imageUrl(event.getCommentWriter().getImgUrl() == null ? null : event.getCommentWriter().getImgUrl())
                 .build();
         notification = notificationRepository.save(notification);
 

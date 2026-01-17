@@ -2,6 +2,7 @@ package com.kymokim.spirit.post.dto;
 
 import com.kymokim.spirit.post.entity.Post;
 import com.kymokim.spirit.store.entity.Store;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,9 +16,11 @@ public class RequestPost {
     @Builder
     public static class CreatePostDto {
         @NotEmpty
+        @Size(max = 3000)
         private String content;
         private Long storeId;
         private Double rate;
+        @Size(max = 30)
         private String place;
 
         public Post toEntity(Store store, Long creatorId) {

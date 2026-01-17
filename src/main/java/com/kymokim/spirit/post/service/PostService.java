@@ -93,6 +93,15 @@ public class PostService {
         if (files == null || files.length == 0) {
             throw new CustomException(PostErrorCode.POST_IMG_FILE_EMPTY);
         }
+
+        long inputFileCount = Arrays.stream(files)
+                .filter(file -> file != null && !file.isEmpty())
+                .count();
+
+        if (inputFileCount > 10) {
+            throw new CustomException(PostErrorCode.POST_IMG_FILE_LIMIT_EXCEEDED);
+        }
+
         Store store = createPostDto.getStoreId() == null ? null : resolveStore(createPostDto.getStoreId());
         Long creatorId = AuthResolver.resolveUserId();
         validatePostCreationLimits(creatorId, createPostDto.getStoreId());
@@ -115,7 +124,7 @@ public class PostService {
             store.increaseTotalRate(post.getRate());
             store.increasePostCount();
             storeRepository.save(store);
-            if (!store.getIsDeleted() && !Objects.equals(store.getOwnerId(),creatorId)) {
+            if (!store.getIsDeleted() && !Objects.equals(store.getOwnerId(), creatorId)) {
                 NotificationEvent.raise(new StoreTagPostCreatedNotificationEvent(store, post));
             }
         }
@@ -125,17 +134,26 @@ public class PostService {
         Post post = resolvePost(postId);
         Auth user = AuthResolver.resolveUser();
         validatePostWriterAccess(post, user);
-        if (files != null && files.length > 0) {
-            List<MultipartFile> fileList = Arrays.asList(files);
-            List<String> imageUrls = s3Service.uploadMultiple(fileList, "post/" + String.valueOf(post.getId()));
-            for (String url : imageUrls) {
-                PostImage postImage = PostImage.builder().url(url).post(post).build();
-                postImageRepository.save(postImage);
-                post.addImageList(postImage);
-            }
-        } else {
+        if (files == null || files.length == 0) {
             throw new CustomException(PostErrorCode.POST_IMG_FILE_EMPTY);
         }
+
+        long inputFileCount = Arrays.stream(files)
+                .filter(file -> file != null && !file.isEmpty())
+                .count();
+
+        if (post.getImageList().size() + inputFileCount > 10) {
+            throw new CustomException(PostErrorCode.POST_IMG_FILE_LIMIT_EXCEEDED);
+        }
+
+        List<MultipartFile> fileList = Arrays.asList(files);
+        List<String> imageUrls = s3Service.uploadMultiple(fileList, "post/" + String.valueOf(post.getId()));
+        for (String url : imageUrls) {
+            PostImage postImage = PostImage.builder().url(url).post(post).build();
+            postImageRepository.save(postImage);
+            post.addImageList(postImage);
+        }
+
         postRepository.save(post);
     }
 

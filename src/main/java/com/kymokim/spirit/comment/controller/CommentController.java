@@ -61,6 +61,7 @@ public class CommentController {
                                                                sort = "id",
                                                                direction = Sort.Direction.DESC
                                                        ) Pageable pageable) {
+        System.out.println("Pageable sort: " + pageable.getSort());
         Page<ResponseComment.GetRootCommentsDto> dtoPage = commentService.getRootComments(postId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Root comments retrieved successfully.")
@@ -76,6 +77,7 @@ public class CommentController {
                                                                 sort = "id",
                                                                 direction = Sort.Direction.ASC
                                                         ) Pageable pageable) {
+        System.out.println("Pageable sort: " + pageable.getSort());
         Page<ResponseComment.GetReplyCommentsDto> dtoPage = commentService.getReplyComments(rootCommentId, pageable);
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Reply comments retrieved successfully.")

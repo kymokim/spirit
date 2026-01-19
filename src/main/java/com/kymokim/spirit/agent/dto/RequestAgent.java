@@ -18,10 +18,10 @@ public class RequestAgent {
     @Schema(description = "이전 응답 ID, 이전 응답이 있는 경우에만 입력, 없으면 null", nullable = true)
     private String previousResponseId;
     @NotNull
-    @Schema(description = "사용자 위도", example = "37.324583")
+    @Schema(description = "사용자 위도", example = "37.5046341625192")
     private Double latitude;
     @NotNull
-    @Schema(description = "사용자 경도", example = "127.107398")
+    @Schema(description = "사용자 경도", example = "127.025031333453")
     private Double longitude;
     @NotBlank
     @Schema(description = "사용자 메시지, 최대 280자(시스템 80자 + 사용자 200자)", example = "소주 가성비 좋은 포장마차 추천해줘.")

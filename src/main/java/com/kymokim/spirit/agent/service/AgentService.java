@@ -39,7 +39,7 @@ public class AgentService {
         if (result.getAgentMode() == AgentMode.SHOW_RESULT) {
             SearchConditions searchConditions = result.getSearchConditions() != null ? result.getSearchConditions() : SearchConditions.builder().build();
             ResponseLocationDto.GetAddressDto address = null;
-            
+
             if (Objects.equals(searchConditions.getLatitude(), null) || Objects.equals(searchConditions.getLongitude(), null)) {
                 searchConditions.setLatitude(requestAgent.getLatitude());
                 searchConditions.setLongitude(requestAgent.getLongitude());
@@ -53,7 +53,7 @@ public class AgentService {
 
             Page<Store> storePage = storeRepository.findByMultipleCondition(
                     searchConditions.toLocationCriteria(),
-                    searchConditions.getCategory() != null ? Set.of(searchConditions.getCategory()) : null,
+                    searchConditions.getCategories(),
                     searchConditions.getSearchKeyword(),
                     searchConditions.toFacilitiesCondition(),
                     searchConditions.getArrivalTime(),

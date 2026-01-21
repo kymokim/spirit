@@ -74,12 +74,12 @@ public class StoreNotificationEventHandler {
                 .redirectType(RedirectType.STORE_MANAGER_LIST)
                 .redirectId(event.getStore().getId())
                 .build();
+        String body = notificationType.format(Map.of(
+                "storeName", event.getStore().getName()
+        ));
 
         List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
         for (StoreManager storeManager : storeManagers) {
-            String body = notificationType.format(Map.of(
-                    "storeName", event.getStore().getName()
-            ));
             Notification notification = Notification.builder()
                     .userId(storeManager.getUserId())
                     .notificationType(notificationType)
@@ -100,12 +100,12 @@ public class StoreNotificationEventHandler {
                 .redirectType(RedirectType.STORE_MANAGER_LIST)
                 .redirectId(event.getStore().getId())
                 .build();
+        String body = notificationType.format(Map.of(
+                "storeName", event.getStore().getName()
+        ));
 
         List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
         for (StoreManager storeManager : storeManagers) {
-            String body = notificationType.format(Map.of(
-                    "storeName", event.getStore().getName()
-            ));
             Notification notification = Notification.builder()
                     .userId(storeManager.getUserId())
                     .notificationType(notificationType)
@@ -126,12 +126,12 @@ public class StoreNotificationEventHandler {
                 .redirectType(RedirectType.STORE_DETAIL)
                 .redirectId(event.getStore().getId())
                 .build();
+        String body = notificationType.format(Map.of(
+                "storeName", event.getStore().getName()
+        ));
 
         List<Auth> adminList = AuthResolver.resolveAdmin();
         for (Auth admin : adminList) {
-            String body = notificationType.format(Map.of(
-                    "storeName", event.getStore().getName()
-            ));
             Notification notification = Notification.builder()
                     .userId(admin.getId())
                     .notificationType(notificationType)
@@ -152,10 +152,10 @@ public class StoreNotificationEventHandler {
                 .redirectType(RedirectType.STORE_DETAIL)
                 .redirectId(event.getStore().getId())
                 .build();
+        String body = notificationType.format();
 
         List<Auth> adminList = AuthResolver.resolveAdmin();
         for (Auth admin : adminList) {
-            String body = notificationType.format();
             Notification notification = Notification.builder()
                     .userId(admin.getId())
                     .notificationType(notificationType)

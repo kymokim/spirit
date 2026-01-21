@@ -15,16 +15,14 @@ public class RequestReport {
     @Builder
     public static class CreateReportRqDto {
 
+        //STORE, POST, COMMENT
         @NotNull
         private ReportTarget reportTarget;
-        //REVIEW, STORE
         @NotNull
         private Long targetId;
         @NotNull
         private ReportReason reportReason;
-        @NotEmpty
         private String description;
-
 
         public Report toEntity(Long reporterId) {
             return Report.builder()

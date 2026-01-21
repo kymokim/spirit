@@ -34,13 +34,16 @@ public class Notification {
     @Embedded
     private RedirectTarget redirectTarget;
 
+    private String imageUrl;
+
     @Builder
-    public Notification(Long userId, NotificationType notificationType, String notificationBody, RedirectTarget redirectTarget) {
+    public Notification(Long userId, NotificationType notificationType, String notificationBody, RedirectTarget redirectTarget, String imageUrl) {
         this.userId = userId;
         this.hasRead = false;
         this.notificationType = notificationType;
         this.notificationBody = notificationBody;
         this.redirectTarget = redirectTarget;
+        this.imageUrl = imageUrl;
     }
 
     public void readNotification() {

@@ -50,14 +50,14 @@ public final class StoreExpressions {
 
     public static NumberExpression<Double> averageRate(QStore store) {
         return Expressions.numberTemplate(Double.class,
-                "COALESCE({0} / NULLIF({1}, 0), 0.0)", store.totalRate, store.reviewCount);
+                "COALESCE({0} / NULLIF({1}, 0), 0.0)", store.totalRate, store.postCount);
     }
 
     public static NumberExpression<Double> globalAverageRateExpression(QStore store) {
         return Expressions.numberTemplate(
                 Double.class,
                 "COALESCE(SUM({0})/NULLIF(SUM({1}),0), {2})",
-                store.totalRate, store.reviewCount, 3.5);
+                store.totalRate, store.postCount, 3.5);
     }
 
     public static NumberExpression<Double> bayesianAverageRate(QStore store, double globalAverageRate) {
@@ -65,6 +65,6 @@ public final class StoreExpressions {
         int priorSampleWeight = 5;
         return Expressions.numberTemplate(Double.class,
                 "((({0} / ({0} + {1})) * {2}) + (({1} / ({0} + {1})) * {3}))",
-                store.reviewCount, priorSampleWeight, averageRate, Expressions.constant(globalAverageRate));
+                store.postCount, priorSampleWeight, averageRate, Expressions.constant(globalAverageRate));
     }
 }

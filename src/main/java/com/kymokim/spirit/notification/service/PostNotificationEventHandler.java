@@ -3,7 +3,8 @@ package com.kymokim.spirit.notification.service;
 import com.kymokim.spirit.auth.entity.Auth;
 import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.annotation.MainTransactional;
-import com.kymokim.spirit.notification.dto.review.ReviewCreatedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.PostLikedNotificationEvent;
+import com.kymokim.spirit.notification.dto.post.StoreTagPostCreatedNotificationEvent;
 import com.kymokim.spirit.notification.entity.Notification;
 import com.kymokim.spirit.notification.entity.NotificationType;
 import com.kymokim.spirit.notification.entity.RedirectTarget;
@@ -21,17 +22,17 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @MainTransactional
-public class ReviewNotificationEventHandler {
+public class PostNotificationEventHandler {
     private final FCMNotificationService fcmNotificationService;
     private final NotificationRepository notificationRepository;
     private final StoreManagerRepository storeManagerRepository;
 
-    @EventListener(ReviewCreatedNotificationEvent.class)
-    public void handle(ReviewCreatedNotificationEvent event) {
-        NotificationType notificationType = NotificationType.STORE_REVIEW_CREATED;
+    @EventListener(StoreTagPostCreatedNotificationEvent.class)
+    public void handle(StoreTagPostCreatedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.STORE_TAG_POST_CREATED;
         RedirectTarget redirectTarget = RedirectTarget.builder()
-                .redirectType(RedirectType.REVIEW_DETAIL)
-                .redirectId(event.getReviewId())
+                .redirectType(RedirectType.POST_DETAIL)
+                .redirectId(event.getPost().getId())
                 .build();
 
         List<StoreManager> storeManagers = storeManagerRepository.findAllByStoreId(event.getStore().getId());
@@ -44,6 +45,7 @@ public class ReviewNotificationEventHandler {
                     .notificationType(notificationType)
                     .notificationBody(notificationBody)
                     .redirectTarget(redirectTarget)
+                    .imageUrl(event.getPost().getImageList().getFirst().getUrl())
                     .build();
             notification = notificationRepository.save(notification);
 
@@ -51,6 +53,31 @@ public class ReviewNotificationEventHandler {
             if (Boolean.TRUE.equals(user.getNotificationConsent().getPushConsent())) {
                 fcmNotificationService.pushAlarmToToken(notification);
             }
+        }
+    }
+
+    @EventListener(PostLikedNotificationEvent.class)
+    public void handle(PostLikedNotificationEvent event) {
+        NotificationType notificationType = NotificationType.POST_LIKED;
+        RedirectTarget redirectTarget = RedirectTarget.builder()
+                .redirectType(RedirectType.POST_DETAIL)
+                .redirectId(event.getPost().getId())
+                .build();
+
+        Auth writer = event.getWriter();
+        String notificationBody = notificationType.format(Map.of(
+                "nickName", event.getLikedUserNickName()
+        ));
+        Notification notification = Notification.builder()
+                .userId(writer.getId())
+                .notificationType(notificationType)
+                .notificationBody(notificationBody)
+                .redirectTarget(redirectTarget)
+                .imageUrl(event.getPost().getImageList().getFirst().getUrl())
+                .build();
+        notification = notificationRepository.save(notification);
+        if (Boolean.TRUE.equals(writer.getNotificationConsent().getPushConsent())) {
+            fcmNotificationService.pushAlarmToToken(notification);
         }
     }
 }

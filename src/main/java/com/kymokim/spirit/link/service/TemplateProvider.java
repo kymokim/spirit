@@ -1,8 +1,12 @@
 package com.kymokim.spirit.link.service;
 
+import com.kymokim.spirit.auth.entity.Auth;
+import com.kymokim.spirit.auth.service.AuthResolver;
 import com.kymokim.spirit.common.annotation.MainTransactional;
 import com.kymokim.spirit.common.config.LinkConfig;
 import com.kymokim.spirit.link.dto.LinkData;
+import com.kymokim.spirit.post.entity.Post;
+import com.kymokim.spirit.post.repository.PostRepository;
 import com.kymokim.spirit.store.entity.ManagerInvitation;
 import com.kymokim.spirit.store.entity.Store;
 import com.kymokim.spirit.store.repository.ManagerInvitationRepository;
@@ -23,6 +27,7 @@ public class TemplateProvider {
     private final LinkConfig linkConfig;
     private final StoreRepository storeRepository;
     private final ManagerInvitationRepository managerInvitationRepository;
+    private final PostRepository postRepository;
 
     public String inAppHtml(LinkData.PathData pathData) {
         LinkData.MetaData metaData = LinkData.MetaData.builder().build();
@@ -43,6 +48,17 @@ public class TemplateProvider {
                     metaData.setTitle(managerInvitation.getStoreName() + " | 한잔할까");
                     if (!Objects.equals(managerInvitation.getStoreImage(), null))
                         metaData.setImage(managerInvitation.getStoreImage());
+                }
+            }
+            case POST -> {
+                Post post = postRepository.findById(Long.valueOf(pathData.getId())).orElse(null);
+                if (post != null) {
+                    metaData.setDescription(post.getContent() == null ? "" : post.getContent());
+                    Auth user = AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId());
+                    metaData.setTitle(user.getNickname() + "님의 게시글 | 한잔할까");
+                    String imgUrl = post.getImageList().getFirst().getUrl();
+                    if (imgUrl != null)
+                        metaData.setImage(imgUrl);
                 }
             }
         }

@@ -1,4 +1,4 @@
-package com.kymokim.spirit.review.entity;
+package com.kymokim.spirit.post.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "review_image")
+@Table(name = "post_image")
 @Entity
 @Getter
 @NoArgsConstructor
 @Data
-public class ReviewImage {
+public class PostImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,12 +20,12 @@ public class ReviewImage {
     private String url;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id", nullable = false)
-    private Review review;
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
     @Builder
-    public ReviewImage(String url, Review review){
+    public PostImage(String url, Post post){
         this.url = url;
-        this.review = review;
+        this.post = post;
     }
 }

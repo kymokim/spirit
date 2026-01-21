@@ -11,7 +11,26 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-    Page<Report> findAllByReportTargetAndReportStatusOrderByReportedAtAsc(ReportTarget reportTarget, ReportStatus reportStatus, Pageable pageable);
+    List<Report> findAllByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(
+            ReportTarget reportTarget,
+            Long targetId,
+            ReportStatus reportStatus,
+            List<ReportReason> reasons
+    );
+
+    boolean existsByReportTargetAndTargetIdAndReporterIdAndReportStatus(
+            ReportTarget reportTarget,
+            Long targetId,
+            Long reporterId,
+            ReportStatus reportStatus
+    );
+
+    Page<Report> findAllByReportTargetAndReportStatusOrderByReportedAtAsc(
+            ReportTarget reportTarget,
+            ReportStatus reportStatus,
+            Pageable pageable
+    );
+
     Page<Report> findAllByReportTargetAndReportStatusAndReportReasonInOrderByReportedAtAsc(
             ReportTarget reportTarget,
             ReportStatus reportStatus,
@@ -23,6 +42,11 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
             ReportTarget reportTarget,
             Long targetId,
             ReportStatus reportStatus
+    );
+
+    List<Report> findAllByReportTargetAndTargetId(
+            ReportTarget reportTarget,
+            Long targetId
     );
 
     Long countByReportTargetAndTargetIdAndReportStatusAndReportReasonIn(

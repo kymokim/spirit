@@ -39,7 +39,7 @@ public class AgentService {
         if (result.getAgentMode() == AgentMode.SHOW_RESULT) {
             SearchConditions searchConditions = result.getSearchConditions() != null ? result.getSearchConditions() : SearchConditions.builder().build();
             ResponseLocationDto.GetAddressDto address = null;
-            
+
             if (Objects.equals(searchConditions.getLatitude(), null) || Objects.equals(searchConditions.getLongitude(), null)) {
                 searchConditions.setLatitude(requestAgent.getLatitude());
                 searchConditions.setLongitude(requestAgent.getLongitude());
@@ -53,7 +53,7 @@ public class AgentService {
 
             Page<Store> storePage = storeRepository.findByMultipleCondition(
                     searchConditions.toLocationCriteria(),
-                    searchConditions.getCategory() != null ? Set.of(searchConditions.getCategory()) : null,
+                    searchConditions.getCategories(),
                     searchConditions.getSearchKeyword(),
                     searchConditions.toFacilitiesCondition(),
                     searchConditions.getArrivalTime(),
@@ -101,10 +101,10 @@ public class AgentService {
     }
 
     private double calculateRate(Store store) {
-        if (store.getReviewCount() == null || store.getReviewCount() == 0) {
+        if (store.getPostCount() == null || store.getPostCount() == 0) {
             return 0;
         }
-        double rateAvg = store.getTotalRate() / store.getReviewCount();
+        double rateAvg = store.getTotalRate() / store.getPostCount();
         return Math.round(rateAvg * 100.0) / 100.0;
     }
 }

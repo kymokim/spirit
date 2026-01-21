@@ -24,30 +24,30 @@ public class DefaultAgent implements LlmAgent {
         SearchConditions.SearchConditionsBuilder searchConditionsBuilder = SearchConditions.builder();
 
         // 카테고리 설정
-        Category category = null;
+        Set<Category> categories = new HashSet<>();
         if (containsAny(userMessage, "이자카야", "일식")) {
-            category = Category.IZAKAYA;
+            categories.add(Category.IZAKAYA);
         } else if (containsAny(userMessage, "한식")) {
-            category = Category.KOREAN;
+            categories.add(Category.KOREAN);
         } else if (containsAny(userMessage, "양식")) {
-            category = Category.WESTERN;
+            categories.add(Category.WESTERN);
         } else if (containsAny(userMessage, "중식")) {
-            category = Category.CHINESE;
+            categories.add(Category.CHINESE);
         } else if (containsAny(userMessage, "감성주점", "감주")) {
-            category = Category.GAMSEONG;
+            categories.add(Category.GAMSEONG);
         } else if (containsAny(userMessage, "고깃집", "구이", "찜")) {
-            category = Category.GRILLED_STEW;
+            categories.add(Category.GRILLED_STEW);
         } else if (containsAny(userMessage, "호프", "치킨")) {
-            category = Category.CHICKEN_HOF;
+            categories.add(Category.CHICKEN_HOF);
         } else if (containsAny(userMessage, "해산물", "횟집")) {
-            category = Category.RAW_SEAFOOD;
+            categories.add(Category.RAW_SEAFOOD);
         } else if (containsAny(userMessage, "포차", "포장마차")) {
-            category = Category.POCHA;
+            categories.add(Category.POCHA);
         } else if (containsAny(userMessage, "펍", "위스키바", "와인바")) {
-            category = Category.PUB_BAR;
+            categories.add(Category.PUB_BAR);
         }
-        if (category != null) {
-            searchConditionsBuilder.category(category);
+        if (!categories.isEmpty()) {
+            searchConditionsBuilder.categories(categories);
         }
 
         // 분위기 설정

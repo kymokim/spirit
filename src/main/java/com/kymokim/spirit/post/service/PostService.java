@@ -326,4 +326,16 @@ public class PostService {
             ));
         }, 3);
     }
+
+    @MainTransactional(readOnly = true)
+    public Page<ResponsePost.GetPopularPostDto> getPopularPost(Pageable pageable) {
+
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        Page<Post> postPage = postRepository.findPopularPosts(oneWeekAgo, pageable);
+
+        return postPage.map(post -> ResponsePost.GetPopularPostDto.toDto(
+                post,
+                AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId())
+        ));
+    }
 }

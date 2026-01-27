@@ -27,7 +27,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 WHERE pl.likedAt >= :from
                   AND p.isDeleted = false
                 GROUP BY p
-                ORDER BY COUNT(pl.id) DESC
+                ORDER BY COUNT(pl.id) DESC, p.likeCount DESC, p.boostedAt DESC
             """)
     Page<Post> findPopularPosts(@Param("from") LocalDateTime from, Pageable pageable);
 }

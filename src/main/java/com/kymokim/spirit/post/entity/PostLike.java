@@ -4,8 +4,18 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Table
+import java.time.LocalDateTime;
+
+@Table(
+        indexes = {
+                @Index(
+                        name = "idx_post_like_liked_at_post_id",
+                        columnList = "liked_at, post_id"
+                )
+        }
+)
 @Entity
 @Getter
 @NoArgsConstructor
@@ -21,6 +31,9 @@ public class PostLike {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
+
+    @CreationTimestamp
+    private LocalDateTime likedAt;
 
     @Builder
     public PostLike(Long userId, Post post) {

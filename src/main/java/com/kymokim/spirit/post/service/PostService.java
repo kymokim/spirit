@@ -299,7 +299,7 @@ public class PostService {
     public Page<ResponsePost.GetRecentPostDto> getRecentPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Long userId = AuthResolver.resolveUserId();
-            Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(pageable);
+            Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByBoostedAtDesc(pageable);
             return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),
@@ -325,5 +325,17 @@ public class PostService {
                     isPostSaved(post.getId(), userId)
             ));
         }, 3);
+    }
+
+    @MainTransactional(readOnly = true)
+    public Page<ResponsePost.GetPopularPostDto> getPopularPost(Pageable pageable) {
+
+        LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+        Page<Post> postPage = postRepository.findPopularPosts(oneWeekAgo, pageable);
+
+        return postPage.map(post -> ResponsePost.GetPopularPostDto.toDto(
+                post,
+                AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId())
+        ));
     }
 }

@@ -156,4 +156,14 @@ public class PostController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @GetMapping("/get-by/popular")
+    public ResponseEntity<ResponseDto> getPopularPost(@ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+        Page<ResponsePost.GetPopularPostDto> response = postService.getPopularPost(pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Popular post list retrieved successfully.")
+                .data(response)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

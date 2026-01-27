@@ -14,7 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Long creatorId, Pageable pageable);
 
-    Page<Post> findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Pageable pageable);
+    Page<Post> findAllByIsDeletedFalseOrderByBoostedAtDesc(Pageable pageable);
 
     long countByHistoryInfo_CreatorIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(Long creatorId, LocalDateTime startInclusive, LocalDateTime endInclusive);
 

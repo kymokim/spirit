@@ -333,9 +333,6 @@ public class PostService {
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
         Page<Post> postPage = postRepository.findPopularPosts(oneWeekAgo, pageable);
 
-        return postPage.map(post -> ResponsePost.GetPopularPostDto.toDto(
-                post,
-                AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId())
-        ));
+        return postPage.map(ResponsePost.GetPopularPostDto::toDto);
     }
 }

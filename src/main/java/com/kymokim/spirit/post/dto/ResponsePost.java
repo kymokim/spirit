@@ -266,20 +266,14 @@ public class ResponsePost {
     @Getter
     public static class GetPopularPostDto {
         private Long id;
-        private Long writerId;
-        private String writerNickname;
-        private String writerImgUrl;
-        private String postFirstImgUrl;
+        private String firstImgUrl;
         private Long likeCount;
 
-        public static GetPopularPostDto toDto(Post post, Auth writer) {
+        public static GetPopularPostDto toDto(Post post) {
 
             return GetPopularPostDto.builder()
                     .id(post.getId())
-                    .writerId(writer.getId())
-                    .writerNickname(writer.getNickname())
-                    .writerImgUrl(writer.getImgUrl())
-                    .postFirstImgUrl(post.getImageList().getFirst().getUrl())
+                    .firstImgUrl(post.getImageList().getFirst().getUrl())
                     .likeCount(post.getLikeCount())
                     .build();
         }

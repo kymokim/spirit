@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,9 @@ public class Post {
 
     @Embedded
     private HistoryInfo historyInfo;
+
+    @Column(name = "boosted_at", nullable = false)
+    private LocalDateTime boostedAt;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<PostImage> imageList = new ArrayList<>();
@@ -59,6 +63,7 @@ public class Post {
         this.content = content;
         this.rate = rate;
         this.historyInfo = new HistoryInfo(creatorId);
+        this.boostedAt = this.historyInfo.getCreatedAt();
         this.store = store;
     }
 
@@ -81,6 +86,9 @@ public class Post {
 
     public void increaseLikeCount() {
         this.likeCount++;
+        if (this.likeCount % 3 == 0) {
+            boost();
+        }
     }
     public void decreaseLikeCount() {
         if(this.likeCount > 0) {
@@ -89,6 +97,9 @@ public class Post {
     }
     public void increaseCommentCount() {
         this.commentCount++;
+        if (this.commentCount % 3 == 0) {
+            boost();
+        }
     }
     public void decreaseCommentCount() {
         if(this.commentCount > 0) {
@@ -102,5 +113,11 @@ public class Post {
         if(this.shareCount > 0) {
             this.shareCount--;
         }
+    }
+    private void boost() {
+        if (this.boostedAt.isAfter(LocalDateTime.now().minusMinutes(30))) {
+            return;
+        }
+        this.boostedAt = LocalDateTime.now();
     }
 }

@@ -299,7 +299,7 @@ public class PostService {
     public Page<ResponsePost.GetRecentPostDto> getRecentPost(Pageable pageable) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             Long userId = AuthResolver.resolveUserId();
-            Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(pageable);
+            Page<Post> postPage = postRepository.findAllByIsDeletedFalseOrderByBoostedAtDesc(pageable);
             return postPage.map(post -> ResponsePost.GetRecentPostDto.toDto(
                     post,
                     AuthResolver.resolveUser(post.getHistoryInfo().getCreatorId()),

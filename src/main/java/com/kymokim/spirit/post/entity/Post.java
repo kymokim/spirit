@@ -86,7 +86,7 @@ public class Post {
 
     public void increaseLikeCount() {
         this.likeCount++;
-        if (this.likeCount % 3 == 0) {
+        if (this.likeCount % 5 == 0) {
             boost();
         }
     }
@@ -97,7 +97,7 @@ public class Post {
     }
     public void increaseCommentCount() {
         this.commentCount++;
-        if (this.commentCount % 3 == 0) {
+        if (this.commentCount % 5 == 0) {
             boost();
         }
     }

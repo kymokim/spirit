@@ -425,6 +425,43 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
         return new PageImpl<>(content, pageable, total);
     }
 
+    // 특정 주종 기준 최저가 매장 리스트 반환
+    @Override
+    public Page<Store> findByDrinkPrice(LocationCriteria criteria, DrinkType drinkType, Pageable pageable) {
+        // query
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
+
+        // selectFrom
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory.select(store.id.countDistinct()).from(store);
+
+        // where
+        BooleanBuilder conditions = new BooleanBuilder();
+        conditions.and(isActiveStore(store));
+        conditions.and(hasEnoughStoresNearby(queryFactory, criteria) ? withinRadius(store, criteria) : null);
+
+        query.leftJoin(store.mainDrinks, mainDrink);
+        countQuery.leftJoin(store.mainDrinks, mainDrink);
+        conditions.and(drinkTypeEquals(mainDrink, drinkType));
+
+        // orderBy
+        query.orderBy(byPriceOrder(mainDrink, Sort.Direction.ASC),
+                byIsCertified(store),
+                byLikeCount(store));
+
+        // fetch
+        List<Store> content = query
+                .where(conditions)
+                .distinct()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        long total = fetchTotal(countQuery, conditions);
+        return new PageImpl<>(content, pageable, total);
+    }
+
     private double fetchGlobalAverageRate(JPAQueryFactory queryFactory) {
         // query
         QStore store = QStore.store;

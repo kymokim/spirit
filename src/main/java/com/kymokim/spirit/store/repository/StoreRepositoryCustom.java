@@ -38,4 +38,6 @@ public interface StoreRepositoryCustom {
     QueryStore.CategoryStoreListGroup findByRadiusAndCategory(LocationCriteria criteria);
 
     Page<Store> findPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable);
+
+    Page<Store> findByDrinkPrice(LocationCriteria criteria, DrinkType drinkType, Pageable pageable);
 }

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.EnumMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,9 +40,15 @@ public class MainDrinkSynchronizer {
         }
         Set<MainDrink> mainDrinks = store.getMainDrinks();
 
-        for (MainDrink mainDrink : mainDrinks) {
+        Iterator<MainDrink> iterator = mainDrinks.iterator();
+        while (iterator.hasNext()) {
+            MainDrink mainDrink = iterator.next();
             DrinkType drinkType = mainDrink.getType();
             if (!minPriceByType.containsKey(drinkType)) {
+                if (!mainDrink.isVisible()) {
+                    iterator.remove();
+                    continue;
+                }
                 mainDrink.updatePrice(null);
                 continue;
             }

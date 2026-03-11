@@ -343,4 +343,20 @@ public class StoreQueryController {
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
+
+    @Operation(summary = "주종별 최저가 매장 리스트 조회")
+    @GetMapping("/drink-price")
+    public ResponseEntity<ResponseDto> getByDrinkPrice(@RequestParam("latitude") double latitude,
+                                                       @RequestParam("longitude") double longitude,
+                                                       @RequestParam("radius") double radius,
+                                                       @RequestParam("drinkType") DrinkType drinkType,
+                                                       @ParameterObject @PageableDefault(size = 10) Pageable pageable) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        Page<ResponseStore.GetByDrinkPriceDto> dtoPage = storeQueryService.getByDrinkPrice(criteria, drinkType, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
 }

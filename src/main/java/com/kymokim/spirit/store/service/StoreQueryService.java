@@ -351,6 +351,11 @@ public class StoreQueryService {
         return storePage.map(store -> ResponseStore.GetPopularStoreDto.toDto(store, calculateRate(store), drinkType));
     }
 
+    public Page<ResponseStore.GetByDrinkPriceDto> getByDrinkPrice(LocationCriteria criteria, DrinkType drinkType, Pageable pageable) {
+        Page<Store> storePage = storeRepository.findByDrinkPrice(criteria, drinkType, pageable);
+        return storePage.map(store -> ResponseStore.GetByDrinkPriceDto.toDto(store, calculateRate(store), drinkType));
+    }
+
     public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {
         return TransactionRetryUtil.executeWithRetry(() -> {
             ManagerInvitation managerInvitation = managerInvitationRepository.findById(managerInvitationId)

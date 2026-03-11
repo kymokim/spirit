@@ -331,8 +331,11 @@ public class PostService {
     public Page<ResponsePost.GetPopularPostDto> getPopularPost(Pageable pageable) {
 
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
-        Page<Post> postPage = postRepository.findPopularPosts(oneWeekAgo, pageable);
+        Page<PostRepository.PopularPostProjection> postPage = postRepository.findPopularPosts(oneWeekAgo, pageable);
 
-        return postPage.map(ResponsePost.GetPopularPostDto::toDto);
+        return postPage.map(popularPost -> ResponsePost.GetPopularPostDto.toDto(
+                popularPost.getPost(),
+                popularPost.getWeeklyLikeCount()
+        ));
     }
 }

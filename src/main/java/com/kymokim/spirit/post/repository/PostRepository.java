@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
     Page<Post> findAllByStoreIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Long storeId, Pageable pageable);
 
     Page<Post> findAllByHistoryInfo_CreatorIdAndIsDeletedFalseOrderByHistoryInfo_CreatedAtDesc(Long creatorId, Pageable pageable);
@@ -20,8 +21,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     boolean existsByHistoryInfo_CreatorIdAndStoreIdAndIsDeletedFalseAndHistoryInfo_CreatedAtBetween(Long creatorId, Long storeId, LocalDateTime startInclusive, LocalDateTime endInclusive);
 
+    interface PopularPostProjection {
+        Post getPost();
+        Long getWeeklyLikeCount();
+    }
+
     @Query("""
-                SELECT p
+                SELECT p as post, COUNT(pl.id) as weeklyLikeCount
                 FROM PostLike pl
                 JOIN pl.post p
                 WHERE pl.likedAt >= :from
@@ -29,5 +35,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 GROUP BY p
                 ORDER BY COUNT(pl.id) DESC, p.likeCount DESC, p.boostedAt DESC
             """)
-    Page<Post> findPopularPosts(@Param("from") LocalDateTime from, Pageable pageable);
+    Page<PopularPostProjection> findPopularPosts(@Param("from") LocalDateTime from, Pageable pageable);
 }

@@ -269,12 +269,12 @@ public class ResponsePost {
         private String firstImgUrl;
         private Long likeCount;
 
-        public static GetPopularPostDto toDto(Post post) {
+        public static GetPopularPostDto toDto(Post post, Long likeCount) {
 
             return GetPopularPostDto.builder()
                     .id(post.getId())
                     .firstImgUrl(post.getImageList().getFirst().getUrl())
-                    .likeCount(post.getLikeCount())
+                    .likeCount(likeCount)
                     .build();
         }
     }

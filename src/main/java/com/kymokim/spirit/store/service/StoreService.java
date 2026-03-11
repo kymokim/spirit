@@ -49,6 +49,7 @@ public class StoreService {
     private final AuthService authService;
     private final LinkBuilder linkBuilder;
     private final ManagerInvitationRepository managerInvitationRepository;
+    private final MainDrinkSynchronizer mainDrinkSynchronizer;
 
     private Store resolveStore(Long storeId) {
         return storeRepository.findById(storeId)
@@ -200,7 +201,10 @@ public class StoreService {
         updateIfNotNullOrEmpty(updateStoreDto.getFacilitiesInfoDto(), facilitiesInfoDto -> store.setFacilitiesInfo(facilitiesInfoDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getLocationDto(), locationDto -> store.setLocation(locationDto.toEntity()));
         updateIfNotNullOrEmpty(updateStoreDto.getCategories(), store::setCategories);
-        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkTypes(), mainDrinkTypes -> updateMainDrinkVisibility(store, mainDrinkTypes));
+        updateIfNotNullOrEmpty(updateStoreDto.getMainDrinkTypes(), mainDrinkTypes -> {
+            updateMainDrinkVisibility(store, mainDrinkTypes);
+            mainDrinkSynchronizer.synchronize(store.getId());
+        });
         updateIfNotNullOrEmpty(updateStoreDto.getMoods(), store::setMoods);
         if (!Objects.equals(updateStoreDto.getIsAlwaysOpen(), null)) {
             if (Objects.equals(updateStoreDto.getOperationInfoDtos(), null)) {

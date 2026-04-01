@@ -16,7 +16,10 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.util.*;
 
-@Table(name = "store")
+@Table(name = "store", indexes = {
+        @Index(name = "idx_store_latitude", columnList = "latitude"),
+        @Index(name = "idx_store_longitude", columnList = "longitude")
+})
 @Entity
 @Getter
 @NoArgsConstructor

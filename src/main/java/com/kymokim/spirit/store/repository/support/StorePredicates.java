@@ -31,7 +31,17 @@ public final class StorePredicates {
     }
 
     public static BooleanExpression withinRadius(QStore store, LocationCriteria criteria) {
-        return distance(store, criteria).loe(criteria.getRadius());
+        double lat = criteria.getLatitude();
+        double lon = criteria.getLongitude();
+        double radius = criteria.getRadius();
+
+        double latDelta = radius / 111.0;
+        double lonDelta = radius / (111.0 * Math.cos(Math.toRadians(lat)));
+
+        BooleanExpression latBound = store.location.latitude.between(lat - latDelta, lat + latDelta);
+        BooleanExpression lonBound = store.location.longitude.between(lon - lonDelta, lon + lonDelta);
+
+        return latBound.and(lonBound).and(distance(store, criteria).loe(radius));
     }
 
     public static BooleanExpression openNow(QStore store, QOperationInfo operationInfo) {

@@ -6,7 +6,6 @@
 
 ## 소개
 
-- **한잔할까** 실서비스 백엔드
 - Java 21, Spring Boot 기반 서버
 - `store`, `drink`, `menu`, `event`, `post`, `comment`, `report`, `notification`, `auth` 등 도메인 중심 구조
 - `agent` 모듈을 통한 AI 탐색 기능 포함

@@ -6,7 +6,7 @@
 
 ## 소개
 
-- Java 21, Spring Boot 기반 서버
+- Java 21, Spring Boot 3.4
 - `store`, `drink`, `menu`, `event`, `post`, `comment`, `report`, `notification`, `auth` 등 도메인 중심 구조
 - `agent` 모듈을 통한 AI 탐색 기능 포함
 

@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -354,6 +355,15 @@ public class StoreQueryService {
     public Page<ResponseStore.GetByDrinkPriceDto> getByDrinkPrice(LocationCriteria criteria, DrinkType drinkType, Pageable pageable) {
         Page<Store> storePage = storeRepository.findByDrinkPrice(criteria, drinkType, pageable);
         return storePage.map(store -> ResponseStore.GetByDrinkPriceDto.toDto(store, calculateRate(store), drinkType));
+    }
+
+    public Page<ResponseStore.GetByDrinkTypePriceDto> getByDrinkTypeAndMaxPrice(LocationCriteria criteria, DrinkType drinkType, Long drinkPrice, Pageable pageable) {
+        Page<Store> storePage = storeRepository.findByDrinkTypeAndMaxPrice(criteria, drinkType, drinkPrice, pageable);
+        return storePage.map(store -> ResponseStore.GetByDrinkTypePriceDto.toDto(store, drinkType));
+    }
+
+    public List<ResponseStore.GetMarkerByDrinkTypesPriceDto> getMarkerByDrinkTypesAndMaxPrice(LocationCriteria criteria, Set<DrinkType> drinkTypes, Long drinkPrice) {
+        return storeRepository.findByDrinkTypesAndMaxPrice(criteria, drinkTypes, drinkPrice);
     }
 
     public ResponseStore.ManagerInvitationPreviewDto getManagerInvitationPreview(String managerInvitationId) {

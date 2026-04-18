@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew compileJava -q)",
+      "Bash(grep -E \"\\\\.\\(kt|java\\)$\")",
+      "Bash(xargs grep *)",
+      "Bash(xargs ls *)",
+      "Bash(xargs cat *)"
+    ]
+  }
+}

@@ -97,6 +97,10 @@ public final class StorePredicates {
         return mainDrink.type.eq(drinkType);
     }
 
+    public static BooleanExpression drinkTypesIn(QMainDrink mainDrink, Set<DrinkType> drinkTypes) {
+        return mainDrink.type.in(drinkTypes);
+    }
+
     public static BooleanExpression moodsIn(QStore store, Set<Mood> moods) {
         return store.moods.any().in(moods);
     }

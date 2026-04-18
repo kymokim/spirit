@@ -681,6 +681,52 @@ public class ResponseStore {
 
     @Getter
     @Builder
+    public static class GetByDrinkTypePriceDto {
+        private Long id;
+        private Set<Category> categories;
+        private String mainImgUrl;
+        private Set<CommonStore.OperationInfoDto> operationInfoDtos;
+        private DrinkType drinkType;
+        private Long drinkPrice;
+
+        public static GetByDrinkTypePriceDto toDto(Store store, DrinkType drinkType) {
+
+            Set<CommonStore.OperationInfoDto> operationInfoDtos = new HashSet<>();
+            if (!store.getOperationInfos().isEmpty()) {
+                store.getOperationInfos().forEach(operationInfo -> operationInfoDtos.add(CommonStore.OperationInfoDto.toDto(operationInfo)));
+            }
+
+            Long drinkPrice = store.getMainDrinks().stream()
+                    .filter(mainDrink -> drinkType.equals(mainDrink.getType()))
+                    .map(MainDrink::getPrice)
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
+
+            return GetByDrinkTypePriceDto.builder()
+                    .id(store.getId())
+                    .categories(store.getCategories())
+                    .mainImgUrl(store.getMainImgUrl())
+                    .operationInfoDtos(operationInfoDtos)
+                    .drinkType(drinkType)
+                    .drinkPrice(drinkPrice)
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    public static class GetMarkerByDrinkTypesPriceDto {
+        private Long id;
+        private Double latitude;
+        private Double longitude;
+        private DrinkType drinkType;
+        private Long drinkPrice;
+    }
+
+    @Getter
+    @Builder
     public static class GetLikedStoreDto {
         private Long id;
         private Boolean isCertified;

@@ -683,8 +683,10 @@ public class ResponseStore {
     @Builder
     public static class GetByDrinkTypePriceDto {
         private Long id;
+        private String name;
         private Set<Category> categories;
         private String mainImgUrl;
+        private Boolean isAlwaysOpen;
         private Set<CommonStore.OperationInfoDto> operationInfoDtos;
         private DrinkType drinkType;
         private Long drinkPrice;
@@ -705,8 +707,10 @@ public class ResponseStore {
 
             return GetByDrinkTypePriceDto.builder()
                     .id(store.getId())
+                    .name(store.getName())
                     .categories(store.getCategories())
                     .mainImgUrl(store.getMainImgUrl())
+                    .isAlwaysOpen(store.getIsAlwaysOpen())
                     .operationInfoDtos(operationInfoDtos)
                     .drinkType(drinkType)
                     .drinkPrice(drinkPrice)

@@ -4,6 +4,7 @@ import com.kymokim.spirit.drink.entity.DrinkType;
 import com.kymokim.spirit.store.dto.FacilitiesCondition;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.Mood;
 import com.kymokim.spirit.store.entity.Category;
 import com.kymokim.spirit.store.entity.Store;
@@ -40,4 +41,8 @@ public interface StoreRepositoryCustom {
     Page<Store> findPopularStore(LocationCriteria criteria, DrinkType drinkType, Sort.Direction priceOrder, Pageable pageable);
 
     Page<Store> findByDrinkPrice(LocationCriteria criteria, DrinkType drinkType, Pageable pageable);
+
+    Page<Store> findByDrinkTypeAndMaxPrice(LocationCriteria criteria, DrinkType drinkType, Long maxPrice, Pageable pageable);
+
+    List<ResponseStore.GetMarkerByDrinkTypesPriceDto> findByDrinkTypesAndMaxPrice(LocationCriteria criteria, Set<DrinkType> drinkTypes, Long maxPrice);
 }

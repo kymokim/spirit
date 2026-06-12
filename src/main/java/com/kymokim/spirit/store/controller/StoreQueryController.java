@@ -25,6 +25,7 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Tag(name = "Store Query API")
 @Controller
@@ -356,6 +357,39 @@ public class StoreQueryController {
         ResponseDto responseDto = ResponseDto.builder()
                 .message("Store list retrieved successfully.")
                 .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "반경 내 주종 + 가격 조건 만족 매장 리스트 조회")
+    @GetMapping("/drink-type-price")
+    public ResponseEntity<ResponseDto> getByDrinkTypeAndMaxPrice(@RequestParam("latitude") double latitude,
+                                                                 @RequestParam("longitude") double longitude,
+                                                                 @RequestParam("radius") double radius,
+                                                                 @RequestParam("drinkType") DrinkType drinkType,
+                                                                 @RequestParam("drinkPrice") Long drinkPrice,
+                                                                 @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        Page<ResponseStore.GetByDrinkTypePriceDto> dtoPage = storeQueryService.getByDrinkTypeAndMaxPrice(criteria, drinkType, drinkPrice, pageable);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(dtoPage)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @Operation(summary = "반경 내 다중 주종 + 가격 조건 만족 매장 마커 조회")
+    @GetMapping("/drink-type-price/marker")
+    public ResponseEntity<ResponseDto> getMarkerByDrinkTypesAndMaxPrice(@RequestParam("latitude") double latitude,
+                                                                  @RequestParam("longitude") double longitude,
+                                                                  @RequestParam("radius") double radius,
+                                                                  @RequestParam("drinkTypes") Set<DrinkType> drinkTypes,
+                                                                  @RequestParam("drinkPrice") Long drinkPrice) {
+        LocationCriteria criteria = setCriteria(latitude, longitude, radius);
+        List<ResponseStore.GetMarkerByDrinkTypesPriceDto> dtoList = storeQueryService.getMarkerByDrinkTypesAndMaxPrice(criteria, drinkTypes, drinkPrice);
+        ResponseDto responseDto = ResponseDto.builder()
+                .message("Store list retrieved successfully.")
+                .data(dtoList)
                 .build();
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }

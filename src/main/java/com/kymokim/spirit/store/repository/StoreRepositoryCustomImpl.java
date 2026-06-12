@@ -6,6 +6,7 @@ import com.kymokim.spirit.menu.entity.QMenu;
 import com.kymokim.spirit.store.dto.FacilitiesCondition;
 import com.kymokim.spirit.store.dto.LocationCriteria;
 import com.kymokim.spirit.store.dto.QueryStore;
+import com.kymokim.spirit.store.dto.ResponseStore;
 import com.kymokim.spirit.store.entity.*;
 import com.kymokim.spirit.store.repository.dto.StoreMarkerProjection;
 import com.querydsl.core.BooleanBuilder;
@@ -20,9 +21,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.kymokim.spirit.store.repository.support.StoreExpressions.globalAverageRateExpression;
@@ -460,6 +464,80 @@ public class StoreRepositoryCustomImpl implements StoreRepositoryCustom {
                 .fetch();
         long total = fetchTotal(countQuery, conditions);
         return new PageImpl<>(content, pageable, total);
+    }
+
+    // 반경 내에서 특정 주종의 최저가가 지정 가격 이하인 매장 리스트 반환 (가격 오름차순)
+    @Override
+    public Page<Store> findByDrinkTypeAndMaxPrice(LocationCriteria criteria, DrinkType drinkType, Long maxPrice, Pageable pageable) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
+
+        JPQLQuery<Store> query = queryFactory.selectFrom(store);
+        JPQLQuery<Long> countQuery = queryFactory.select(store.id.countDistinct()).from(store);
+
+        BooleanBuilder conditions = new BooleanBuilder();
+        conditions.and(isActiveStore(store));
+        conditions.and(withinRadius(store, criteria));
+
+        query.join(store.mainDrinks, mainDrink);
+        countQuery.join(store.mainDrinks, mainDrink);
+        conditions.and(drinkTypeEquals(mainDrink, drinkType));
+        conditions.and(mainDrink.price.isNotNull());
+        conditions.and(mainDrink.price.loe(maxPrice));
+
+        query.orderBy(byPriceOrder(mainDrink, Sort.Direction.ASC));
+
+        List<Store> content = query
+                .where(conditions)
+                .distinct()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+        long total = fetchTotal(countQuery, conditions);
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    // 반경 내에서 여러 주종 중 하나라도 지정 가격 이하인 매장 반환 (매장당 최저가 주종 1개)
+    @Override
+    public List<ResponseStore.GetMarkerByDrinkTypesPriceDto> findByDrinkTypesAndMaxPrice(LocationCriteria criteria, Set<DrinkType> drinkTypes, Long maxPrice) {
+        JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
+        QStore store = QStore.store;
+        QMainDrink mainDrink = QMainDrink.mainDrink;
+
+        BooleanBuilder conditions = new BooleanBuilder();
+        conditions.and(isActiveStore(store));
+        conditions.and(withinRadius(store, criteria));
+        conditions.and(drinkTypesIn(mainDrink, drinkTypes));
+        conditions.and(mainDrink.price.isNotNull());
+        conditions.and(mainDrink.price.loe(maxPrice));
+
+        List<ResponseStore.GetMarkerByDrinkTypesPriceDto> rows = queryFactory
+                .select(Projections.constructor(
+                        ResponseStore.GetMarkerByDrinkTypesPriceDto.class,
+                        store.id,
+                        store.location.latitude,
+                        store.location.longitude,
+                        mainDrink.type,
+                        mainDrink.price
+                ))
+                .from(store)
+                .join(store.mainDrinks, mainDrink)
+                .where(conditions)
+                .fetch();
+
+        Map<Long, ResponseStore.GetMarkerByDrinkTypesPriceDto> cheapestByStore = new LinkedHashMap<>();
+        for (ResponseStore.GetMarkerByDrinkTypesPriceDto row : rows) {
+            ResponseStore.GetMarkerByDrinkTypesPriceDto current = cheapestByStore.get(row.getId());
+            if (current == null
+                    || row.getDrinkPrice() < current.getDrinkPrice()
+                    || (row.getDrinkPrice().equals(current.getDrinkPrice())
+                        && row.getDrinkType() == DrinkType.SOJU
+                        && current.getDrinkType() != DrinkType.SOJU)) {
+                cheapestByStore.put(row.getId(), row);
+            }
+        }
+        return new ArrayList<>(cheapestByStore.values());
     }
 
     private double fetchGlobalAverageRate(JPAQueryFactory queryFactory) {

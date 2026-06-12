@@ -115,6 +115,10 @@ jobs:
             echo "    domain: https://dev.team-spirit.click" >> ${APP_CONFIG_FILE}
             echo "jwt:" >> ${APP_CONFIG_FILE}
             echo "  secret: ${{ secrets.JWT_SECRET_DEV }}" >> ${APP_CONFIG_FILE}
+            echo "swagger:" >> ${APP_CONFIG_FILE}
+            echo "  basic:" >> ${APP_CONFIG_FILE}
+            echo "    username: ${{ secrets.SWAGGER_USERNAME }}" >> ${APP_CONFIG_FILE}
+            echo "    password: ${{ secrets.SWAGGER_PASSWORD }}" >> ${APP_CONFIG_FILE}
           fi
           
       # application-S3.properties 생성

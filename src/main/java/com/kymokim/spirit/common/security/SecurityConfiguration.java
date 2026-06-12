@@ -104,31 +104,21 @@ public class SecurityConfiguration{
         return http.build();
     }
 
-    @Bean
-    public PasswordEncoder swaggerPasswordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService swaggerUserDetailsService() {
-        if (!isSwaggerBasicAuthConfigured()) {
-            return new InMemoryUserDetailsManager();
+    // swagger 전용 인증 프로바이더. UserDetailsService/PasswordEncoder를 별도 빈으로 노출하면
+    // 기존 UserDetailsServiceImpl과 충돌(NoUniqueBeanDefinitionException)하므로 내부에서 인라인 구성한다.
+    private AuthenticationProvider swaggerAuthenticationProvider() {
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        if (isSwaggerBasicAuthConfigured()) {
+            manager.createUser(User.builder()
+                    .username(swaggerBasicUsername)
+                    .password(encoder.encode(swaggerBasicPassword))
+                    .roles("SWAGGER")
+                    .build());
         }
-
-        return new InMemoryUserDetailsManager(
-                User.builder()
-                        .username(swaggerBasicUsername)
-                        .password(swaggerPasswordEncoder().encode(swaggerBasicPassword))
-                        .roles("SWAGGER")
-                        .build()
-        );
-    }
-
-    @Bean
-    public AuthenticationProvider swaggerAuthenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(swaggerUserDetailsService());
-        provider.setPasswordEncoder(swaggerPasswordEncoder());
+        provider.setUserDetailsService(manager);
+        provider.setPasswordEncoder(encoder);
         return provider;
     }
 
